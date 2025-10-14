@@ -37,6 +37,8 @@ const navigation = [
   { name: "Compliance", href: "/compliance", icon: FileCheck },
   { name: "AI Grading", href: "/ai-grading", icon: Sparkles },
   { name: "IoT Devices", href: "/iot-devices", icon: Radio },
+  { name: "Analytics", href: "/analytics", icon: Network },
+  { name: "System Monitor", href: "/system-monitoring", icon: ShieldCheck },
   { name: "Automated Reports", href: "/automated-reports", icon: FileText },
   { name: "Mobile Apps", href: "/mobile", icon: Smartphone },
   { name: "RBAC Matrix", href: "/rbac-matrix", icon: ShieldCheck },
