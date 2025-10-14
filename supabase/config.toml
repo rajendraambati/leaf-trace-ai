@@ -2,3 +2,12 @@ project_id = "syhqhdyvyahutymbzllg"
 
 [functions.ai-grading]
 verify_jwt = false
+
+[functions.crop-health-prediction]
+verify_jwt = false
+
+[functions.route-optimization]
+verify_jwt = false
+
+[functions.esg-scoring]
+verify_jwt = false
