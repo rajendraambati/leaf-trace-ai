@@ -62,6 +62,13 @@ export type Database = {
             referencedRelation: "procurement_batches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_ai_gradings_batch"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
         ]
       }
       batch_quality_tests: {
@@ -104,6 +111,13 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "batch_quality_tests_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_batch_quality_tests_batch"
             columns: ["batch_id"]
             isOneToOne: false
             referencedRelation: "procurement_batches"
@@ -261,6 +275,13 @@ export type Database = {
             referencedRelation: "farmers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_farmer_certifications_farmer"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers"
+            referencedColumns: ["id"]
+          },
         ]
       }
       farmer_documents: {
@@ -291,6 +312,13 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "farmer_documents_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_farmer_documents_farmer"
             columns: ["farmer_id"]
             isOneToOne: false
             referencedRelation: "farmers"
@@ -382,6 +410,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_processing_batches_batch"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_processing_batches_unit"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "processing_units"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "processing_batches_batch_id_fkey"
             columns: ["batch_id"]
             isOneToOne: false
@@ -465,6 +507,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_procurement_batches_farmer"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "procurement_batches_farmer_id_fkey"
             columns: ["farmer_id"]
@@ -555,6 +604,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_shipments_batch"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shipments_batch_id_fkey"
             columns: ["batch_id"]
             isOneToOne: false
@@ -613,6 +669,20 @@ export type Database = {
           warehouse_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_warehouse_inventory_batch"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_warehouse_inventory_warehouse"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "warehouse_inventory_batch_id_fkey"
             columns: ["batch_id"]
