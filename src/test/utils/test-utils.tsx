@@ -1,8 +1,11 @@
 import { ReactElement } from 'react';
-import { render, RenderOptions, screen, waitFor } from '@testing-library/react';
+import { render as rtlRender, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
+
+// Re-export everything from testing library
+export * from '@testing-library/react';
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -32,7 +35,6 @@ export function AllProviders({ children }: AllProvidersProps) {
 const customRender = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllProviders, ...options });
+) => rtlRender(ui, { wrapper: AllProviders, ...options });
 
-export * from '@testing-library/react';
-export { customRender as render, screen, waitFor };
+export { customRender as render };
