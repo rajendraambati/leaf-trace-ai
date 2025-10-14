@@ -16,6 +16,9 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'pwa-192x192.png', 'pwa-512x512.png'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MiB
+      },
       manifest: {
         name: 'TobaccoTrace - AI Supply Chain',
         short_name: 'TobaccoTrace',
@@ -52,6 +55,19 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          'charts': ['recharts'],
+          'maps': ['leaflet', 'react-leaflet'],
+          'supabase': ['@supabase/supabase-js'],
+        },
+      },
     },
   },
   optimizeDeps: {
