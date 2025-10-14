@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Layers, Database, Cloud, Shield, Cpu, Smartphone,
-  Network, GitBranch, Lock, Zap, ArrowRight
+  Network, GitBranch, Lock, Zap, ArrowRight, Table
 } from "lucide-react";
 
 export default function Architecture() {
