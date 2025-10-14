@@ -64,6 +64,54 @@ export type Database = {
           },
         ]
       }
+      ai_usage_analytics: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          feature_type: string
+          id: string
+          input_data: Json | null
+          model_name: string | null
+          output_data: Json | null
+          success: boolean | null
+          user_accepted: boolean | null
+          user_id: string | null
+          user_modified: boolean | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          feature_type: string
+          id?: string
+          input_data?: Json | null
+          model_name?: string | null
+          output_data?: Json | null
+          success?: boolean | null
+          user_accepted?: boolean | null
+          user_id?: string | null
+          user_modified?: boolean | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          feature_type?: string
+          id?: string
+          input_data?: Json | null
+          model_name?: string | null
+          output_data?: Json | null
+          success?: boolean | null
+          user_accepted?: boolean | null
+          user_id?: string | null
+          user_modified?: boolean | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -412,6 +460,42 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      model_performance_metrics: {
+        Row: {
+          calculated_at: string | null
+          feature_type: string
+          id: string
+          metric_type: string
+          metric_value: number
+          model_version: string
+          period_end: string | null
+          period_start: string | null
+          sample_size: number | null
+        }
+        Insert: {
+          calculated_at?: string | null
+          feature_type: string
+          id?: string
+          metric_type: string
+          metric_value: number
+          model_version: string
+          period_end?: string | null
+          period_start?: string | null
+          sample_size?: number | null
+        }
+        Update: {
+          calculated_at?: string | null
+          feature_type?: string
+          id?: string
+          metric_type?: string
+          metric_value?: number
+          model_version?: string
+          period_end?: string | null
+          period_start?: string | null
+          sample_size?: number | null
         }
         Relationships: []
       }
@@ -799,6 +883,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_feedback: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          feature_type: string
+          feedback_text: string | null
+          id: string
+          rating: number | null
+          resource_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          feature_type: string
+          feedback_text?: string | null
+          id?: string
+          rating?: number | null
+          resource_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          feature_type?: string
+          feedback_text?: string | null
+          id?: string
+          rating?: number | null
+          resource_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
