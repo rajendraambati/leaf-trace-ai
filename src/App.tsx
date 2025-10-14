@@ -15,6 +15,10 @@ import Processing from "./pages/Processing";
 import Compliance from "./pages/Compliance";
 import AIGrading from "./pages/AIGrading";
 import IoTDevices from "./pages/IoTDevices";
+import FarmerRegistration from "./pages/FarmerRegistration";
+import TechnicianActivity from "./pages/TechnicianActivity";
+import QRScanner from "./pages/QRScanner";
+import MobileHub from "./pages/MobileHub";
 import Features from "./pages/Features";
 import Architecture from "./pages/Architecture";
 import Auth from "./pages/Auth";
@@ -40,6 +44,10 @@ const App = () => (
             <Route path="/compliance" element={<ProtectedRoute><Layout><Compliance /></Layout></ProtectedRoute>} />
             <Route path="/ai-grading" element={<ProtectedRoute><Layout><AIGrading /></Layout></ProtectedRoute>} />
             <Route path="/iot-devices" element={<ProtectedRoute><Layout><IoTDevices /></Layout></ProtectedRoute>} />
+            <Route path="/mobile" element={<ProtectedRoute><MobileHub /></ProtectedRoute>} />
+            <Route path="/mobile/farmer-registration" element={<ProtectedRoute><FarmerRegistration /></ProtectedRoute>} />
+            <Route path="/mobile/technician-activity" element={<ProtectedRoute><TechnicianActivity /></ProtectedRoute>} />
+            <Route path="/mobile/qr-scanner" element={<ProtectedRoute><QRScanner /></ProtectedRoute>} />
             <Route path="/features" element={<ProtectedRoute><Layout><Features /></Layout></ProtectedRoute>} />
             <Route path="/architecture" element={<ProtectedRoute><Layout><Architecture /></Layout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

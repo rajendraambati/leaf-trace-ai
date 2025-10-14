@@ -14,7 +14,8 @@ import {
   X,
   Layers,
   Network,
-  Radio
+  Radio,
+  Smartphone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const navigation = [
   { name: "Compliance", href: "/compliance", icon: FileCheck },
   { name: "AI Grading", href: "/ai-grading", icon: Sparkles },
   { name: "IoT Devices", href: "/iot-devices", icon: Radio },
+  { name: "Mobile Apps", href: "/mobile", icon: Smartphone },
   { name: "Features", href: "/features", icon: Layers },
   { name: "Architecture", href: "/architecture", icon: Network },
 ];
