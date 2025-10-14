@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Layers, Database, Cloud, Shield, Cpu, Smartphone,
-  Network, GitBranch, Lock, Zap
+  Network, GitBranch, Lock, Zap, ArrowRight
 } from "lucide-react";
 
 export default function Architecture() {
@@ -280,57 +280,62 @@ export default function Architecture() {
               <div className="space-y-4">
                 <div className="flex items-center gap-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">1</div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold">Farmer Registration</h4>
                     <p className="text-sm text-muted-foreground">
                       Farmer profile created with location, certifications, and farm details
                     </p>
                   </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
 
                 <div className="flex items-center gap-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">2</div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold">Procurement & AI Grading</h4>
                     <p className="text-sm text-muted-foreground">
                       Batch created → QR code generated → AI analyzes quality → Grades stored
                     </p>
                   </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
 
                 <div className="flex items-center gap-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">3</div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold">Shipment Creation</h4>
                     <p className="text-sm text-muted-foreground">
                       Logistics creates shipment → GPS tracking enabled → Temperature monitoring active
                     </p>
                   </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
 
                 <div className="flex items-center gap-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">4</div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold">Warehouse Storage</h4>
                     <p className="text-sm text-muted-foreground">
                       Delivery confirmed → Inventory updated → IoT sensors monitor conditions
                     </p>
                   </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
 
                 <div className="flex items-center gap-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">5</div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold">Processing</h4>
                     <p className="text-sm text-muted-foreground">
                       Stock released → Processing units transform tobacco → Quality tracked
                     </p>
                   </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
 
                 <div className="flex items-center gap-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">6</div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold">Compliance & Reporting</h4>
                     <p className="text-sm text-muted-foreground">
                       Audits conducted → ESG scores calculated → Reports generated → Feedback to farmer
