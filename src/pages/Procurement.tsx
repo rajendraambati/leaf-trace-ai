@@ -50,6 +50,9 @@ export default function Procurement() {
     grade: "",
     price_per_kg: "",
   });
+  const [capturedImage, setCapturedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [gradingImage, setGradingImage] = useState(false);
 
   useEffect(() => {
     fetchProcurements();
@@ -90,14 +93,77 @@ export default function Procurement() {
     setFarmers(data || []);
   };
 
+  const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Image must be less than 10MB");
+        return;
+      }
+      setCapturedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async () => {
     const batchId = `BATCH-${Date.now()}`;
+    let finalGrade = formData.grade;
+    
+    // If image captured, grade it with AI first
+    if (capturedImage) {
+      setGradingImage(true);
+      try {
+        // Upload image
+        const fileExt = capturedImage.name.split('.').pop();
+        const fileName = `${batchId}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('tobacco-images')
+          .upload(fileName, capturedImage);
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('tobacco-images')
+          .getPublicUrl(fileName);
+
+        // Call AI grading
+        const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-grading', {
+          body: { imageUrl: publicUrl }
+        });
+
+        if (aiError) throw aiError;
+
+        // Store AI grading result
+        await supabase.from('ai_gradings').insert({
+          batch_id: batchId,
+          image_url: publicUrl,
+          ai_grade: aiData.ai_grade,
+          quality_score: aiData.quality_score,
+          crop_health_score: aiData.crop_health_score,
+          esg_score: aiData.esg_score,
+          confidence: aiData.confidence,
+          defects_detected: aiData.defects_detected || [],
+          recommendations: aiData.recommendations || []
+        });
+
+        // Use AI grade
+        finalGrade = aiData.ai_grade;
+        toast.success(`AI Grading Complete: ${aiData.ai_grade} (${aiData.confidence}% confidence)`);
+      } catch (error: any) {
+        console.error('AI grading error:', error);
+        toast.error('AI grading failed, using manual grade');
+      } finally {
+        setGradingImage(false);
+      }
+    }
     
     const { error } = await supabase.from('procurement_batches').insert({
       id: batchId,
       farmer_id: formData.farmer_id,
       quantity_kg: parseFloat(formData.quantity_kg),
-      grade: formData.grade,
+      grade: finalGrade,
       price_per_kg: parseFloat(formData.price_per_kg),
       status: 'pending',
       qr_code: generateBatchQRData(batchId),
@@ -110,6 +176,8 @@ export default function Procurement() {
       toast.success('Batch created successfully');
       setOpen(false);
       setFormData({ farmer_id: "", quantity_kg: "", grade: "", price_per_kg: "" });
+      setCapturedImage(null);
+      setImagePreview(null);
     }
   };
 
@@ -179,8 +247,37 @@ export default function Procurement() {
                 <Label htmlFor="price">Price per kg ($)</Label>
                 <Input id="price" type="number" step="0.01" placeholder="0.00" value={formData.price_per_kg} onChange={(e) => setFormData({...formData, price_per_kg: e.target.value})} />
               </div>
-              <Button className="w-full" onClick={handleSubmit}>
-                Create Batch
+              
+              <div className="space-y-2">
+                <Label htmlFor="photo">Photo (Optional - AI Grading)</Label>
+                <label htmlFor="photo" className="cursor-pointer">
+                  <input
+                    id="photo"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleCameraCapture}
+                  />
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                    {imagePreview ? (
+                      <div className="space-y-2">
+                        <img src={imagePreview} alt="Captured" className="max-h-32 mx-auto rounded" />
+                        <p className="text-xs text-muted-foreground">AI will grade this batch</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Camera className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm font-medium">Capture Tobacco Sample</p>
+                        <p className="text-xs text-muted-foreground">AI will analyze & assign grade</p>
+                      </>
+                    )}
+                  </div>
+                </label>
+              </div>
+              
+              <Button className="w-full" onClick={handleSubmit} disabled={gradingImage}>
+                {gradingImage ? "AI Grading..." : "Create Batch"}
               </Button>
             </div>
           </DialogContent>

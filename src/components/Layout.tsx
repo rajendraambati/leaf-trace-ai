@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   Layers,
-  Network
+  Network,
+  Radio
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ const navigation = [
   { name: "Processing", href: "/processing", icon: Factory },
   { name: "Compliance", href: "/compliance", icon: FileCheck },
   { name: "AI Grading", href: "/ai-grading", icon: Sparkles },
+  { name: "IoT Devices", href: "/iot-devices", icon: Radio },
   { name: "Features", href: "/features", icon: Layers },
   { name: "Architecture", href: "/architecture", icon: Network },
 ];

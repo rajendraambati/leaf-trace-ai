@@ -14,6 +14,7 @@ import Warehouse from "./pages/Warehouse";
 import Processing from "./pages/Processing";
 import Compliance from "./pages/Compliance";
 import AIGrading from "./pages/AIGrading";
+import IoTDevices from "./pages/IoTDevices";
 import Features from "./pages/Features";
 import Architecture from "./pages/Architecture";
 import Auth from "./pages/Auth";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/processing" element={<ProtectedRoute><Layout><Processing /></Layout></ProtectedRoute>} />
             <Route path="/compliance" element={<ProtectedRoute><Layout><Compliance /></Layout></ProtectedRoute>} />
             <Route path="/ai-grading" element={<ProtectedRoute><Layout><AIGrading /></Layout></ProtectedRoute>} />
+            <Route path="/iot-devices" element={<ProtectedRoute><Layout><IoTDevices /></Layout></ProtectedRoute>} />
             <Route path="/features" element={<ProtectedRoute><Layout><Features /></Layout></ProtectedRoute>} />
             <Route path="/architecture" element={<ProtectedRoute><Layout><Architecture /></Layout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
