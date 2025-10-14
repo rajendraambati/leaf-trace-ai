@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.compliance-reporting]
 verify_jwt = false
+
+[functions.mqtt-handler]
+verify_jwt = false
