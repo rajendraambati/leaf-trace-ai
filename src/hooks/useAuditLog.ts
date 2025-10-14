@@ -10,7 +10,7 @@ interface AuditLogParams {
   errorMessage?: string;
 }
 
-export const useAuditLog = () => {
+export function useAuditLog() {
   const { user, userRole } = useAuth();
 
   const logAction = async ({
@@ -22,7 +22,11 @@ export const useAuditLog = () => {
     errorMessage,
   }: AuditLogParams) => {
     try {
-      const { error } = await supabase.from('audit_logs').insert({
+      // Get client IP and user agent if available
+      const ipAddress = window.location.hostname;
+      const userAgent = navigator.userAgent;
+
+      await supabase.from('audit_logs').insert({
         user_id: user?.id,
         user_email: user?.email,
         user_role: userRole,
@@ -30,17 +34,15 @@ export const useAuditLog = () => {
         resource,
         resource_id: resourceId,
         data_snapshot: dataSnapshot,
+        ip_address: ipAddress,
+        user_agent: userAgent,
         status,
         error_message: errorMessage,
       });
-
-      if (error) {
-        console.error('Failed to log audit event:', error);
-      }
     } catch (error) {
-      console.error('Error logging audit event:', error);
+      console.error('Failed to log audit event:', error);
     }
   };
 
   return { logAction };
-};
+}
