@@ -26,6 +26,7 @@ import AutomatedReports from "./pages/AutomatedReports";
 import SystemMonitoring from "./pages/SystemMonitoring";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import AIInsights from "./pages/AIInsights";
+import TrainingSupport from "./pages/TrainingSupport";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/automated-reports" element={<ProtectedRoute><Layout><AutomatedReports /></Layout></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Layout><AnalyticsDashboard /></Layout></ProtectedRoute>} />
             <Route path="/ai-insights" element={<ProtectedRoute><Layout><AIInsights /></Layout></ProtectedRoute>} />
+            <Route path="/training-support" element={<ProtectedRoute><Layout><TrainingSupport /></Layout></ProtectedRoute>} />
             <Route path="/system-monitoring" element={<ProtectedRoute><Layout><SystemMonitoring /></Layout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

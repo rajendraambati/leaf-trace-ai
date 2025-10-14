@@ -19,7 +19,8 @@ import {
   ShieldCheck,
   FileText,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  GraduationCap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ const navigation = [
   { name: "IoT Devices", href: "/iot-devices", icon: Radio },
   { name: "Analytics", href: "/analytics", icon: TrendingUp },
   { name: "AI Insights", href: "/ai-insights", icon: MessageSquare },
+  { name: "Training & Support", href: "/training-support", icon: GraduationCap },
   { name: "System Monitor", href: "/system-monitoring", icon: ShieldCheck },
   { name: "Automated Reports", href: "/automated-reports", icon: FileText },
   { name: "Mobile Apps", href: "/mobile", icon: Smartphone },
