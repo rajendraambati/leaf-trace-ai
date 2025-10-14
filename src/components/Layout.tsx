@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
 
 interface LayoutProps {
@@ -80,6 +81,38 @@ export default function Layout({ children }: LayoutProps) {
               <X className="h-5 w-5" />
             </Button>
           </div>
+          <ScrollArea className="h-[calc(100vh-4rem)]">
+            <nav className="flex flex-col gap-1 p-4">
+              {navigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+          </ScrollArea>
+        </div>
+      </div>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-64 lg:border-r lg:border-border lg:bg-card">
+        <div className="flex h-16 items-center px-6 border-b border-border">
+          <h1 className="text-xl font-bold text-primary">TobaccoTrace</h1>
+        </div>
+        <ScrollArea className="h-[calc(100vh-4rem)]">
           <nav className="flex flex-col gap-1 p-4">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
@@ -93,7 +126,6 @@ export default function Layout({ children }: LayoutProps) {
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
-                  onClick={() => setSidebarOpen(false)}
                 >
                   <item.icon className="h-5 w-5" />
                   {item.name}
@@ -101,34 +133,7 @@ export default function Layout({ children }: LayoutProps) {
               );
             })}
           </nav>
-        </div>
-      </div>
-
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:w-64 lg:border-r lg:border-border lg:bg-card">
-        <div className="flex h-16 items-center px-6 border-b border-border">
-          <h1 className="text-xl font-bold text-primary">TobaccoTrace</h1>
-        </div>
-        <nav className="flex flex-col gap-1 p-4">
-          {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
+        </ScrollArea>
       </aside>
 
       {/* Main content */}
