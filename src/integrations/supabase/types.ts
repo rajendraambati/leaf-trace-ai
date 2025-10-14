@@ -64,6 +64,57 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          data_snapshot: Json | null
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          resource: string
+          resource_id: string | null
+          status: string | null
+          timestamp: string
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          data_snapshot?: Json | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          resource: string
+          resource_id?: string | null
+          status?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          data_snapshot?: Json | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          resource?: string
+          resource_id?: string | null
+          status?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       batch_quality_tests: {
         Row: {
           ai_confidence: number | null
