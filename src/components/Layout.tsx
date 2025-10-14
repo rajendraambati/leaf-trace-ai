@@ -6,7 +6,7 @@ import {
   ShoppingCart, 
   Truck, 
   Warehouse, 
-  Settings,
+  LogOut,
   Factory,
   FileCheck,
   Sparkles,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,6 +35,7 @@ const navigation = [
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { signOut, user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,9 +124,16 @@ export default function Layout({ children }: LayoutProps) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex-1" />
-          <Button variant="ghost" size="icon">
-            <Settings className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {user && (
+              <span className="text-sm text-muted-foreground hidden sm:block">
+                {user.email}
+              </span>
+            )}
+            <Button variant="ghost" size="icon" onClick={signOut}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </header>
         <main className="p-4 lg:p-6">{children}</main>
       </div>
