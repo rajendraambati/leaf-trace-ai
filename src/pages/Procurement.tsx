@@ -1,5 +1,9 @@
-import { useState } from "react";
-import { Plus, Calendar, Weight, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Calendar, Weight, DollarSign, Camera, Download } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
+import { generateBatchQRData } from "@/utils/qrcode";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/StatusBadge";
@@ -20,47 +24,108 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const procurements = [
-  {
-    id: "BATCH-2024-001",
-    farmer: "John Smith",
-    date: "2024-01-15",
-    quantity: "2,500 kg",
-    grade: "Premium",
-    price: "$12,500",
-    status: "approved" as const,
-  },
-  {
-    id: "BATCH-2024-002",
-    farmer: "Maria Garcia",
-    date: "2024-01-14",
-    quantity: "1,800 kg",
-    grade: "Standard",
-    price: "$8,100",
-    status: "pending" as const,
-  },
-  {
-    id: "BATCH-2024-003",
-    farmer: "Ahmed Hassan",
-    date: "2024-01-13",
-    quantity: "3,200 kg",
-    grade: "Premium",
-    price: "$16,000",
-    status: "approved" as const,
-  },
-  {
-    id: "BATCH-2024-004",
-    farmer: "Li Wei",
-    date: "2024-01-12",
-    quantity: "2,100 kg",
-    grade: "Standard",
-    price: "$9,450",
-    status: "processing" as const,
-  },
-];
+interface ProcurementBatch {
+  id: string;
+  farmer_id: string;
+  quantity_kg: number;
+  grade: string;
+  price_per_kg: number;
+  total_price: number;
+  status: string;
+  procurement_date: string;
+  qr_code: string | null;
+  farmers?: { name: string };
+}
 
 export default function Procurement() {
   const [open, setOpen] = useState(false);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [selectedBatch, setSelectedBatch] = useState<ProcurementBatch | null>(null);
+  const [procurements, setProcurements] = useState<ProcurementBatch[]>([]);
+  const [farmers, setFarmers] = useState<Array<{ id: string; name: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    farmer_id: "",
+    quantity_kg: "",
+    grade: "",
+    price_per_kg: "",
+  });
+
+  useEffect(() => {
+    fetchProcurements();
+    fetchFarmers();
+    
+    // Setup realtime subscription
+    const channel = supabase
+      .channel('procurement_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'procurement_batches' }, () => {
+        fetchProcurements();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchProcurements = async () => {
+    const { data, error } = await supabase
+      .from('procurement_batches')
+      .select('*, farmers(name)')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      toast.error('Failed to fetch procurement batches');
+    } else {
+      setProcurements(data || []);
+    }
+    setLoading(false);
+  };
+
+  const fetchFarmers = async () => {
+    const { data } = await supabase
+      .from('farmers')
+      .select('id, name')
+      .eq('status', 'active');
+    setFarmers(data || []);
+  };
+
+  const handleSubmit = async () => {
+    const totalPrice = parseFloat(formData.quantity_kg) * parseFloat(formData.price_per_kg);
+    const batchId = `BATCH-${Date.now()}`;
+    
+    const { error } = await supabase.from('procurement_batches').insert({
+      id: batchId,
+      farmer_id: formData.farmer_id,
+      quantity_kg: parseFloat(formData.quantity_kg),
+      grade: formData.grade,
+      price_per_kg: parseFloat(formData.price_per_kg),
+      total_price: totalPrice,
+      status: 'pending',
+      qr_code: generateBatchQRData(batchId),
+    });
+
+    if (error) {
+      toast.error('Failed to create batch');
+    } else {
+      toast.success('Batch created successfully');
+      setOpen(false);
+      setFormData({ farmer_id: "", quantity_kg: "", grade: "", price_per_kg: "" });
+    }
+  };
+
+  const handleAIGrade = async (batchId: string) => {
+    toast.info('Starting AI grading analysis...');
+    const { data, error } = await supabase.functions.invoke('ai-grading', {
+      body: { batchId, imageUrl: null }
+    });
+
+    if (error) {
+      toast.error('AI grading failed');
+    } else {
+      toast.success(`AI Grade: ${data.ai_grade} (Confidence: ${data.confidence}%)`);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -85,39 +150,37 @@ export default function Procurement() {
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="farmer">Select Farmer</Label>
-                <Select>
+                <Select value={formData.farmer_id} onValueChange={(v) => setFormData({...formData, farmer_id: v})}>
                   <SelectTrigger id="farmer">
                     <SelectValue placeholder="Choose farmer" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="f1">John Smith</SelectItem>
-                    <SelectItem value="f2">Maria Garcia</SelectItem>
-                    <SelectItem value="f3">Ahmed Hassan</SelectItem>
+                    {farmers.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="quantity">Quantity (kg)</Label>
-                <Input id="quantity" type="number" placeholder="0" />
+                <Input id="quantity" type="number" placeholder="0" value={formData.quantity_kg} onChange={(e) => setFormData({...formData, quantity_kg: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="grade">Grade</Label>
-                <Select>
+                <Select value={formData.grade} onValueChange={(v) => setFormData({...formData, grade: v})}>
                   <SelectTrigger id="grade">
                     <SelectValue placeholder="Select grade" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="premium">Premium</SelectItem>
-                    <SelectItem value="standard">Standard</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="Premium">Premium</SelectItem>
+                    <SelectItem value="Standard">Standard</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price">Price per kg ($)</Label>
-                <Input id="price" type="number" step="0.01" placeholder="0.00" />
+                <Input id="price" type="number" step="0.01" placeholder="0.00" value={formData.price_per_kg} onChange={(e) => setFormData({...formData, price_per_kg: e.target.value})} />
               </div>
-              <Button className="w-full" onClick={() => setOpen(false)}>
+              <Button className="w-full" onClick={handleSubmit}>
                 Create Batch
               </Button>
             </div>
@@ -135,7 +198,7 @@ export default function Procurement() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Weight className="h-5 w-5 text-primary" />
-              <span className="text-2xl font-bold">9,600 kg</span>
+              <span className="text-2xl font-bold">{procurements.reduce((sum, p) => sum + p.quantity_kg, 0).toLocaleString()} kg</span>
             </div>
           </CardContent>
         </Card>
@@ -148,20 +211,20 @@ export default function Procurement() {
           <CardContent>
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-success" />
-              <span className="text-2xl font-bold">$46,050</span>
+              <span className="text-2xl font-bold">${procurements.reduce((sum, p) => sum + (p.total_price || 0), 0).toLocaleString()}</span>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              This Month
+              Total Batches
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-accent" />
-              <span className="text-2xl font-bold">4 Batches</span>
+              <span className="text-2xl font-bold">{procurements.length} Batches</span>
             </div>
           </CardContent>
         </Card>
@@ -172,34 +235,59 @@ export default function Procurement() {
           <CardTitle>Procurement Batches</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {procurements.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <p className="font-semibold">{item.id}</p>
-                    <StatusBadge status={item.status} />
+          {loading ? (
+            <p className="text-center text-muted-foreground py-8">Loading batches...</p>
+          ) : procurements.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No batches found</p>
+          ) : (
+            <div className="space-y-3">
+              {procurements.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors gap-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <p className="font-semibold truncate">{item.id}</p>
+                      <StatusBadge status={item.status as any} />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1 truncate">{item.farmers?.name}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{item.farmer}</p>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{item.quantity_kg} kg</p>
+                      <p className="text-xs text-muted-foreground">{item.grade}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">${item.total_price?.toFixed(2)}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(item.procurement_date).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => handleAIGrade(item.id)}>
+                        <Camera className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedBatch(item); setQrDialogOpen(true); }}>
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{item.quantity}</p>
-                    <p className="text-xs text-muted-foreground">{item.grade}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{item.price}</p>
-                    <p className="text-xs text-muted-foreground">{item.date}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Batch QR Code</DialogTitle>
+          </DialogHeader>
+          {selectedBatch && selectedBatch.qr_code && (
+            <QRCodeDisplay data={selectedBatch.qr_code} title={`Batch ${selectedBatch.id}`} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

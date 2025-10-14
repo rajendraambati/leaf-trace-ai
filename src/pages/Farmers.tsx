@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, MapPin, Phone, Mail } from "lucide-react";
+import { Plus, Search, MapPin, Phone, Mail, Map as MapIcon } from "lucide-react";
+import { MapView, Location } from "@/components/MapView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ export default function Farmers() {
   const [farmers, setFarmers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -32,6 +34,18 @@ export default function Farmers() {
 
   useEffect(() => {
     fetchFarmers();
+    
+    // Setup realtime subscription
+    const channel = supabase
+      .channel('farmers_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'farmers' }, () => {
+        fetchFarmers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchFarmers = async () => {
@@ -89,26 +103,40 @@ export default function Farmers() {
       farmer.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const farmerLocations: Location[] = farmers
+    .filter(f => f.geo_latitude && f.geo_longitude)
+    .map(f => ({
+      lat: f.geo_latitude!,
+      lng: f.geo_longitude!,
+      name: f.name,
+      status: f.status
+    }));
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Farmer Management</h1>
           <p className="text-muted-foreground mt-1">
             Register and manage tobacco farmers in your supply chain
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Register Farmer
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowMap(!showMap)}>
+            <MapIcon className="h-4 w-4 mr-2" />
+            {showMap ? 'Show List' : 'Show Map'}
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Register Farmer
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Register New Farmer</DialogTitle>
@@ -167,20 +195,25 @@ export default function Farmers() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search farmers by name or location..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
-      </div>
+      {showMap ? (
+        <MapView locations={farmerLocations} />
+      ) : (
+        <>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search farmers by name or location..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredFarmers.map((farmer) => (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredFarmers.map((farmer) => (
           <Card key={farmer.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -214,9 +247,11 @@ export default function Farmers() {
                 </p>
               </div>
             </CardContent>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
