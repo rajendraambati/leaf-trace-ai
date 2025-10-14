@@ -91,7 +91,6 @@ export default function Procurement() {
   };
 
   const handleSubmit = async () => {
-    const totalPrice = parseFloat(formData.quantity_kg) * parseFloat(formData.price_per_kg);
     const batchId = `BATCH-${Date.now()}`;
     
     const { error } = await supabase.from('procurement_batches').insert({
@@ -100,7 +99,6 @@ export default function Procurement() {
       quantity_kg: parseFloat(formData.quantity_kg),
       grade: formData.grade,
       price_per_kg: parseFloat(formData.price_per_kg),
-      total_price: totalPrice,
       status: 'pending',
       qr_code: generateBatchQRData(batchId),
     });
