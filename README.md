@@ -70,6 +70,12 @@ npm run test:coverage
 
 # Run tests once (CI mode)
 npm run test:run
+
+# Run end-to-end traceability tests
+npm run test:e2e
+
+# Seed test data for E2E testing
+npm run test:seed
 ```
 
 ### Test Structure
@@ -85,8 +91,21 @@ src/test/
 │   └── utils/                 # Utility function tests
 └── integration/
     ├── data-integrity.test.ts # Data validation tests
-    └── edge-functions/        # API endpoint tests
+    ├── edge-functions/        # API endpoint tests
+    └── e2e/                   # End-to-end tests
+        ├── traceability.test.ts     # Full supply chain simulation
+        ├── seed-test-data.ts        # Test data seeding
+        └── run-e2e-tests.md         # E2E testing guide
 ```
+
+### E2E Test Coverage
+
+- **Complete Traceability**: Farmer → Procurement → AI Grading → Warehouse → Logistics → Compliance
+- **AI Predictions**: Confidence validation, quality scoring, defect detection
+- **Logistics Tracking**: GPS coordinates, temperature monitoring, status progression
+- **Compliance Reporting**: GST/FCTC/ESG reports, certification tracking, audit trails
+
+See `src/test/integration/e2e/run-e2e-tests.md` for detailed E2E testing guide.
 
 ## Security Features
 
