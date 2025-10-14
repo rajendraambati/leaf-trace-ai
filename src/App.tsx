@@ -14,6 +14,7 @@ import Warehouse from "./pages/Warehouse";
 import Processing from "./pages/Processing";
 import Compliance from "./pages/Compliance";
 import AIGrading from "./pages/AIGrading";
+import Features from "./pages/Features";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/processing" element={<ProtectedRoute><Layout><Processing /></Layout></ProtectedRoute>} />
             <Route path="/compliance" element={<ProtectedRoute><Layout><Compliance /></Layout></ProtectedRoute>} />
             <Route path="/ai-grading" element={<ProtectedRoute><Layout><AIGrading /></Layout></ProtectedRoute>} />
+            <Route path="/features" element={<ProtectedRoute><Layout><Features /></Layout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

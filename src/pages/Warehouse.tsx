@@ -57,7 +57,7 @@ export default function Warehouse() {
           title="Total Stock"
           value={`${totalStock.toLocaleString()} kg`}
           icon={Package}
-          trend={{ value: 12, label: "vs last month" }}
+          trend={{ value: 12, isPositive: true }}
         />
         <StatCard
           title="Avg. Capacity"
@@ -68,7 +68,7 @@ export default function Warehouse() {
           title="Alerts"
           value={alerts.toString()}
           icon={AlertTriangle}
-          variant={alerts > 0 ? "destructive" : "default"}
+          className={alerts > 0 ? "border-destructive" : ""}
         />
         <StatCard
           title="Warehouses"
