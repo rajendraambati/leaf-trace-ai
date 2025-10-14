@@ -12,7 +12,8 @@ import {
   Sparkles,
   Menu,
   X,
-  Layers
+  Layers,
+  Network
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ const navigation = [
   { name: "Compliance", href: "/compliance", icon: FileCheck },
   { name: "AI Grading", href: "/ai-grading", icon: Sparkles },
   { name: "Features", href: "/features", icon: Layers },
+  { name: "Architecture", href: "/architecture", icon: Network },
 ];
 
 export default function Layout({ children }: LayoutProps) {
