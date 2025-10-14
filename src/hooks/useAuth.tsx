@@ -53,13 +53,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchUserRole = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
-    
-    setUserRole(data?.role ?? null);
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .limit(1);
+      
+      if (error) {
+        console.error('Error fetching user role:', error);
+        setUserRole(null);
+        return;
+      }
+      
+      // Get the first role if multiple exist
+      setUserRole(data?.[0]?.role ?? null);
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      setUserRole(null);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -116,19 +128,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Clear local state first
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
       
-      toast({
-        title: "Success",
-        description: "Signed out successfully",
-      });
+      // Attempt to sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      // Navigate to auth page even if there's a session error
+      // (user might already be logged out)
       navigate('/auth');
+      
+      if (error) {
+        // Only show error if it's not a session-related issue
+        if (!error.message.includes('session')) {
+          console.error('Sign out error:', error);
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: "Signed out successfully",
+        });
+      }
     } catch (error: any) {
+      // Clear state and navigate even on error
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      navigate('/auth');
+      
+      console.error('Sign out error:', error);
       toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+        title: "Signed out",
+        description: "You have been signed out",
       });
     }
   };
