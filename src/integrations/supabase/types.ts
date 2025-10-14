@@ -591,6 +591,68 @@ export type Database = {
         }
         Relationships: []
       }
+      report_submissions: {
+        Row: {
+          error_message: string | null
+          file_url: string | null
+          format: string
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          period_end: string
+          period_start: string
+          portal_response: Json | null
+          portal_submission_id: string | null
+          portal_submitted: boolean | null
+          report_type: string
+          scheduled_report_id: string | null
+          status: string | null
+          submitted_at: string | null
+        }
+        Insert: {
+          error_message?: string | null
+          file_url?: string | null
+          format: string
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          period_end: string
+          period_start: string
+          portal_response?: Json | null
+          portal_submission_id?: string | null
+          portal_submitted?: boolean | null
+          report_type: string
+          scheduled_report_id?: string | null
+          status?: string | null
+          submitted_at?: string | null
+        }
+        Update: {
+          error_message?: string | null
+          file_url?: string | null
+          format?: string
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          portal_response?: Json | null
+          portal_submission_id?: string | null
+          portal_submitted?: boolean | null
+          report_type?: string
+          scheduled_report_id?: string | null
+          status?: string | null
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_submissions_scheduled_report_id_fkey"
+            columns: ["scheduled_report_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           action: string
@@ -615,6 +677,54 @@ export type Database = {
           id?: string
           resource?: string
           role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
+      scheduled_reports: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          enabled: boolean | null
+          format: string | null
+          id: string
+          last_run: string | null
+          next_run: string | null
+          portal_credentials: Json | null
+          portal_submission: boolean | null
+          portal_url: string | null
+          report_type: string
+          schedule_cron: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          enabled?: boolean | null
+          format?: string | null
+          id?: string
+          last_run?: string | null
+          next_run?: string | null
+          portal_credentials?: Json | null
+          portal_submission?: boolean | null
+          portal_url?: string | null
+          report_type: string
+          schedule_cron: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          enabled?: boolean | null
+          format?: string | null
+          id?: string
+          last_run?: string | null
+          next_run?: string | null
+          portal_credentials?: Json | null
+          portal_submission?: boolean | null
+          portal_url?: string | null
+          report_type?: string
+          schedule_cron?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

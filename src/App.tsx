@@ -22,6 +22,7 @@ import MobileHub from "./pages/MobileHub";
 import Features from "./pages/Features";
 import Architecture from "./pages/Architecture";
 import RBACMatrix from "./pages/RBACMatrix";
+import AutomatedReports from "./pages/AutomatedReports";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/features" element={<ProtectedRoute><Layout><Features /></Layout></ProtectedRoute>} />
             <Route path="/architecture" element={<ProtectedRoute><Layout><Architecture /></Layout></ProtectedRoute>} />
             <Route path="/rbac-matrix" element={<ProtectedRoute><Layout><RBACMatrix /></Layout></ProtectedRoute>} />
+            <Route path="/automated-reports" element={<ProtectedRoute><Layout><AutomatedReports /></Layout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

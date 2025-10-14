@@ -16,7 +16,8 @@ import {
   Network,
   Radio,
   Smartphone,
-  ShieldCheck
+  ShieldCheck,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ const navigation = [
   { name: "Compliance", href: "/compliance", icon: FileCheck },
   { name: "AI Grading", href: "/ai-grading", icon: Sparkles },
   { name: "IoT Devices", href: "/iot-devices", icon: Radio },
+  { name: "Automated Reports", href: "/automated-reports", icon: FileText },
   { name: "Mobile Apps", href: "/mobile", icon: Smartphone },
   { name: "RBAC Matrix", href: "/rbac-matrix", icon: ShieldCheck },
   { name: "Features", href: "/features", icon: Layers },
