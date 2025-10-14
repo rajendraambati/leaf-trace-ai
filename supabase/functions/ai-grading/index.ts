@@ -12,12 +12,18 @@ serve(async (req) => {
   }
 
   try {
-    const { imageUrl, batchId } = await req.json();
+    const { imageUrl } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
+
+    if (!imageUrl) {
+      throw new Error('Image URL is required');
+    }
+
+    console.log('Analyzing tobacco image:', imageUrl);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -30,16 +36,28 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert tobacco quality grading AI. Analyze tobacco images and provide detailed assessments including grade (Premium/Standard/Low), quality score (0-100), crop health score (0-100), ESG score (0-100), detected defects, and recommendations. Return JSON format only.'
+            content: `You are an expert tobacco quality grading AI. Analyze tobacco leaf images and provide detailed assessments. 
+            
+Return ONLY valid JSON with this exact structure:
+{
+  "ai_grade": "Premium" | "Standard" | "Low",
+  "quality_score": number (0-100),
+  "crop_health_score": number (0-100),
+  "esg_score": number (0-100),
+  "color_score": number (0-100),
+  "texture_score": number (0-100),
+  "moisture_score": number (0-100),
+  "defects_detected": string[],
+  "recommendations": string[],
+  "confidence": number (0-100)
+}`
           },
           {
             role: 'user',
-            content: imageUrl 
-              ? [
-                  { type: 'text', text: 'Analyze this tobacco sample and provide grading details.' },
-                  { type: 'image_url', image_url: { url: imageUrl } }
-                ]
-              : 'Provide a general tobacco quality assessment for batch analysis.'
+            content: [
+              { type: 'text', text: 'Analyze this tobacco leaf sample and provide detailed grading. Return only JSON.' },
+              { type: 'image_url', image_url: { url: imageUrl } }
+            ]
           }
         ],
       }),
@@ -48,33 +66,46 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('AI Gateway error:', response.status, errorText);
+      if (response.status === 429) {
+        throw new Error('AI rate limit exceeded. Please try again later.');
+      }
+      if (response.status === 402) {
+        throw new Error('AI credits exhausted. Please add credits to continue.');
+      }
       throw new Error(`AI Gateway returned ${response.status}`);
     }
 
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    // Parse AI response (expect JSON format)
+    console.log('AI Response:', aiResponse);
+
+    // Parse AI response
     let gradingResult;
     try {
-      gradingResult = JSON.parse(aiResponse);
-    } catch {
-      // Fallback if AI doesn't return JSON
+      // Remove markdown code blocks if present
+      const cleanResponse = aiResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      gradingResult = JSON.parse(cleanResponse);
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', aiResponse);
+      // Fallback result
       gradingResult = {
-        grade: 'Standard',
+        ai_grade: 'Standard',
         quality_score: 75,
         crop_health_score: 80,
         esg_score: 70,
-        defects_detected: ['Minor discoloration'],
-        recommendations: ['Store in controlled humidity', 'Monitor for pests'],
-        confidence: 85
+        color_score: 75,
+        texture_score: 80,
+        moisture_score: 70,
+        defects_detected: ['Unable to fully analyze'],
+        recommendations: ['Manual inspection recommended'],
+        confidence: 60
       };
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        batchId,
         ...gradingResult
       }),
       { 
