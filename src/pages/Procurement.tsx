@@ -71,7 +71,7 @@ export default function Procurement() {
   const fetchProcurements = async () => {
     const { data, error } = await supabase
       .from('procurement_batches')
-      .select('*, farmers(name)')
+      .select('*, farmers!fk_procurement_batches_farmer(name)')
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -104,7 +104,8 @@ export default function Procurement() {
     });
 
     if (error) {
-      toast.error('Failed to create batch');
+      console.error('Batch creation error:', error);
+      toast.error(`Failed to create batch: ${error.message}`);
     } else {
       toast.success('Batch created successfully');
       setOpen(false);
