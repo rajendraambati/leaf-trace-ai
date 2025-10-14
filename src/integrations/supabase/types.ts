@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           ai_grade: string | null
           analyzed_at: string | null
-          batch_id: string
+          batch_id: string | null
           confidence: number | null
           crop_health_score: number | null
           defects_detected: string[] | null
@@ -31,7 +31,7 @@ export type Database = {
         Insert: {
           ai_grade?: string | null
           analyzed_at?: string | null
-          batch_id: string
+          batch_id?: string | null
           confidence?: number | null
           crop_health_score?: number | null
           defects_detected?: string[] | null
@@ -44,7 +44,7 @@ export type Database = {
         Update: {
           ai_grade?: string | null
           analyzed_at?: string | null
-          batch_id?: string
+          batch_id?: string | null
           confidence?: number | null
           crop_health_score?: number | null
           defects_detected?: string[] | null
@@ -55,13 +55,6 @@ export type Database = {
           recommendations?: string[] | null
         }
         Relationships: [
-          {
-            foreignKeyName: "ai_gradings_batch_id_fkey"
-            columns: ["batch_id"]
-            isOneToOne: false
-            referencedRelation: "procurement_batches"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "fk_ai_gradings_batch"
             columns: ["batch_id"]

@@ -60,7 +60,6 @@ export default function AIGrading() {
       const { error: dbError } = await supabase
         .from('ai_gradings')
         .insert({
-          batch_id: `ANALYSIS-${Date.now()}`,
           image_url: publicUrl,
           ai_grade: aiData.grade || aiData.ai_grade,
           quality_score: aiData.quality_score,
