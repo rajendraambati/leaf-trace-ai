@@ -106,6 +106,25 @@ export default function Procurement() {
   };
 
   const handleSubmit = async () => {
+    // Validate form data
+    if (!formData.farmer_id || !formData.quantity_kg || !formData.price_per_kg) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const quantity = parseFloat(formData.quantity_kg);
+    const pricePerKg = parseFloat(formData.price_per_kg);
+
+    if (isNaN(quantity) || quantity <= 0) {
+      toast.error("Please enter a valid quantity");
+      return;
+    }
+
+    if (isNaN(pricePerKg) || pricePerKg <= 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+
     const batchId = `BATCH-${Date.now()}`;
     let finalGrade = formData.grade;
     
@@ -148,25 +167,38 @@ export default function Procurement() {
           recommendations: aiData.recommendations || []
         });
 
-        // Use AI grade
+        // Override manual grade with AI grade
         finalGrade = aiData.ai_grade;
         toast.success(`AI Grading Complete: ${aiData.ai_grade} (${aiData.confidence}% confidence)`);
+        
+        // Show if AI grade differs from farmer's input
+        if (formData.grade && formData.grade !== aiData.ai_grade) {
+          toast.info(`AI corrected grade from ${formData.grade} to ${aiData.ai_grade}`);
+        }
       } catch (error: any) {
         console.error('AI grading error:', error);
         toast.error('AI grading failed, using manual grade');
+        // If no manual grade was provided, set a default
+        if (!finalGrade) {
+          finalGrade = 'Standard';
+        }
       } finally {
         setGradingImage(false);
       }
+    } else if (!finalGrade) {
+      // If no image and no manual grade, require manual grade
+      toast.error("Please select a grade or upload an image for AI grading");
+      return;
     }
     
-    const totalPrice = parseFloat(formData.quantity_kg) * parseFloat(formData.price_per_kg);
+    const totalPrice = quantity * pricePerKg;
     
     const { error } = await supabase.from('procurement_batches').insert({
       id: batchId,
       farmer_id: formData.farmer_id,
-      quantity_kg: parseFloat(formData.quantity_kg),
+      quantity_kg: quantity,
       grade: finalGrade,
-      price_per_kg: parseFloat(formData.price_per_kg),
+      price_per_kg: pricePerKg,
       total_price: totalPrice,
       status: 'pending',
       qr_code: generateBatchQRData(batchId),
