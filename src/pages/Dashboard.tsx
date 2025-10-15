@@ -45,6 +45,27 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Setup realtime subscriptions for live updates
+    const channel = supabase
+      .channel('dashboard_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'procurement_batches' }, () => {
+        fetchDashboardData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments' }, () => {
+        fetchDashboardData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouses' }, () => {
+        fetchDashboardData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'farmers' }, () => {
+        fetchDashboardData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
@@ -83,16 +104,21 @@ export default function Dashboard() {
       });
 
       // Fetch recent batches
-      const { data: batches } = await supabase
+      const { data: batches, error: batchesError } = await supabase
         .from("procurement_batches")
         .select(`
           id,
           quantity_kg,
           status,
-          farmers (name)
+          farmer_id,
+          farmers!procurement_batches_farmer_id_fkey (name)
         `)
         .order("created_at", { ascending: false })
         .limit(4);
+
+      if (batchesError) {
+        console.error("Error fetching batches:", batchesError);
+      }
 
       const formattedBatches: RecentBatch[] = (batches || []).map((batch: any) => ({
         id: batch.id,

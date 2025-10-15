@@ -159,12 +159,15 @@ export default function Procurement() {
       }
     }
     
+    const totalPrice = parseFloat(formData.quantity_kg) * parseFloat(formData.price_per_kg);
+    
     const { error } = await supabase.from('procurement_batches').insert({
       id: batchId,
       farmer_id: formData.farmer_id,
       quantity_kg: parseFloat(formData.quantity_kg),
       grade: finalGrade,
       price_per_kg: parseFloat(formData.price_per_kg),
+      total_price: totalPrice,
       status: 'pending',
       qr_code: generateBatchQRData(batchId),
     });
