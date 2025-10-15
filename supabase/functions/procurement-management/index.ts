@@ -80,7 +80,6 @@ Deno.serve(async (req) => {
           quantity_kg: body.quantity_kg,
           grade: body.grade,
           price_per_kg: body.price_per_kg,
-          total_price: body.quantity_kg * body.price_per_kg,
           status: body.status || 'pending',
           qr_code: body.qr_code,
         })
@@ -115,7 +114,6 @@ Deno.serve(async (req) => {
       if (body.quantity_kg && body.price_per_kg) {
         updateData.quantity_kg = body.quantity_kg;
         updateData.price_per_kg = body.price_per_kg;
-        updateData.total_price = body.quantity_kg * body.price_per_kg;
       }
 
       const { data, error } = await supabaseClient

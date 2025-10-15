@@ -127,7 +127,7 @@ export default function Procurement() {
 
     const batchId = `BATCH-${Date.now()}`;
     let finalGrade = formData.grade;
-    
+    let aiGradingPayload: any = null;
     // If image captured, grade it with AI first
     if (capturedImage) {
       setGradingImage(true);
@@ -154,8 +154,8 @@ export default function Procurement() {
 
         if (aiError) throw aiError;
 
-        // Store AI grading result
-        await supabase.from('ai_gradings').insert({
+        // Prepare AI grading payload to insert AFTER batch is created (to satisfy FK)
+        aiGradingPayload = {
           batch_id: batchId,
           image_url: publicUrl,
           ai_grade: aiData.ai_grade,
@@ -165,7 +165,7 @@ export default function Procurement() {
           confidence: aiData.confidence,
           defects_detected: aiData.defects_detected || [],
           recommendations: aiData.recommendations || []
-        });
+        };
 
         // Override manual grade with AI grade
         finalGrade = aiData.ai_grade;
@@ -191,18 +191,23 @@ export default function Procurement() {
       return;
     }
     
-    const totalPrice = quantity * pricePerKg;
-    
     const { error } = await supabase.from('procurement_batches').insert({
       id: batchId,
       farmer_id: formData.farmer_id,
       quantity_kg: quantity,
       grade: finalGrade,
       price_per_kg: pricePerKg,
-      total_price: totalPrice,
       status: 'pending',
       qr_code: generateBatchQRData(batchId),
     });
+
+    // Insert AI grading record after batch exists (FK safe)
+    if (!error && aiGradingPayload) {
+      const { error: aiInsertError } = await supabase.from('ai_gradings').insert(aiGradingPayload);
+      if (aiInsertError) {
+        console.error('AI grading insert error:', aiInsertError);
+      }
+    }
 
     if (error) {
       console.error('Batch creation error:', error);
