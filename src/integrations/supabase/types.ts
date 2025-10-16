@@ -463,6 +463,116 @@ export type Database = {
         }
         Relationships: []
       }
+      iot_devices: {
+        Row: {
+          battery_level: number | null
+          created_at: string | null
+          device_type: string
+          firmware_version: string | null
+          id: string
+          last_ping: string | null
+          location: string | null
+          metadata: Json | null
+          shipment_id: string | null
+          signal_strength: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          battery_level?: number | null
+          created_at?: string | null
+          device_type: string
+          firmware_version?: string | null
+          id: string
+          last_ping?: string | null
+          location?: string | null
+          metadata?: Json | null
+          shipment_id?: string | null
+          signal_strength?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          battery_level?: number | null
+          created_at?: string | null
+          device_type?: string
+          firmware_version?: string | null
+          id?: string
+          last_ping?: string | null
+          location?: string | null
+          metadata?: Json | null
+          shipment_id?: string | null
+          signal_strength?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iot_devices_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iot_events: {
+        Row: {
+          created_at: string | null
+          device_id: string
+          event_data: Json
+          event_type: string
+          gps_latitude: number | null
+          gps_longitude: number | null
+          id: string
+          processed: boolean | null
+          shipment_id: string | null
+          temperature: number | null
+          timestamp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_id: string
+          event_data: Json
+          event_type: string
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          processed?: boolean | null
+          shipment_id?: string | null
+          temperature?: number | null
+          timestamp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_id?: string
+          event_data?: Json
+          event_type?: string
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          processed?: boolean | null
+          shipment_id?: string | null
+          temperature?: number | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iot_events_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "iot_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iot_events_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       model_performance_metrics: {
         Row: {
           calculated_at: string | null

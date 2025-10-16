@@ -1,191 +1,181 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// MQTT message types
-interface GPSData {
-  deviceId: string;
-  latitude: number;
-  longitude: number;
-  speed?: number;
-  heading?: number;
-  timestamp: string;
-}
-
-interface QRScanData {
-  scannerId: string;
-  qrCode: string;
-  batchId?: string;
-  timestamp: string;
-}
-
-interface WeighbridgeData {
-  weighbridgeId: string;
-  weight: number;
-  unit: string;
-  batchId?: string;
-  vehicleId?: string;
-  timestamp: string;
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { topic, payload, deviceType } = await req.json();
+    const { 
+      device_id,
+      shipment_id,
+      event_type, 
+      event_data,
+      gps_latitude,
+      gps_longitude,
+      temperature,
+      battery_level,
+      signal_strength
+    } = await req.json();
+    
+    console.log('Received IoT event:', { device_id, event_type, shipment_id });
 
-    console.log(`MQTT message received on topic: ${topic}, deviceType: ${deviceType}`);
+    // Validate required fields
+    if (!device_id || !event_type || !event_data) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: device_id, event_type, event_data' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    let result;
+    // Verify device exists
+    const { data: device, error: deviceError } = await supabase
+      .from('iot_devices')
+      .select('*')
+      .eq('id', device_id)
+      .single();
 
-    // Route based on device type
-    switch (deviceType) {
-      case 'gps':
-        result = await handleGPSData(supabaseClient, payload as GPSData);
-        break;
+    if (deviceError || !device) {
+      console.error('Device not found:', device_id);
+      return new Response(
+        JSON.stringify({ error: 'Device not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Update device status
+    await supabase
+      .from('iot_devices')
+      .update({
+        battery_level,
+        signal_strength,
+        last_ping: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', device_id);
+
+    // Insert IoT event
+    const { data: iotEvent, error: eventError } = await supabase
+      .from('iot_events')
+      .insert({
+        device_id,
+        shipment_id: shipment_id || device.shipment_id,
+        event_type,
+        event_data,
+        gps_latitude,
+        gps_longitude,
+        temperature,
+        timestamp: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (eventError) {
+      console.error('Event insertion error:', eventError);
+      throw eventError;
+    }
+
+    // Process event based on type
+    if (shipment_id || device.shipment_id) {
+      const sid = shipment_id || device.shipment_id;
       
-      case 'qr_scanner':
-        result = await handleQRScanData(supabaseClient, payload as QRScanData);
-        break;
-      
-      case 'weighbridge':
-        result = await handleWeighbridgeData(supabaseClient, payload as WeighbridgeData);
-        break;
-      
-      default:
-        throw new Error(`Unknown device type: ${deviceType}`);
+      switch (event_type) {
+        case 'departure':
+          await supabase
+            .from('shipments')
+            .update({
+              status: 'in_transit',
+              departure_time: new Date().toISOString(),
+              gps_latitude,
+              gps_longitude
+            })
+            .eq('id', sid);
+          console.log(`Shipment ${sid} marked as departed`);
+          break;
+
+        case 'checkpoint':
+          await supabase
+            .from('shipments')
+            .update({
+              gps_latitude,
+              gps_longitude,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', sid);
+          console.log(`Shipment ${sid} checkpoint updated`);
+          break;
+
+        case 'arrival':
+          await supabase
+            .from('shipments')
+            .update({
+              status: 'delivered',
+              actual_arrival: new Date().toISOString(),
+              gps_latitude,
+              gps_longitude
+            })
+            .eq('id', sid);
+          console.log(`Shipment ${sid} marked as delivered`);
+          break;
+
+        case 'gps_update':
+          await supabase
+            .from('shipments')
+            .update({
+              gps_latitude,
+              gps_longitude,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', sid);
+          break;
+
+        case 'temperature_alert':
+          if (temperature) {
+            await supabase
+              .from('shipments')
+              .update({
+                temperature_min: Math.min(temperature, device.temperature_min || temperature),
+                temperature_max: Math.max(temperature, device.temperature_max || temperature),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', sid);
+          }
+          console.log(`Temperature alert for shipment ${sid}: ${temperature}°C`);
+          break;
+
+        case 'inspection':
+          console.log(`Inspection event logged for shipment ${sid}`);
+          break;
+      }
     }
 
     return new Response(
-      JSON.stringify({ success: true, result }),
+      JSON.stringify({ 
+        success: true, 
+        event_id: iotEvent.id,
+        message: `Event ${event_type} processed successfully`,
+        device_id,
+        timestamp: iotEvent.timestamp
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
-    console.error('Error in MQTT handler:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    console.error('Error processing IoT event:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
-
-async function handleGPSData(supabase: any, data: GPSData) {
-  console.log('Processing GPS data:', data);
-
-  // Update shipment location if device is associated with a shipment
-  const { data: shipment, error: shipmentError } = await supabase
-    .from('shipments')
-    .select('id')
-    .eq('vehicle_id', data.deviceId)
-    .eq('status', 'in_transit')
-    .maybeSingle();
-
-  if (shipment) {
-    const { error } = await supabase
-      .from('shipments')
-      .update({
-        gps_latitude: data.latitude,
-        gps_longitude: data.longitude,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', shipment.id);
-
-    if (error) throw error;
-
-    console.log(`Updated shipment ${shipment.id} GPS location`);
-    return { shipmentId: shipment.id, location: { lat: data.latitude, lng: data.longitude } };
-  }
-
-  // Store GPS tracking data (you may want to create a gps_tracking table)
-  return { deviceId: data.deviceId, location: { lat: data.latitude, lng: data.longitude } };
-}
-
-async function handleQRScanData(supabase: any, data: QRScanData) {
-  console.log('Processing QR scan data:', data);
-
-  // Parse QR code to extract batch information
-  const qrData = data.qrCode;
-  
-  // Try to find the batch
-  const { data: batch, error: batchError } = await supabase
-    .from('procurement_batches')
-    .select('*')
-    .eq('qr_code', qrData)
-    .maybeSingle();
-
-  if (batch) {
-    // Log the scan event (you may want to create a scan_logs table)
-    console.log(`QR code scanned for batch: ${batch.id}`);
-    
-    return {
-      batchId: batch.id,
-      farmerId: batch.farmer_id,
-      quantity: batch.quantity_kg,
-      grade: batch.grade,
-    };
-  }
-
-  // QR code not found in system
-  return {
-    scannerId: data.scannerId,
-    qrCode: qrData,
-    status: 'unknown',
-  };
-}
-
-async function handleWeighbridgeData(supabase: any, data: WeighbridgeData) {
-  console.log('Processing weighbridge data:', data);
-
-  // If batch ID is provided, update the batch quantity
-  if (data.batchId) {
-    const { data: batch, error } = await supabase
-      .from('procurement_batches')
-      .update({
-        quantity_kg: data.weight,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', data.batchId)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    console.log(`Updated batch ${data.batchId} weight: ${data.weight}kg`);
-    
-    // Recalculate total price
-    if (batch && batch.price_per_kg) {
-      const totalPrice = data.weight * batch.price_per_kg;
-      
-      await supabase
-        .from('procurement_batches')
-        .update({ total_price: totalPrice })
-        .eq('id', data.batchId);
-    }
-
-    return {
-      batchId: data.batchId,
-      weight: data.weight,
-      unit: data.unit,
-    };
-  }
-
-  // Store standalone weighbridge reading
-  return {
-    weighbridgeId: data.weighbridgeId,
-    weight: data.weight,
-    unit: data.unit,
-    vehicleId: data.vehicleId,
-  };
-}

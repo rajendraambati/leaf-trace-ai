@@ -11,11 +11,11 @@ import Farmers from "./pages/Farmers";
 import Procurement from "./pages/Procurement";
 import Logistics from "./pages/Logistics";
 import LogisticsJourney from "./pages/LogisticsJourney";
+import IoTDevices from "./pages/IoTDevices";
 import Warehouse from "./pages/Warehouse";
 import Processing from "./pages/Processing";
 import Compliance from "./pages/Compliance";
 import AIGrading from "./pages/AIGrading";
-import IoTDevices from "./pages/IoTDevices";
 import FarmerRegistration from "./pages/FarmerRegistration";
 import TechnicianActivity from "./pages/TechnicianActivity";
 import QRScanner from "./pages/QRScanner";
@@ -53,13 +53,13 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
             <Route path="/farmers" element={<ProtectedRoute><Layout><Farmers /></Layout></ProtectedRoute>} />
             <Route path="/procurement" element={<ProtectedRoute><Layout><Procurement /></Layout></ProtectedRoute>} />
-            <Route path="/logistics" element={<ProtectedRoute><Layout><Logistics /></Layout></ProtectedRoute>} />
-            <Route path="/logistics-journey" element={<ProtectedRoute><Layout><LogisticsJourney /></Layout></ProtectedRoute>} />
+          <Route path="/logistics" element={<ProtectedRoute><Layout><Logistics /></Layout></ProtectedRoute>} />
+          <Route path="/logistics-journey" element={<ProtectedRoute><Layout><LogisticsJourney /></Layout></ProtectedRoute>} />
+          <Route path="/iot-devices" element={<ProtectedRoute><Layout><IoTDevices /></Layout></ProtectedRoute>} />
             <Route path="/warehouse" element={<ProtectedRoute><Layout><Warehouse /></Layout></ProtectedRoute>} />
             <Route path="/processing" element={<ProtectedRoute><Layout><Processing /></Layout></ProtectedRoute>} />
             <Route path="/compliance" element={<ProtectedRoute><Layout><Compliance /></Layout></ProtectedRoute>} />
             <Route path="/ai-grading" element={<ProtectedRoute><Layout><AIGrading /></Layout></ProtectedRoute>} />
-            <Route path="/iot-devices" element={<ProtectedRoute><Layout><IoTDevices /></Layout></ProtectedRoute>} />
             <Route path="/mobile" element={<ProtectedRoute><MobileHub /></ProtectedRoute>} />
             <Route path="/mobile/farmer-registration" element={<ProtectedRoute><FarmerRegistration /></ProtectedRoute>} />
             <Route path="/mobile/technician-activity" element={<ProtectedRoute><TechnicianActivity /></ProtectedRoute>} />

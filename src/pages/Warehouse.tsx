@@ -127,7 +127,7 @@ export default function Warehouse() {
 
         <TabsContent value="iot" className="space-y-6">
           {warehouses.map((warehouse) => (
-            <IoTSensorMonitor key={warehouse.id} locationId={warehouse.id} locationType="warehouse" />
+            <IoTSensorMonitor key={warehouse.id} />
           ))}
         </TabsContent>
 
