@@ -29,3 +29,15 @@ verify_jwt = false
 
 [functions.mqtt-handler]
 verify_jwt = false
+
+[functions.logistics-ai-optimization]
+verify_jwt = false
+
+[functions.logistics-batch-assign]
+verify_jwt = false
+
+[functions.logistics-track-update]
+verify_jwt = false
+
+[functions.logistics-batch-status]
+verify_jwt = false

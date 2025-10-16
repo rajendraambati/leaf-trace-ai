@@ -12,6 +12,7 @@ import { RouteOptimization } from "@/components/RouteOptimization";
 import { IoTTracker } from "@/components/IoTTracker";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { MapView, Location } from "@/components/MapView";
+import AILogisticsMonitor from "@/components/AILogisticsMonitor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuditLog } from "@/hooks/useAuditLog";
@@ -117,8 +118,9 @@ export default function Logistics() {
       </div>
 
       <Tabs defaultValue="tracking" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="tracking">Tracking</TabsTrigger>
+          <TabsTrigger value="ai">AI Monitor</TabsTrigger>
           <TabsTrigger value="route">Route Optimization</TabsTrigger>
           <TabsTrigger value="realtime">Real-Time IoT</TabsTrigger>
           <TabsTrigger value="iot">Temperature</TabsTrigger>
@@ -214,6 +216,35 @@ export default function Logistics() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-6">
+          {selectedShipment ? (
+            <AILogisticsMonitor
+              shipmentId={selectedShipment.id}
+              origin={{ 
+                lat: 17.4, 
+                lng: 78.4, 
+                name: selectedShipment.from_location 
+              }}
+              destination={{ 
+                lat: 17.5, 
+                lng: 78.5, 
+                name: selectedShipment.to_location 
+              }}
+              currentLocation={
+                selectedShipment.gps_latitude && selectedShipment.gps_longitude
+                  ? { lat: selectedShipment.gps_latitude, lng: selectedShipment.gps_longitude }
+                  : undefined
+              }
+            />
+          ) : (
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-center text-muted-foreground">Select a shipment from Tracking tab to enable AI monitoring</p>
               </CardContent>
             </Card>
           )}

@@ -1,411 +1,232 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import AILogisticsMonitor from "@/components/AILogisticsMonitor";
+import { Brain, TrendingUp, AlertTriangle, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { 
-  TrendingUp, 
-  ThumbsUp, 
-  ThumbsDown,
-  Activity,
-  Star,
-  Target,
-  Zap
-} from "lucide-react";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import StatCard from "@/components/StatCard";
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--destructive))'];
+export default function AIInsights() {
+  const [shipments, setShipments] = useState<any[]>([]);
+  const [selectedShipment, setSelectedShipment] = useState<any>(null);
+  const [aiUsage, setAiUsage] = useState<any[]>([]);
 
-const AIInsights = () => {
-  // Fetch feedback data
-  const { data: feedbackData } = useQuery({
-    queryKey: ['ai-feedback'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_feedback')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+  useEffect(() => {
+    fetchShipments();
+    fetchAIUsage();
+  }, []);
 
-      // Aggregate by feature type
-      const byFeature = data.reduce((acc: any, fb) => {
-        if (!acc[fb.feature_type]) {
-          acc[fb.feature_type] = {
-            feature: fb.feature_type,
-            count: 0,
-            avgRating: 0,
-            ratings: []
-          };
-        }
-        acc[fb.feature_type].count++;
-        acc[fb.feature_type].ratings.push(fb.rating);
-        return acc;
-      }, {});
+  const fetchShipments = async () => {
+    const { data } = await supabase
+      .from('shipments')
+      .select('*')
+      .in('status', ['in_transit', 'assigned'])
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-      Object.values(byFeature).forEach((f: any) => {
-        f.avgRating = f.ratings.reduce((a: number, b: number) => a + b, 0) / f.ratings.length;
-      });
-
-      // Category distribution
-      const byCategory = data.reduce((acc: any, fb) => {
-        acc[fb.category] = (acc[fb.category] || 0) + 1;
-        return acc;
-      }, {});
-
-      const categoryData = Object.entries(byCategory).map(([name, value]) => ({
-        name: name.replace(/_/g, ' ').toUpperCase(),
-        value
-      }));
-
-      return {
-        all: data,
-        byFeature: Object.values(byFeature),
-        categoryData,
-        avgRating: data.reduce((sum, fb) => sum + (fb.rating || 0), 0) / data.length
-      };
+    if (data) {
+      setShipments(data);
+      if (data.length > 0 && !selectedShipment) {
+        setSelectedShipment(data[0]);
+      }
     }
-  });
+  };
 
-  // Fetch AI usage analytics
-  const { data: usageData } = useQuery({
-    queryKey: ['ai-usage'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ai_usage_analytics')
-        .select('*')
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
+  const fetchAIUsage = async () => {
+    const { data } = await supabase
+      .from('ai_usage_analytics')
+      .select('*')
+      .like('feature_type', 'logistics_%')
+      .order('created_at', { ascending: false })
+      .limit(20);
 
-      // Calculate acceptance rate
-      const withDecision = data.filter(d => d.user_accepted !== null);
-      const acceptanceRate = withDecision.length > 0
-        ? (withDecision.filter(d => d.user_accepted).length / withDecision.length) * 100
-        : 0;
+    setAiUsage(data || []);
+  };
 
-      // Success rate
-      const successRate = (data.filter(d => d.success).length / data.length) * 100;
-
-      // Group by feature
-      const byFeature = data.reduce((acc: any, usage) => {
-        if (!acc[usage.feature_type]) {
-          acc[usage.feature_type] = {
-            feature: usage.feature_type,
-            count: 0,
-            avgConfidence: 0,
-            avgTime: 0,
-            confidences: [],
-            times: []
-          };
-        }
-        acc[usage.feature_type].count++;
-        if (usage.confidence_score) acc[usage.feature_type].confidences.push(Number(usage.confidence_score));
-        if (usage.execution_time_ms) acc[usage.feature_type].times.push(usage.execution_time_ms);
-        return acc;
-      }, {});
-
-      Object.values(byFeature).forEach((f: any) => {
-        f.avgConfidence = f.confidences.length > 0
-          ? f.confidences.reduce((a: number, b: number) => a + b, 0) / f.confidences.length
-          : 0;
-        f.avgTime = f.times.length > 0
-          ? f.times.reduce((a: number, b: number) => a + b, 0) / f.times.length
-          : 0;
-      });
-
-      return {
-        total: data.length,
-        acceptanceRate,
-        successRate,
-        byFeature: Object.values(byFeature)
-      };
-    }
-  });
-
-  // Fetch model performance metrics
-  const { data: performanceData } = useQuery({
-    queryKey: ['model-performance'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('model_performance_metrics')
-        .select('*')
-        .order('calculated_at', { ascending: true });
-      
-      if (error) throw error;
-
-      // Group by feature and metric type
-      const metrics = data.reduce((acc: any, metric) => {
-        const key = `${metric.feature_type}_${metric.metric_type}`;
-        if (!acc[key]) {
-          acc[key] = {
-            feature: metric.feature_type,
-            metric: metric.metric_type,
-            values: []
-          };
-        }
-        acc[key].values.push({
-          date: new Date(metric.calculated_at).toLocaleDateString(),
-          value: Number(metric.metric_value)
-        });
-        return acc;
-      }, {});
-
-      return Object.values(metrics);
-    }
-  });
+  const totalAICalls = aiUsage.length;
+  const successRate = aiUsage.length > 0 
+    ? ((aiUsage.filter(u => u.success).length / aiUsage.length) * 100).toFixed(1)
+    : '0';
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">AI Insights & Feedback</h1>
-        <p className="text-muted-foreground">
-          User feedback, model performance, and enhancement priorities
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
+          <Brain className="h-10 w-10 text-primary" />
+          AI Insights
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          AI-powered route optimization, anomaly detection, and delivery predictions
         </p>
       </div>
 
-      <Tabs defaultValue="feedback" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="feedback">User Feedback</TabsTrigger>
-          <TabsTrigger value="usage">AI Usage Analytics</TabsTrigger>
-          <TabsTrigger value="performance">Model Performance</TabsTrigger>
+      {/* AI Stats */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <TrendingUp className="h-5 w-5" />
+              AI Analyses
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{totalAICalls}</p>
+            <p className="text-sm text-muted-foreground">Total predictions</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <AlertTriangle className="h-5 w-5" />
+              Success Rate
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{successRate}%</p>
+            <p className="text-sm text-muted-foreground">AI accuracy</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Package className="h-5 w-5" />
+              Active Shipments
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{shipments.length}</p>
+            <p className="text-sm text-muted-foreground">Being monitored</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="monitor" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="monitor">AI Monitor</TabsTrigger>
+          <TabsTrigger value="usage">Usage History</TabsTrigger>
         </TabsList>
 
-        {/* Feedback Tab */}
-        <TabsContent value="feedback" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <StatCard
-              title="Total Feedback"
-              value={feedbackData?.all.length || 0}
-              icon={Activity}
-            />
-            <StatCard
-              title="Average Rating"
-              value={feedbackData?.avgRating.toFixed(1) || "0"}
-              icon={Star}
-            />
-            <StatCard
-              title="Bug Reports"
-              value={feedbackData?.all.filter((f: any) => f.category === 'bug').length || 0}
-              icon={ThumbsDown}
-            />
-            <StatCard
-              title="Feature Requests"
-              value={feedbackData?.all.filter((f: any) => f.category === 'feature_request').length || 0}
-              icon={ThumbsUp}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Feedback by Feature</CardTitle>
-                <CardDescription>Average ratings across AI features</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={feedbackData?.byFeature}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="feature" angle={-45} textAnchor="end" height={80} />
-                    <YAxis domain={[0, 5]} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="avgRating" fill="hsl(var(--primary))" name="Avg Rating" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Feedback Categories</CardTitle>
-                <CardDescription>Distribution of feedback types</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={feedbackData?.categoryData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="hsl(var(--primary))"
-                      dataKey="value"
-                    >
-                      {feedbackData?.categoryData?.map((_: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
+        <TabsContent value="monitor" className="space-y-6">
+          {/* Shipment Selection */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Feedback</CardTitle>
+              <CardTitle>Select Shipment to Monitor</CardTitle>
+              <CardDescription>Choose an active shipment for AI analysis</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {feedbackData?.all.slice(0, 20).map((feedback: any) => (
-                  <div key={feedback.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <Badge variant="outline">{feedback.feature_type}</Badge>
-                        <Badge variant="secondary" className="ml-2">
-                          {feedback.category.replace(/_/g, ' ')}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < feedback.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {shipments.map((shipment) => (
+                  <div
+                    key={shipment.id}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                      selectedShipment?.id === shipment.id 
+                        ? 'border-primary bg-primary/5' 
+                        : 'hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedShipment(shipment)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-sm">{shipment.id}</span>
+                      <Badge variant="outline">{shipment.status}</Badge>
                     </div>
-                    {feedback.feedback_text && (
-                      <p className="text-sm text-muted-foreground">{feedback.feedback_text}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {new Date(feedback.created_at).toLocaleString()}
+                    <p className="text-xs text-muted-foreground">
+                      {shipment.from_location} → {shipment.to_location}
                     </p>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        {/* Usage Analytics Tab */}
-        <TabsContent value="usage" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatCard
-              title="Total AI Requests"
-              value={usageData?.total || 0}
-              icon={Activity}
-            />
-            <StatCard
-              title="Success Rate"
-              value={`${usageData?.successRate.toFixed(1)}%`}
-              icon={Target}
-            />
-            <StatCard
-              title="User Acceptance"
-              value={`${usageData?.acceptanceRate.toFixed(1)}%`}
-              icon={ThumbsUp}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Usage by Feature</CardTitle>
-                <CardDescription>AI feature utilization</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={usageData?.byFeature}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="feature" angle={-45} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" name="Requests" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Average Confidence Scores</CardTitle>
-                <CardDescription>Model confidence by feature</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={usageData?.byFeature}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="feature" angle={-45} textAnchor="end" height={80} />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="avgConfidence" fill="hsl(var(--secondary))" name="Avg Confidence" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Performance Tab */}
-        <TabsContent value="performance" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5" />
-                Model Performance Trends
-              </CardTitle>
-              <CardDescription>Track metric improvements over time</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {performanceData && performanceData.length > 0 ? (
-                <div className="space-y-6">
-                  {performanceData.map((metric: any, index: number) => (
-                    <div key={index}>
-                      <h4 className="font-semibold mb-2">
-                        {metric.feature} - {metric.metric.replace(/_/g, ' ').toUpperCase()}
-                      </h4>
-                      <ResponsiveContainer width="100%" height={200}>
-                        <LineChart data={metric.values}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
-                          <YAxis domain={[0, 100]} />
-                          <Tooltip />
-                          <Line
-                            type="monotone"
-                            dataKey="value"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth={2}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  No performance metrics available yet. Metrics will appear as AI models are evaluated.
+              {shipments.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  No active shipments available for monitoring
                 </p>
               )}
+            </CardContent>
+          </Card>
+
+          {/* AI Monitor Component */}
+          {selectedShipment && (
+            <AILogisticsMonitor
+              shipmentId={selectedShipment.id}
+              origin={{
+                lat: 17.4,
+                lng: 78.4,
+                name: selectedShipment.from_location
+              }}
+              destination={{
+                lat: 17.5,
+                lng: 78.5,
+                name: selectedShipment.to_location
+              }}
+              currentLocation={
+                selectedShipment.gps_latitude && selectedShipment.gps_longitude
+                  ? { 
+                      lat: selectedShipment.gps_latitude, 
+                      lng: selectedShipment.gps_longitude 
+                    }
+                  : undefined
+              }
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="usage" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Usage History</CardTitle>
+              <CardDescription>Recent AI analysis requests and results</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {aiUsage.map((usage) => (
+                  <div key={usage.id} className="p-4 border rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline" className="capitalize">
+                        {usage.feature_type.replace('logistics_', '').replace('_', ' ')}
+                      </Badge>
+                      <Badge variant={usage.success ? 'default' : 'destructive'}>
+                        {usage.success ? 'Success' : 'Failed'}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Model:</span>
+                        <span className="ml-2">{usage.model_name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Time:</span>
+                        <span className="ml-2">{usage.execution_time_ms || 0}ms</span>
+                      </div>
+                    </div>
+
+                    {usage.confidence_score && (
+                      <div className="text-xs">
+                        <span className="text-muted-foreground">Confidence:</span>
+                        <span className="ml-2 font-medium">
+                          {(usage.confidence_score * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(usage.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+
+                {aiUsage.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    No AI usage data yet
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
   );
-};
-
-export default AIInsights;
+}

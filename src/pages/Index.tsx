@@ -17,6 +17,7 @@ const Index = () => {
     { title: 'Processing', description: 'Manufacturing workflow', icon: Factory, path: '/processing', color: 'bg-orange-500' },
     { title: 'Compliance', description: 'Audits & certifications', icon: Shield, path: '/compliance', color: 'bg-red-500' },
     { title: 'IoT Devices', description: 'Monitor sensors', icon: Activity, path: '/iot-devices', color: 'bg-indigo-500' },
+    { title: 'AI Insights', description: 'Route optimization & anomaly detection', icon: FileText, path: '/ai-insights', color: 'bg-pink-500' },
   ];
 
   return (
