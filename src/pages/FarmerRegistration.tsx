@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserPlus, MapPin, Phone, Mail, Home } from "lucide-react";
+import { UserPlus, MapPin, Phone, Mail, Home, FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,34 @@ export default function FarmerRegistration() {
     geo_latitude: "",
     geo_longitude: ""
   });
+  const [documents, setDocuments] = useState({
+    identity_proof: null as File | null,
+    land_ownership: null as File | null,
+    certification: null as File | null,
+    other: null as File | null
+  });
   const [submitting, setSubmitting] = useState(false);
+
+  const handleFileChange = (docType: keyof typeof documents, file: File | null) => {
+    setDocuments({ ...documents, [docType]: file });
+  };
+
+  const uploadDocument = async (file: File, farmerId: string, docType: string) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${farmerId}/${docType}_${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('registration-documents')
+      .upload(fileName, file);
+
+    if (error) throw error;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('registration-documents')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  };
 
   const getCurrentLocation = () => {
     if ("geolocation" in navigator) {
@@ -47,20 +74,41 @@ export default function FarmerRegistration() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from('farmers').insert({
-        name: formData.name,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        location: formData.location,
-        farm_size_acres: formData.farm_size_acres ? parseFloat(formData.farm_size_acres) : null,
-        geo_latitude: formData.geo_latitude ? parseFloat(formData.geo_latitude) : null,
-        geo_longitude: formData.geo_longitude ? parseFloat(formData.geo_longitude) : null,
-        status: 'active'
-      });
+      const { data: farmerData, error: farmerError } = await supabase
+        .from('farmers')
+        .insert({
+          name: formData.name,
+          email: formData.email || null,
+          phone: formData.phone || null,
+          location: formData.location,
+          farm_size_acres: formData.farm_size_acres ? parseFloat(formData.farm_size_acres) : null,
+          geo_latitude: formData.geo_latitude ? parseFloat(formData.geo_latitude) : null,
+          geo_longitude: formData.geo_longitude ? parseFloat(formData.geo_longitude) : null,
+          status: 'active'
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (farmerError) throw farmerError;
 
-      toast.success("Farmer registered successfully!");
+      // Upload documents if any
+      const documentUploads = Object.entries(documents)
+        .filter(([_, file]) => file !== null)
+        .map(async ([docType, file]) => {
+          if (!file) return;
+          
+          const documentUrl = await uploadDocument(file, farmerData.id, docType);
+          
+          await supabase.from('farmer_documents').insert({
+            farmer_id: farmerData.id,
+            document_type: docType,
+            document_url: documentUrl
+          });
+        });
+
+      await Promise.all(documentUploads);
+
+      toast.success("Farmer registered successfully with documents!");
       navigate("/farmers");
     } catch (error: any) {
       toast.error(error.message || "Registration failed");
@@ -191,6 +239,97 @@ export default function FarmerRegistration() {
                 {submitting ? "Registering..." : "Register Farmer"}
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Document Attachments
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="identity_proof" className="text-base flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Identity Proof (Aadhar/PAN/Driving License)
+              </Label>
+              <Input
+                id="identity_proof"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleFileChange('identity_proof', e.target.files?.[0] || null)}
+                className="h-12 text-base"
+              />
+              {documents.identity_proof && (
+                <p className="text-xs text-muted-foreground">
+                  Selected: {documents.identity_proof.name}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="land_ownership" className="text-base flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Land Ownership Documents
+              </Label>
+              <Input
+                id="land_ownership"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleFileChange('land_ownership', e.target.files?.[0] || null)}
+                className="h-12 text-base"
+              />
+              {documents.land_ownership && (
+                <p className="text-xs text-muted-foreground">
+                  Selected: {documents.land_ownership.name}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="certification" className="text-base flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Farmer Certification (Optional)
+              </Label>
+              <Input
+                id="certification"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleFileChange('certification', e.target.files?.[0] || null)}
+                className="h-12 text-base"
+              />
+              {documents.certification && (
+                <p className="text-xs text-muted-foreground">
+                  Selected: {documents.certification.name}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="other" className="text-base flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Other Documents (Optional)
+              </Label>
+              <Input
+                id="other"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleFileChange('other', e.target.files?.[0] || null)}
+                className="h-12 text-base"
+              />
+              {documents.other && (
+                <p className="text-xs text-muted-foreground">
+                  Selected: {documents.other.name}
+                </p>
+              )}
+            </div>
+
+            <div className="p-3 bg-muted rounded-lg text-xs text-muted-foreground">
+              <p>Accepted formats: PDF, JPG, JPEG, PNG</p>
+              <p>Maximum file size: 5MB per document</p>
+            </div>
           </CardContent>
         </Card>
       </div>
