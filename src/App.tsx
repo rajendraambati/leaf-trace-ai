@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Farmers from "./pages/Farmers";
 import Procurement from "./pages/Procurement";
 import Logistics from "./pages/Logistics";
+import LogisticsJourney from "./pages/LogisticsJourney";
 import Warehouse from "./pages/Warehouse";
 import Processing from "./pages/Processing";
 import Compliance from "./pages/Compliance";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/farmers" element={<ProtectedRoute><Layout><Farmers /></Layout></ProtectedRoute>} />
             <Route path="/procurement" element={<ProtectedRoute><Layout><Procurement /></Layout></ProtectedRoute>} />
             <Route path="/logistics" element={<ProtectedRoute><Layout><Logistics /></Layout></ProtectedRoute>} />
+            <Route path="/logistics-journey" element={<ProtectedRoute><Layout><LogisticsJourney /></Layout></ProtectedRoute>} />
             <Route path="/warehouse" element={<ProtectedRoute><Layout><Warehouse /></Layout></ProtectedRoute>} />
             <Route path="/processing" element={<ProtectedRoute><Layout><Processing /></Layout></ProtectedRoute>} />
             <Route path="/compliance" element={<ProtectedRoute><Layout><Compliance /></Layout></ProtectedRoute>} />
