@@ -499,6 +499,60 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_registrations: {
+        Row: {
+          admin_notes: string | null
+          biometric_data: Json | null
+          created_at: string | null
+          email: string
+          email_verified: boolean | null
+          full_name: string
+          id: string
+          password_hash: string
+          phone: string
+          phone_verified: boolean | null
+          requested_role: Database["public"]["Enums"]["app_role"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          biometric_data?: Json | null
+          created_at?: string | null
+          email: string
+          email_verified?: boolean | null
+          full_name: string
+          id?: string
+          password_hash: string
+          phone: string
+          phone_verified?: boolean | null
+          requested_role: Database["public"]["Enums"]["app_role"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          biometric_data?: Json | null
+          created_at?: string | null
+          email?: string
+          email_verified?: boolean | null
+          full_name?: string
+          id?: string
+          password_hash?: string
+          phone?: string
+          phone_verified?: boolean | null
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       processing_batches: {
         Row: {
           batch_id: string
@@ -884,6 +938,44 @@ export type Database = {
           },
         ]
       }
+      user_documents: {
+        Row: {
+          document_name: string | null
+          document_type: string
+          document_url: string
+          id: string
+          registration_id: string | null
+          uploaded_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          document_name?: string | null
+          document_type: string
+          document_url: string
+          id?: string
+          registration_id?: string | null
+          uploaded_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          document_name?: string | null
+          document_type?: string
+          document_url?: string
+          id?: string
+          registration_id?: string | null
+          uploaded_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_documents_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "pending_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_feedback: {
         Row: {
           category: string | null
@@ -1047,6 +1139,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_registration: {
+        Args: { _admin_id: string; _notes?: string; _registration_id: string }
+        Returns: Json
+      }
+      decline_registration: {
+        Args: { _admin_id: string; _notes: string; _registration_id: string }
+        Returns: Json
+      }
       has_permission: {
         Args: { _action: string; _resource: string; _user_id: string }
         Returns: boolean

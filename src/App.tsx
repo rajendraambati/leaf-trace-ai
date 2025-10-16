@@ -28,6 +28,10 @@ import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import AIInsights from "./pages/AIInsights";
 import TrainingSupport from "./pages/TrainingSupport";
 import Auth from "./pages/Auth";
+import RoleSelection from "./pages/RoleSelection";
+import Register from "./pages/Register";
+import SignIn from "./pages/SignIn";
+import AdminApprovals from "./pages/AdminApprovals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +45,10 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/role-selection" element={<RoleSelection />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/admin/approvals" element={<ProtectedRoute><Layout><AdminApprovals /></Layout></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
             <Route path="/farmers" element={<ProtectedRoute><Layout><Farmers /></Layout></ProtectedRoute>} />
             <Route path="/procurement" element={<ProtectedRoute><Layout><Procurement /></Layout></ProtectedRoute>} />
