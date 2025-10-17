@@ -152,14 +152,14 @@ export default function Logistics() {
     fetchShipments();
   };
 
-  const inTransit = shipments.filter(s => s.status === 'in_transit').length;
+  const inTransit = shipments.filter(s => s.status === 'in-transit').length;
   const delivered = shipments.filter(s => s.status === 'delivered').length;
   const totalShipments = shipments.length;
 
   const markInTransit = async (shipmentId: string) => {
     const { error } = await supabase
       .from('shipments')
-      .update({ status: 'in_transit', departure_time: new Date().toISOString() })
+      .update({ status: 'in-transit', departure_time: new Date().toISOString() })
       .eq('id', shipmentId);
 
     if (error) {
@@ -254,7 +254,7 @@ export default function Logistics() {
                           size="sm" 
                           onClick={(e) => { e.stopPropagation(); markInTransit(shipment.id); }} 
                           className="flex-1"
-                          disabled={shipment.status === 'in_transit' || shipment.status === 'delivered'}
+                          disabled={shipment.status === 'in-transit' || shipment.status === 'delivered'}
                         >
                           Transit
                         </Button>
@@ -386,7 +386,7 @@ export default function Logistics() {
                       <tr key={shipment.id} className="border-b hover:bg-muted/50">
                         <td className="p-4 font-medium">{shipment.id}</td>
                         <td className="p-4 text-center">
-                          {shipment.status === 'in_transit' && (
+                          {shipment.status === 'in-transit' && (
                             <span className="text-green-600 text-2xl">✓</span>
                           )}
                         </td>
