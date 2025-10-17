@@ -559,6 +559,59 @@ export type Database = {
           },
         ]
       }
+      logistics_checkpoints: {
+        Row: {
+          actual_time: string | null
+          checkpoint_name: string
+          checkpoint_type: string
+          created_at: string | null
+          gps_latitude: number | null
+          gps_longitude: number | null
+          id: string
+          notes: string | null
+          scheduled_time: string | null
+          shipment_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_time?: string | null
+          checkpoint_name: string
+          checkpoint_type: string
+          created_at?: string | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          notes?: string | null
+          scheduled_time?: string | null
+          shipment_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_time?: string | null
+          checkpoint_name?: string
+          checkpoint_type?: string
+          created_at?: string | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          notes?: string | null
+          scheduled_time?: string | null
+          shipment_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logistics_checkpoints_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       model_performance_metrics: {
         Row: {
           calculated_at: string | null
@@ -970,57 +1023,87 @@ export type Database = {
       shipments: {
         Row: {
           actual_arrival: string | null
+          actual_route: Json | null
           batch_id: string
+          checkpoint_status: Json | null
           created_at: string | null
+          delivery_confirmation: Json | null
           departure_time: string | null
           driver_name: string | null
+          estimated_delay_minutes: number | null
           eta: string | null
           from_location: string
           gps_latitude: number | null
           gps_longitude: number | null
           id: string
+          planned_route: Json | null
+          predictive_maintenance_alert: Json | null
+          route: Json | null
+          route_optimization_data: Json | null
           status: string | null
           temperature_max: number | null
           temperature_min: number | null
           to_location: string
+          traffic_conditions: string | null
           updated_at: string | null
           vehicle_id: string | null
+          weather_conditions: string | null
         }
         Insert: {
           actual_arrival?: string | null
+          actual_route?: Json | null
           batch_id: string
+          checkpoint_status?: Json | null
           created_at?: string | null
+          delivery_confirmation?: Json | null
           departure_time?: string | null
           driver_name?: string | null
+          estimated_delay_minutes?: number | null
           eta?: string | null
           from_location: string
           gps_latitude?: number | null
           gps_longitude?: number | null
           id: string
+          planned_route?: Json | null
+          predictive_maintenance_alert?: Json | null
+          route?: Json | null
+          route_optimization_data?: Json | null
           status?: string | null
           temperature_max?: number | null
           temperature_min?: number | null
           to_location: string
+          traffic_conditions?: string | null
           updated_at?: string | null
           vehicle_id?: string | null
+          weather_conditions?: string | null
         }
         Update: {
           actual_arrival?: string | null
+          actual_route?: Json | null
           batch_id?: string
+          checkpoint_status?: Json | null
           created_at?: string | null
+          delivery_confirmation?: Json | null
           departure_time?: string | null
           driver_name?: string | null
+          estimated_delay_minutes?: number | null
           eta?: string | null
           from_location?: string
           gps_latitude?: number | null
           gps_longitude?: number | null
           id?: string
+          planned_route?: Json | null
+          predictive_maintenance_alert?: Json | null
+          route?: Json | null
+          route_optimization_data?: Json | null
           status?: string | null
           temperature_max?: number | null
           temperature_min?: number | null
           to_location?: string
+          traffic_conditions?: string | null
           updated_at?: string | null
           vehicle_id?: string | null
+          weather_conditions?: string | null
         }
         Relationships: [
           {
@@ -1137,6 +1220,48 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_maintenance: {
+        Row: {
+          actual_date: string | null
+          ai_confidence: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          maintenance_type: string
+          predicted_date: string | null
+          severity: string | null
+          status: string | null
+          updated_at: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          actual_date?: string | null
+          ai_confidence?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          maintenance_type: string
+          predicted_date?: string | null
+          severity?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          actual_date?: string | null
+          ai_confidence?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          maintenance_type?: string
+          predicted_date?: string | null
+          severity?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vehicle_id?: string
         }
         Relationships: []
       }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Truck, MapPin, Clock, Thermometer, Route as RouteIcon, Activity } from "lucide-react";
+import { Truck, MapPin, Clock, Thermometer, Route as RouteIcon, Activity, AlertTriangle, Navigation } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,8 @@ import AILogisticsMonitor from "@/components/AILogisticsMonitor";
 import { ShipmentCreationForm } from "@/components/ShipmentCreationForm";
 import { ShipmentTrackingHistory } from "@/components/ShipmentTrackingHistory";
 import { LiveShipmentTracker } from "@/components/LiveShipmentTracker";
+import LogisticsCheckpoints from "@/components/LogisticsCheckpoints";
+import VehicleMaintenance from "@/components/VehicleMaintenance";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuditLog } from "@/hooks/useAuditLog";
@@ -163,22 +165,32 @@ export default function Logistics() {
         <ShipmentCreationForm />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-4">
         <StatCard title="In Transit" value={inTransit.toString()} icon={Truck} />
         <StatCard title="Delivered Today" value={delivered.toString()} icon={MapPin} />
-        <StatCard title="Total Shipments" value={shipments.length.toString()} icon={Clock} />
+        <StatCard 
+          title="Active Routes" 
+          value={shipments.filter(s => s.status === 'in_transit' && s.route).length.toString()} 
+          icon={RouteIcon} 
+        />
+        <StatCard 
+          title="Maintenance Alerts" 
+          value={shipments.filter(s => s.predictive_maintenance_alert).length.toString()} 
+          icon={AlertTriangle} 
+        />
       </div>
 
       <Tabs defaultValue="live-map" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10">
           <TabsTrigger value="live-map">Live Map</TabsTrigger>
-          <TabsTrigger value="tracking">Tracking</TabsTrigger>
-          <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
-          <TabsTrigger value="history">Movement</TabsTrigger>
+          <TabsTrigger value="tracking">GPS Tracking</TabsTrigger>
+          <TabsTrigger value="checkpoints">Checkpoints</TabsTrigger>
+          <TabsTrigger value="lifecycle">Journey</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
           <TabsTrigger value="ai">AI Monitor</TabsTrigger>
+          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           <TabsTrigger value="route">Route</TabsTrigger>
-          <TabsTrigger value="realtime">Live IoT</TabsTrigger>
-          <TabsTrigger value="iot">Temperature</TabsTrigger>
+          <TabsTrigger value="iot">IoT Sensors</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -190,7 +202,11 @@ export default function Logistics() {
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Live Map View</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Navigation className="h-5 w-5" />
+                  GPS Vehicle Tracking
+                </CardTitle>
+                <CardDescription>Real-time location monitoring of all active shipments</CardDescription>
               </CardHeader>
               <CardContent>
                 <MapView locations={locations} />
@@ -276,6 +292,21 @@ export default function Logistics() {
                   </div>
                 </div>
               </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="checkpoints" className="space-y-4">
+          {selectedShipment ? (
+            <LogisticsCheckpoints shipmentId={selectedShipment.id} />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Route Checkpoints</CardTitle>
+                <CardDescription>
+                  Select a shipment from the tracking tab to view its checkpoint details
+                </CardDescription>
+              </CardHeader>
             </Card>
           )}
         </TabsContent>
@@ -471,6 +502,10 @@ export default function Logistics() {
           )}
         </TabsContent>
 
+        <TabsContent value="maintenance" className="space-y-4">
+          <VehicleMaintenance />
+        </TabsContent>
+
         <TabsContent value="route" className="space-y-6">
           {selectedShipment ? (
             <RouteOptimization
@@ -488,35 +523,14 @@ export default function Logistics() {
           )}
         </TabsContent>
 
-        <TabsContent value="realtime" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {shipments.filter(s => s.status === 'in_transit').slice(0, 2).map((shipment) => (
-              <IoTTracker 
-                key={shipment.id}
-                shipmentId={shipment.id}
-                onLocationUpdate={(lat, lng) => {
-                  // Update location in real-time
-                  supabase.from('shipments')
-                    .update({ gps_latitude: lat, gps_longitude: lng })
-                    .eq('id', shipment.id);
-                }}
-              />
-            ))}
-          </div>
-          {shipments.filter(s => s.status === 'in_transit').length === 0 && (
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">No shipments in transit</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
         <TabsContent value="iot" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Temperature Monitoring</CardTitle>
-              <CardDescription>Real-time temperature tracking for all shipments</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                IoT Sensor Monitoring & Temperature Tracking
+              </CardTitle>
+              <CardDescription>Real-time sensor data from active shipments</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
