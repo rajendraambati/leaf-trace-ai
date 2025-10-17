@@ -13,6 +13,8 @@ import { IoTTracker } from "@/components/IoTTracker";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { MapView, Location } from "@/components/MapView";
 import AILogisticsMonitor from "@/components/AILogisticsMonitor";
+import { ShipmentCreationForm } from "@/components/ShipmentCreationForm";
+import { ShipmentTrackingHistory } from "@/components/ShipmentTrackingHistory";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuditLog } from "@/hooks/useAuditLog";
@@ -104,11 +106,14 @@ export default function Logistics() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Logistics Tracking</h1>
-        <p className="text-muted-foreground mt-2">
-          Real-time shipment tracking, GPS monitoring, and temperature control
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Logistics Tracking</h1>
+          <p className="text-muted-foreground mt-2">
+            Real-time shipment tracking, GPS monitoring, and temperature control
+          </p>
+        </div>
+        <ShipmentCreationForm />
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -118,8 +123,9 @@ export default function Logistics() {
       </div>
 
       <Tabs defaultValue="tracking" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="tracking">Tracking</TabsTrigger>
+          <TabsTrigger value="history">Movement History</TabsTrigger>
           <TabsTrigger value="ai">AI Monitor</TabsTrigger>
           <TabsTrigger value="route">Route Optimization</TabsTrigger>
           <TabsTrigger value="realtime">Real-Time IoT</TabsTrigger>
@@ -216,6 +222,18 @@ export default function Logistics() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-6">
+          {selectedShipment ? (
+            <ShipmentTrackingHistory shipmentId={selectedShipment.id} />
+          ) : (
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-center text-muted-foreground">Select a shipment from Tracking tab to view movement history</p>
               </CardContent>
             </Card>
           )}
