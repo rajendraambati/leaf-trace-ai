@@ -135,13 +135,15 @@ export default function Logistics() {
       return;
     }
 
+    // Note: Batch status is automatically updated to 'delivered' by database trigger
+
     await logAction({
       action: 'delivery_confirmed',
       resource: 'shipment',
       resourceId: shipmentId
     });
 
-    toast.success('Delivery confirmed!');
+    toast.success('Delivery confirmed! 🎉');
     fetchShipments();
   };
 

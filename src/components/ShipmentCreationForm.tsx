@@ -93,11 +93,7 @@ export function ShipmentCreationForm() {
 
       if (shipmentError) throw shipmentError;
 
-      // Update batch status
-      await supabase
-        .from("procurement_batches")
-        .update({ status: "in_transit" })
-        .eq("id", formData.batch_id);
+      // Note: Batch status is automatically updated by database trigger
 
       // Log the action
       await logAction({
