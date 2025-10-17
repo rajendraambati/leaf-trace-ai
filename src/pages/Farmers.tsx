@@ -22,6 +22,7 @@ export default function Farmers() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -145,6 +146,9 @@ export default function Farmers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (submitting) return; // Prevent double submission
+    setSubmitting(true);
+    
     try {
       const farmerId = generateFarmerId();
       
@@ -196,6 +200,8 @@ export default function Farmers() {
         description: error.message || "Registration failed",
         variant: "destructive",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -361,7 +367,9 @@ export default function Farmers() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full">Register Farmer</Button>
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? "Registering..." : "Register Farmer"}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
