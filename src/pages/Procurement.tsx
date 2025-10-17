@@ -305,7 +305,7 @@ export default function Procurement() {
                     <SelectValue placeholder="Choose farmer" />
                   </SelectTrigger>
                   <SelectContent>
-                    {farmers.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+                    {farmers.map(f => <SelectItem key={f.id} value={f.id}>{f.id} - {f.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
