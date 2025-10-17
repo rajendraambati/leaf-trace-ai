@@ -140,6 +140,12 @@ export default function Procurement() {
       return;
     }
 
+    // Validate farmer ID is exactly 8 characters
+    if (formData.farmer_id_manual && formData.farmer_id_manual.trim().length !== 8) {
+      toast.error("Farmer ID must be exactly 8 characters");
+      return;
+    }
+
     const quantity = parseFloat(formData.quantity_kg);
     const pricePerKg = parseFloat(formData.price_per_kg);
 
@@ -318,7 +324,9 @@ export default function Procurement() {
                   placeholder="Enter Farmer ID" 
                   value={formData.farmer_id_manual} 
                   onChange={(e) => setFormData({...formData, farmer_id_manual: e.target.value})} 
+                  maxLength={8}
                 />
+                <p className="text-xs text-muted-foreground">Must be exactly 8 characters</p>
               </div>
 
               <div className="space-y-2">
