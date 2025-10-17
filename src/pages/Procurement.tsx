@@ -49,7 +49,6 @@ export default function Procurement() {
   const [formData, setFormData] = useState({
     farmer_id: "",
     farmer_id_manual: "",
-    farmer_name: "",
     quantity_kg: "",
     grade: "",
     price_per_kg: "",
@@ -223,7 +222,6 @@ export default function Procurement() {
     const { error } = await supabase.from('procurement_batches').insert({
       id: batchId,
       farmer_id: formData.farmer_id,
-      farmer_name: formData.farmer_name,
       quantity_kg: quantity,
       grade: finalGrade,
       price_per_kg: pricePerKg,
@@ -251,7 +249,6 @@ export default function Procurement() {
       setFormData({ 
         farmer_id: "", 
         farmer_id_manual: "",
-        farmer_name: "",
         quantity_kg: "", 
         grade: "", 
         price_per_kg: "",
@@ -302,14 +299,7 @@ export default function Procurement() {
                 <Label htmlFor="farmer">Select Farmer</Label>
                 <Select 
                   value={formData.farmer_id} 
-                  onValueChange={(v) => {
-                    const selectedFarmer = farmers.find(f => f.id === v);
-                    setFormData({
-                      ...formData, 
-                      farmer_id: v,
-                      farmer_name: selectedFarmer?.name || ""
-                    });
-                  }}
+                  onValueChange={(v) => setFormData({...formData, farmer_id: v})}
                 >
                   <SelectTrigger id="farmer">
                     <SelectValue placeholder="Choose farmer" />
@@ -319,15 +309,6 @@ export default function Procurement() {
                   </SelectContent>
                 </Select>
               </div>
-
-              {formData.farmer_name && (
-                <div className="space-y-2">
-                  <Label>Farmer Name</Label>
-                  <div className="px-3 py-2 border border-border rounded-md bg-muted/50 text-sm">
-                    {formData.farmer_name}
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="farmer-id-manual">Farmer ID</Label>
