@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, MapPin, Phone, Mail, Map as MapIcon, Upload, FileText } from "lucide-react";
+import { Plus, Search, MapPin, Phone, Mail, Map as MapIcon, Upload, FileText, X } from "lucide-react";
 import { MapView, Location } from "@/components/MapView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,8 +106,13 @@ export default function Farmers() {
 
   const handleFileChange = (files: FileList | null) => {
     if (files) {
-      setDocuments(Array.from(files));
+      // Append new files to existing documents array
+      setDocuments(prev => [...prev, ...Array.from(files)]);
     }
+  };
+
+  const removeDocument = (index: number) => {
+    setDocuments(prev => prev.filter((_, i) => i !== index));
   };
 
   const uploadDocument = async (file: File, farmerId: string, index: number) => {
@@ -300,24 +305,43 @@ export default function Farmers() {
               <div className="space-y-2">
                 <Label htmlFor="documents" className="flex items-center gap-2">
                   <Upload className="h-4 w-4" />
-                  Upload Documents
+                  Upload Documents (Identity, Land, Certifications)
                 </Label>
                 <Input
                   id="documents"
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png,.docx,.doc"
                   multiple
-                  onChange={(e) => handleFileChange(e.target.files)}
+                  onChange={(e) => {
+                    handleFileChange(e.target.files);
+                    // Reset input so same file can be selected again if removed
+                    e.target.value = '';
+                  }}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Select one or multiple files. You can add more files by selecting again.
+                </p>
                 {documents.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    <p className="text-xs font-medium">
-                      Selected {documents.length} file(s):
+                  <div className="mt-2 space-y-1 max-h-32 overflow-y-auto border rounded-md p-2">
+                    <p className="text-xs font-medium mb-2">
+                      {documents.length} file(s) ready to upload:
                     </p>
                     {documents.map((file, index) => (
-                      <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <FileText className="h-3 w-3" />
-                        <span>{file.name}</span>
+                      <div key={index} className="flex items-center justify-between gap-2 text-xs bg-muted/50 rounded px-2 py-1">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <FileText className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{file.name}</span>
+                          <span className="text-muted-foreground flex-shrink-0">
+                            ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeDocument(index)}
+                          className="flex-shrink-0 p-1 hover:bg-destructive/10 rounded"
+                        >
+                          <X className="h-3 w-3 text-destructive" />
+                        </button>
                       </div>
                     ))}
                   </div>
