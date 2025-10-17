@@ -29,13 +29,57 @@ export default function Logistics() {
   useEffect(() => {
     fetchShipments();
 
+    // Enhanced real-time subscription with detailed notifications
     const channel = supabase
-      .channel('shipments-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments' }, fetchShipments)
+      .channel('shipments-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shipments',
+        },
+        (payload) => {
+          console.log('Shipment change detected:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            const newShipment = payload.new as any;
+            setShipments((prev) => [newShipment, ...prev]);
+            toast.success(`New shipment created: ${newShipment.id}`);
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedShipment = payload.new as any;
+            setShipments((prev) =>
+              prev.map((s) => (s.id === updatedShipment.id ? { ...s, ...updatedShipment } : s))
+            );
+            
+            // Show specific notification based on status change
+            if (updatedShipment.status === 'delivered') {
+              toast.success(`✅ Shipment ${updatedShipment.id} delivered!`);
+            } else if (updatedShipment.status === 'in_transit') {
+              toast.info(`🚚 Shipment ${updatedShipment.id} is now in transit`);
+            } else {
+              toast.info(`📦 Shipment ${updatedShipment.id} updated`);
+            }
+            
+            // Update selected shipment if it's the one being updated
+            if (selectedShipment?.id === updatedShipment.id) {
+              setSelectedShipment({ ...selectedShipment, ...updatedShipment });
+            }
+          } else if (payload.eventType === 'DELETE') {
+            setShipments((prev) => prev.filter((s) => s.id !== payload.old.id));
+            toast.info('Shipment removed');
+          }
+          
+          // Refresh locations for map
+          fetchShipments();
+        }
+      )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedShipment]);
 
   const fetchShipments = async () => {
     const { data } = await supabase.from('shipments').select('*').order('created_at', { ascending: false });
@@ -123,12 +167,13 @@ export default function Logistics() {
       </div>
 
       <Tabs defaultValue="tracking" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="tracking">Tracking</TabsTrigger>
-          <TabsTrigger value="history">Movement History</TabsTrigger>
+          <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+          <TabsTrigger value="history">Movement</TabsTrigger>
           <TabsTrigger value="ai">AI Monitor</TabsTrigger>
-          <TabsTrigger value="route">Route Optimization</TabsTrigger>
-          <TabsTrigger value="realtime">Real-Time IoT</TabsTrigger>
+          <TabsTrigger value="route">Route</TabsTrigger>
+          <TabsTrigger value="realtime">Live IoT</TabsTrigger>
           <TabsTrigger value="iot">Temperature</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
@@ -222,6 +267,156 @@ export default function Logistics() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="lifecycle" className="space-y-6">
+          {selectedShipment ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Shipment Lifecycle - {selectedShipment.id}
+                </CardTitle>
+                <CardDescription>Complete journey from origin to destination</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Current Status Summary */}
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Current Status</p>
+                      <div className="mt-1">
+                        <StatusBadge status={selectedShipment.status} />
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Last Updated</p>
+                      <p className="font-medium text-sm">
+                        {new Date(selectedShipment.updated_at).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Lifecycle Timeline */}
+                  <div className="space-y-4">
+                    {/* Step 1: Creation/Pending */}
+                    <div className="flex items-start gap-4 p-4 border rounded-lg">
+                      <div className="flex flex-col items-center">
+                        <div className="w-3 h-3 rounded-full bg-blue-500" />
+                        <div className="w-0.5 h-full bg-border mt-2" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold">Shipment Created</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(selectedShipment.created_at).toLocaleString()}
+                        </p>
+                        <div className="mt-2 space-y-1 text-sm">
+                          <p><span className="text-muted-foreground">Batch:</span> {selectedShipment.batch_id}</p>
+                          <p><span className="text-muted-foreground">Origin:</span> {selectedShipment.from_location}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 2: Departure */}
+                    {selectedShipment.departure_time && (
+                      <div className="flex items-start gap-4 p-4 border rounded-lg">
+                        <div className="flex flex-col items-center">
+                          <div className="w-3 h-3 rounded-full bg-green-500" />
+                          <div className="w-0.5 h-full bg-border mt-2" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold">Departed</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(selectedShipment.departure_time).toLocaleString()}
+                          </p>
+                          <div className="mt-2 space-y-1 text-sm">
+                            <p><span className="text-muted-foreground">Vehicle:</span> {selectedShipment.vehicle_id}</p>
+                            <p><span className="text-muted-foreground">Driver:</span> {selectedShipment.driver_name}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Step 3: In Transit */}
+                    {selectedShipment.status === 'in_transit' && (
+                      <div className="flex items-start gap-4 p-4 border rounded-lg bg-primary/5 animate-pulse">
+                        <div className="flex flex-col items-center">
+                          <div className="w-3 h-3 rounded-full bg-primary" />
+                          <div className="w-0.5 h-full bg-border mt-2" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold flex items-center gap-2">
+                            <Truck className="h-4 w-4" />
+                            In Transit
+                          </p>
+                          <p className="text-sm text-muted-foreground">Currently on the way</p>
+                          <div className="mt-2 space-y-1 text-sm">
+                            {selectedShipment.eta && (
+                              <p><span className="text-muted-foreground">ETA:</span> {new Date(selectedShipment.eta).toLocaleString()}</p>
+                            )}
+                            {selectedShipment.gps_latitude && selectedShipment.gps_longitude && (
+                              <p><span className="text-muted-foreground">Location:</span> {selectedShipment.gps_latitude.toFixed(4)}, {selectedShipment.gps_longitude.toFixed(4)}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Step 4: Delivered */}
+                    <div className={`flex items-start gap-4 p-4 border rounded-lg ${
+                      selectedShipment.status === 'delivered' ? 'bg-green-50 dark:bg-green-950' : 'opacity-50'
+                    }`}>
+                      <div className="flex flex-col items-center">
+                        <div className={`w-3 h-3 rounded-full ${
+                          selectedShipment.status === 'delivered' ? 'bg-green-500' : 'bg-gray-300'
+                        }`} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold">Arrival at Destination</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedShipment.to_location}
+                        </p>
+                        {selectedShipment.actual_arrival ? (
+                          <div className="mt-2 space-y-1 text-sm">
+                            <p><span className="text-muted-foreground">Delivered:</span> {new Date(selectedShipment.actual_arrival).toLocaleString()}</p>
+                            <Badge variant="default" className="bg-green-500">✓ Completed</Badge>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground mt-2">Awaiting delivery confirmation</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Temperature Summary if available */}
+                  {(selectedShipment.temperature_min || selectedShipment.temperature_max) && (
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Thermometer className="h-4 w-4" />
+                        <p className="font-semibold">Temperature Monitoring</p>
+                      </div>
+                      <div className="flex gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Min</p>
+                          <p className="font-medium">{selectedShipment.temperature_min || 'N/A'}°C</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Max</p>
+                          <p className="font-medium">{selectedShipment.temperature_max || 'N/A'}°C</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-center text-muted-foreground">Select a shipment from Tracking tab to view lifecycle</p>
               </CardContent>
             </Card>
           )}
