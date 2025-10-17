@@ -15,6 +15,7 @@ import { MapView, Location } from "@/components/MapView";
 import AILogisticsMonitor from "@/components/AILogisticsMonitor";
 import { ShipmentCreationForm } from "@/components/ShipmentCreationForm";
 import { ShipmentTrackingHistory } from "@/components/ShipmentTrackingHistory";
+import { LiveShipmentTracker } from "@/components/LiveShipmentTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuditLog } from "@/hooks/useAuditLog";
@@ -168,8 +169,9 @@ export default function Logistics() {
         <StatCard title="Total Shipments" value={shipments.length.toString()} icon={Clock} />
       </div>
 
-      <Tabs defaultValue="tracking" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+      <Tabs defaultValue="live-map" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
+          <TabsTrigger value="live-map">Live Map</TabsTrigger>
           <TabsTrigger value="tracking">Tracking</TabsTrigger>
           <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
           <TabsTrigger value="history">Movement</TabsTrigger>
@@ -179,6 +181,10 @@ export default function Logistics() {
           <TabsTrigger value="iot">Temperature</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="live-map" className="space-y-4">
+          <LiveShipmentTracker />
+        </TabsContent>
 
         <TabsContent value="tracking" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
