@@ -8,7 +8,7 @@ PostgreSQL database with Row-Level Security (RLS) enabled on all tables. Uses UU
 
 ### farmers
 ```sql
-id UUID PRIMARY KEY
+id TEXT PRIMARY KEY (8 characters)
 user_id UUID (links to auth.users)
 name TEXT NOT NULL
 phone TEXT
@@ -25,7 +25,7 @@ updated_at TIMESTAMP
 ### procurement_batches
 ```sql
 id TEXT PRIMARY KEY
-farmer_id UUID → farmers(id)
+farmer_id TEXT → farmers(id) (8 characters)
 quantity_kg NUMERIC NOT NULL
 grade TEXT NOT NULL
 price_per_kg NUMERIC NOT NULL

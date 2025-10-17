@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets, Eye } from "lucide-react";
+import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets, Eye, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -42,7 +42,9 @@ export default function Procurement() {
   const [open, setOpen] = useState(false);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<ProcurementBatch | null>(null);
+  const [editFarmerId, setEditFarmerId] = useState("");
   const [procurements, setProcurements] = useState<ProcurementBatch[]>([]);
   const [farmers, setFarmers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
@@ -295,6 +297,43 @@ export default function Procurement() {
     }
   };
 
+  const handleEditFarmerId = async () => {
+    if (!selectedBatch) return;
+
+    // Validate farmer ID is exactly 8 characters
+    if (editFarmerId.trim().length !== 8) {
+      toast.error("Farmer ID must be exactly 8 characters");
+      return;
+    }
+
+    // Verify farmer exists
+    const { data: farmerExists } = await supabase
+      .from('farmers')
+      .select('id, name')
+      .eq('id', editFarmerId.trim())
+      .single();
+    
+    if (!farmerExists) {
+      toast.error("Farmer ID not found. Please check the ID and try again.");
+      return;
+    }
+
+    // Update the batch
+    const { error } = await supabase
+      .from('procurement_batches')
+      .update({ farmer_id: editFarmerId.trim() })
+      .eq('id', selectedBatch.id);
+
+    if (error) {
+      toast.error(`Failed to update farmer ID: ${error.message}`);
+    } else {
+      toast.success(`Farmer ID updated successfully to ${farmerExists.name}`);
+      setEditDialogOpen(false);
+      setEditFarmerId("");
+      fetchProcurements();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -532,6 +571,9 @@ export default function Procurement() {
                       <Button size="sm" variant="outline" onClick={() => { setSelectedBatch(item); setDetailDialogOpen(true); }}>
                         <Eye className="h-4 w-4" />
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedBatch(item); setEditFarmerId(item.farmer_id); setEditDialogOpen(true); }}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleAIGrade(item.id)}>
                         <Camera className="h-4 w-4" />
                       </Button>
@@ -627,6 +669,48 @@ export default function Procurement() {
                   </Button>
                 </div>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Farmer ID</DialogTitle>
+          </DialogHeader>
+          {selectedBatch && (
+            <div className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label>Current Batch ID</Label>
+                <div className="px-3 py-2 border border-border rounded-md bg-muted/50">
+                  {selectedBatch.id}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Current Farmer ID</Label>
+                <div className="px-3 py-2 border border-border rounded-md bg-muted/50">
+                  {selectedBatch.farmer_id} - {selectedBatch.farmers?.name || "Unknown"}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="new-farmer-id">New Farmer ID</Label>
+                <Input 
+                  id="new-farmer-id"
+                  type="text"
+                  placeholder="Enter 8-character Farmer ID"
+                  value={editFarmerId}
+                  onChange={(e) => setEditFarmerId(e.target.value.toUpperCase())}
+                  maxLength={8}
+                />
+                <p className="text-xs text-muted-foreground">Must be exactly 8 characters</p>
+              </div>
+
+              <Button className="w-full" onClick={handleEditFarmerId}>
+                Update Farmer ID
+              </Button>
             </div>
           )}
         </DialogContent>
