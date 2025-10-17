@@ -262,7 +262,7 @@ export default function Logistics() {
                           size="sm" 
                           onClick={(e) => { e.stopPropagation(); confirmDelivery(shipment.id); }} 
                           className="flex-1"
-                          disabled={shipment.status === 'delivered'}
+                          disabled={shipment.status !== 'in-transit'}
                         >
                           Delivered
                         </Button>
@@ -386,7 +386,7 @@ export default function Logistics() {
                       <tr key={shipment.id} className="border-b hover:bg-muted/50">
                         <td className="p-4 font-medium">{shipment.id}</td>
                         <td className="p-4 text-center">
-                          {shipment.status === 'in-transit' && (
+                          {(shipment.status === 'in-transit' || shipment.status === 'delivered') && (
                             <span className="text-green-600 text-2xl">✓</span>
                           )}
                         </td>
