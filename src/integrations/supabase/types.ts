@@ -760,8 +760,12 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           farmer_id: string
+          farmer_name: string | null
+          gps_latitude: number | null
+          gps_longitude: number | null
           grade: string
           id: string
+          moisture_percentage: number | null
           price_per_kg: number
           procurement_date: string | null
           qr_code: string | null
@@ -774,8 +778,12 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           farmer_id: string
+          farmer_name?: string | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
           grade: string
           id: string
+          moisture_percentage?: number | null
           price_per_kg: number
           procurement_date?: string | null
           qr_code?: string | null
@@ -788,8 +796,12 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           farmer_id?: string
+          farmer_name?: string | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
           grade?: string
           id?: string
+          moisture_percentage?: number | null
           price_per_kg?: number
           procurement_date?: string | null
           qr_code?: string | null

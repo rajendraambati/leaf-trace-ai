@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Calendar, Weight, DollarSign, Camera, Download } from "lucide-react";
+import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
@@ -46,9 +46,13 @@ export default function Procurement() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     farmer_id: "",
+    farmer_name: "",
     quantity_kg: "",
     grade: "",
     price_per_kg: "",
+    moisture_percentage: "",
+    gps_latitude: null as number | null,
+    gps_longitude: null as number | null,
   });
   const [capturedImage, setCapturedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -105,10 +109,32 @@ export default function Procurement() {
     }
   };
 
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    toast.info("Capturing GPS location...");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData({
+          ...formData,
+          gps_latitude: position.coords.latitude,
+          gps_longitude: position.coords.longitude,
+        });
+        toast.success("GPS location captured successfully");
+      },
+      (error) => {
+        toast.error(`Failed to get location: ${error.message}`);
+      }
+    );
+  };
+
   const handleSubmit = async () => {
     // Validate form data
-    if (!formData.farmer_id || !formData.quantity_kg || !formData.price_per_kg) {
-      toast.error("Please fill in all required fields");
+    if (!formData.farmer_id || !formData.quantity_kg || !formData.price_per_kg || !formData.moisture_percentage) {
+      toast.error("Please fill in all required fields (Farmer, Quantity, Price, Moisture %)");
       return;
     }
 
@@ -194,9 +220,13 @@ export default function Procurement() {
     const { error } = await supabase.from('procurement_batches').insert({
       id: batchId,
       farmer_id: formData.farmer_id,
+      farmer_name: formData.farmer_name,
       quantity_kg: quantity,
       grade: finalGrade,
       price_per_kg: pricePerKg,
+      moisture_percentage: parseFloat(formData.moisture_percentage),
+      gps_latitude: formData.gps_latitude,
+      gps_longitude: formData.gps_longitude,
       status: 'pending',
       qr_code: generateBatchQRData(batchId),
     });
@@ -215,7 +245,16 @@ export default function Procurement() {
     } else {
       toast.success('Batch created successfully');
       setOpen(false);
-      setFormData({ farmer_id: "", quantity_kg: "", grade: "", price_per_kg: "" });
+      setFormData({ 
+        farmer_id: "", 
+        farmer_name: "",
+        quantity_kg: "", 
+        grade: "", 
+        price_per_kg: "",
+        moisture_percentage: "",
+        gps_latitude: null,
+        gps_longitude: null,
+      });
       setCapturedImage(null);
       setImagePreview(null);
     }
@@ -257,7 +296,17 @@ export default function Procurement() {
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="farmer">Select Farmer</Label>
-                <Select value={formData.farmer_id} onValueChange={(v) => setFormData({...formData, farmer_id: v})}>
+                <Select 
+                  value={formData.farmer_id} 
+                  onValueChange={(v) => {
+                    const selectedFarmer = farmers.find(f => f.id === v);
+                    setFormData({
+                      ...formData, 
+                      farmer_id: v,
+                      farmer_name: selectedFarmer?.name || ""
+                    });
+                  }}
+                >
                   <SelectTrigger id="farmer">
                     <SelectValue placeholder="Choose farmer" />
                   </SelectTrigger>
@@ -266,6 +315,15 @@ export default function Procurement() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {formData.farmer_name && (
+                <div className="space-y-2">
+                  <Label>Farmer Name</Label>
+                  <div className="px-3 py-2 border border-border rounded-md bg-muted/50 text-sm">
+                    {formData.farmer_name}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="quantity">Quantity (kg)</Label>
                 <Input id="quantity" type="number" placeholder="0" value={formData.quantity_kg} onChange={(e) => setFormData({...formData, quantity_kg: e.target.value})} />
@@ -286,6 +344,50 @@ export default function Procurement() {
               <div className="space-y-2">
                 <Label htmlFor="price">Price per kg ($)</Label>
                 <Input id="price" type="number" step="0.01" placeholder="0.00" value={formData.price_per_kg} onChange={(e) => setFormData({...formData, price_per_kg: e.target.value})} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="moisture">
+                  <div className="flex items-center gap-2">
+                    <Droplets className="h-4 w-4" />
+                    Moisture Percentage (%)
+                  </div>
+                </Label>
+                <Input 
+                  id="moisture" 
+                  type="number" 
+                  step="0.1" 
+                  min="0" 
+                  max="100" 
+                  placeholder="0.0" 
+                  value={formData.moisture_percentage} 
+                  onChange={(e) => setFormData({...formData, moisture_percentage: e.target.value})} 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    GPS Location (Traceability)
+                  </div>
+                </Label>
+                {formData.gps_latitude && formData.gps_longitude ? (
+                  <div className="px-3 py-2 border border-border rounded-md bg-muted/50 text-sm space-y-1">
+                    <p className="text-muted-foreground">Latitude: {formData.gps_latitude.toFixed(6)}</p>
+                    <p className="text-muted-foreground">Longitude: {formData.gps_longitude.toFixed(6)}</p>
+                  </div>
+                ) : (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={getCurrentLocation}
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Capture GPS Location
+                  </Button>
+                )}
               </div>
               
               <div className="space-y-2">
