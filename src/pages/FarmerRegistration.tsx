@@ -19,21 +19,18 @@ export default function FarmerRegistration() {
     geo_latitude: "",
     geo_longitude: ""
   });
-  const [documents, setDocuments] = useState({
-    identity_proof: null as File | null,
-    land_ownership: null as File | null,
-    certification: null as File | null,
-    other: null as File | null
-  });
+  const [documents, setDocuments] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleFileChange = (docType: keyof typeof documents, file: File | null) => {
-    setDocuments({ ...documents, [docType]: file });
+  const handleFileChange = (files: FileList | null) => {
+    if (files) {
+      setDocuments(Array.from(files));
+    }
   };
 
-  const uploadDocument = async (file: File, farmerId: string, docType: string) => {
+  const uploadDocument = async (file: File, farmerId: string, index: number) => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${farmerId}/${docType}_${Date.now()}.${fileExt}`;
+    const fileName = `${farmerId}/document_${index}_${Date.now()}.${fileExt}`;
     
     const { data, error } = await supabase.storage
       .from('registration-documents')
@@ -45,7 +42,7 @@ export default function FarmerRegistration() {
       .from('registration-documents')
       .getPublicUrl(fileName);
 
-    return publicUrl;
+    return { publicUrl, originalName: file.name };
   };
 
   const getCurrentLocation = () => {
@@ -92,21 +89,20 @@ export default function FarmerRegistration() {
       if (farmerError) throw farmerError;
 
       // Upload documents if any
-      const documentUploads = Object.entries(documents)
-        .filter(([_, file]) => file !== null)
-        .map(async ([docType, file]) => {
-          if (!file) return;
-          
-          const documentUrl = await uploadDocument(file, farmerData.id, docType);
+      if (documents.length > 0) {
+        const documentUploads = documents.map(async (file, index) => {
+          const { publicUrl, originalName } = await uploadDocument(file, farmerData.id, index);
           
           await supabase.from('farmer_documents').insert({
             farmer_id: farmerData.id,
-            document_type: docType,
-            document_url: documentUrl
+            document_type: 'registration_document',
+            document_url: publicUrl,
+            uploaded_by: (await supabase.auth.getUser()).data.user?.id
           });
         });
 
-      await Promise.all(documentUploads);
+        await Promise.all(documentUploads);
+      }
 
       toast.success("Farmer registered successfully with documents!");
       navigate("/farmers");
@@ -251,84 +247,37 @@ export default function FarmerRegistration() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="identity_proof" className="text-base flex items-center gap-2">
+              <Label htmlFor="documents" className="text-base flex items-center gap-2">
                 <Upload className="h-4 w-4" />
-                Identity Proof (Aadhar/PAN/Driving License)
+                Upload Documents (Identity Proof, Land Ownership, Certifications, etc.)
               </Label>
               <Input
-                id="identity_proof"
+                id="documents"
                 type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => handleFileChange('identity_proof', e.target.files?.[0] || null)}
+                accept=".pdf,.jpg,.jpeg,.png,.docx,.doc"
+                multiple
+                onChange={(e) => handleFileChange(e.target.files)}
                 className="h-12 text-base"
               />
-              {documents.identity_proof && (
-                <p className="text-xs text-muted-foreground">
-                  Selected: {documents.identity_proof.name}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="land_ownership" className="text-base flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                Land Ownership Documents
-              </Label>
-              <Input
-                id="land_ownership"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => handleFileChange('land_ownership', e.target.files?.[0] || null)}
-                className="h-12 text-base"
-              />
-              {documents.land_ownership && (
-                <p className="text-xs text-muted-foreground">
-                  Selected: {documents.land_ownership.name}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="certification" className="text-base flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                Farmer Certification (Optional)
-              </Label>
-              <Input
-                id="certification"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => handleFileChange('certification', e.target.files?.[0] || null)}
-                className="h-12 text-base"
-              />
-              {documents.certification && (
-                <p className="text-xs text-muted-foreground">
-                  Selected: {documents.certification.name}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="other" className="text-base flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                Other Documents (Optional)
-              </Label>
-              <Input
-                id="other"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => handleFileChange('other', e.target.files?.[0] || null)}
-                className="h-12 text-base"
-              />
-              {documents.other && (
-                <p className="text-xs text-muted-foreground">
-                  Selected: {documents.other.name}
-                </p>
+              {documents.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <p className="text-sm font-medium text-foreground">
+                    Selected {documents.length} file(s):
+                  </p>
+                  {documents.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <FileText className="h-3 w-3" />
+                      <span>{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
             <div className="p-3 bg-muted rounded-lg text-xs text-muted-foreground">
-              <p>Accepted formats: PDF, JPG, JPEG, PNG</p>
-              <p>Maximum file size: 5MB per document</p>
+              <p>• Accepted formats: PDF, JPG, JPEG, PNG, DOCX, DOC</p>
+              <p>• You can select multiple files at once</p>
+              <p>• Maximum file size: 5MB per document</p>
             </div>
           </CardContent>
         </Card>
