@@ -367,13 +367,6 @@ export type Database = {
             referencedRelation: "farmers"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_farmer_certifications_farmer"
-            columns: ["farmer_id"]
-            isOneToOne: false
-            referencedRelation: "farmers"
-            referencedColumns: ["id"]
-          },
         ]
       }
       farmer_documents: {
@@ -409,13 +402,6 @@ export type Database = {
             referencedRelation: "farmers"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_farmer_documents_farmer"
-            columns: ["farmer_id"]
-            isOneToOne: false
-            referencedRelation: "farmers"
-            referencedColumns: ["id"]
-          },
         ]
       }
       farmers: {
@@ -439,7 +425,7 @@ export type Database = {
           farm_size_acres?: number | null
           geo_latitude?: number | null
           geo_longitude?: number | null
-          id?: string
+          id: string
           location: string
           name: string
           phone?: string | null
@@ -811,13 +797,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_procurement_batches_farmer"
-            columns: ["farmer_id"]
-            isOneToOne: false
-            referencedRelation: "farmers"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "procurement_batches_farmer_id_fkey"
             columns: ["farmer_id"]

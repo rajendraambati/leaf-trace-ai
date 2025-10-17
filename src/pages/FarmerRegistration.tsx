@@ -66,14 +66,27 @@ export default function FarmerRegistration() {
     }
   };
 
+  const generateFarmerId = () => {
+    // Generate 8-character alphanumeric ID
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let id = '';
+    for (let i = 0; i < 8; i++) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
+      const farmerId = generateFarmerId();
+      
       const { data: farmerData, error: farmerError } = await supabase
         .from('farmers')
         .insert({
+          id: farmerId,
           name: formData.name,
           email: formData.email || null,
           phone: formData.phone || null,

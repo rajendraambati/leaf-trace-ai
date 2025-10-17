@@ -7,10 +7,20 @@ import { supabase } from '@/integrations/supabase/client';
 export async function seedTestData() {
   console.log('Starting test data seeding...');
 
+  const generateFarmerId = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let id = '';
+    for (let i = 0; i < 8; i++) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
+  };
+
   try {
     // 1. Create test farmers
     const farmers = [
       {
+        id: generateFarmerId(),
         name: 'Rajesh Kumar',
         location: 'Karnataka, India',
         phone: '+91-9876543210',
@@ -21,6 +31,7 @@ export async function seedTestData() {
         status: 'active'
       },
       {
+        id: generateFarmerId(),
         name: 'Priya Sharma',
         location: 'Andhra Pradesh, India',
         phone: '+91-9876543211',
@@ -31,6 +42,7 @@ export async function seedTestData() {
         status: 'active'
       },
       {
+        id: generateFarmerId(),
         name: 'Amit Patel',
         location: 'Gujarat, India',
         phone: '+91-9876543212',

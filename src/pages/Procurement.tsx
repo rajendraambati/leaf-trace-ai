@@ -80,7 +80,7 @@ export default function Procurement() {
   const fetchProcurements = async () => {
     const { data, error } = await supabase
       .from('procurement_batches')
-      .select('*, farmers!fk_procurement_batches_farmer(name)')
+      .select('*, farmers(name)')
       .order('created_at', { ascending: false });
     
     if (error) {

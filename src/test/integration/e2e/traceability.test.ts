@@ -15,10 +15,21 @@ describe('End-to-End Traceability System', () => {
 
   describe('Complete Tobacco Supply Chain Flow', () => {
     it('should trace tobacco from farm to warehouse with full data integrity', async () => {
+      // Generate 8-character farmer ID
+      const generateFarmerId = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let id = '';
+        for (let i = 0; i < 8; i++) {
+          id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return id;
+      };
+
       // Step 1: Register a farmer
       const { data: farmer, error: farmerError } = await supabase
         .from('farmers')
         .insert({
+          id: generateFarmerId(),
           name: 'E2E Test Farmer',
           location: 'Karnataka Test Region',
           phone: '+91-9876543210',
