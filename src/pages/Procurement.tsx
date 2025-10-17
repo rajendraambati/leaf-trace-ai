@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets } from "lucide-react";
+import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets, Eye } from "lucide-react";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
@@ -40,12 +41,14 @@ interface ProcurementBatch {
 export default function Procurement() {
   const [open, setOpen] = useState(false);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<ProcurementBatch | null>(null);
   const [procurements, setProcurements] = useState<ProcurementBatch[]>([]);
   const [farmers, setFarmers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     farmer_id: "",
+    farmer_id_manual: "",
     farmer_name: "",
     quantity_kg: "",
     grade: "",
@@ -247,6 +250,7 @@ export default function Procurement() {
       setOpen(false);
       setFormData({ 
         farmer_id: "", 
+        farmer_id_manual: "",
         farmer_name: "",
         quantity_kg: "", 
         grade: "", 
@@ -324,6 +328,26 @@ export default function Procurement() {
                   </div>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label htmlFor="farmer-id-manual">Farmer ID</Label>
+                <Input 
+                  id="farmer-id-manual" 
+                  type="text" 
+                  placeholder="Enter Farmer ID" 
+                  value={formData.farmer_id_manual} 
+                  onChange={(e) => setFormData({...formData, farmer_id_manual: e.target.value})} 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Date & Time</Label>
+                <div className="px-3 py-2 border border-border rounded-md bg-muted/50 text-sm">
+                  {format(new Date(), "dd-MM-yyyy HH:mm:ss")}
+                </div>
+                <p className="text-xs text-muted-foreground">Auto-captured on batch creation</p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="quantity">Quantity (kg)</Label>
                 <Input id="quantity" type="number" placeholder="0" value={formData.quantity_kg} onChange={(e) => setFormData({...formData, quantity_kg: e.target.value})} />
@@ -498,9 +522,12 @@ export default function Procurement() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium">${item.total_price?.toFixed(2)}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(item.procurement_date).toLocaleDateString()}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(item.procurement_date), "dd-MM-yyyy")}</p>
                     </div>
                     <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedBatch(item); setDetailDialogOpen(true); }}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleAIGrade(item.id)}>
                         <Camera className="h-4 w-4" />
                       </Button>
@@ -523,6 +550,80 @@ export default function Procurement() {
           </DialogHeader>
           {selectedBatch && selectedBatch.qr_code && (
             <QRCodeDisplay data={selectedBatch.qr_code} title={`Batch ${selectedBatch.id}`} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Batch Details</DialogTitle>
+          </DialogHeader>
+          {selectedBatch && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Batch ID</p>
+                  <p className="text-base font-semibold">{selectedBatch.id}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <StatusBadge status={selectedBatch.status as any} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Farmer Name</p>
+                  <p className="text-base">{selectedBatch.farmers?.name || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Farmer ID</p>
+                  <p className="text-base">{selectedBatch.farmer_id}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Date & Time</p>
+                  <p className="text-base">{format(new Date(selectedBatch.procurement_date), "dd-MM-yyyy HH:mm:ss")}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Quantity</p>
+                  <p className="text-base">{selectedBatch.quantity_kg} kg</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Grade</p>
+                  <p className="text-base">{selectedBatch.grade}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Price per kg</p>
+                  <p className="text-base">${selectedBatch.price_per_kg}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Price</p>
+                  <p className="text-base font-semibold">${selectedBatch.total_price?.toFixed(2)}</p>
+                </div>
+              </div>
+              
+              <div className="pt-4 border-t">
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setDetailDialogOpen(false);
+                      setQrDialogOpen(true);
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    View QR Code
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handleAIGrade(selectedBatch.id)}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    AI Grade
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
