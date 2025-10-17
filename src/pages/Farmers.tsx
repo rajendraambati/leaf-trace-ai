@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, MapPin, Phone, Mail, Map as MapIcon } from "lucide-react";
+import { Plus, Search, MapPin, Phone, Mail, Map as MapIcon, Upload, FileText } from "lucide-react";
 import { MapView, Location } from "@/components/MapView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,8 +29,11 @@ export default function Farmers() {
     location: '',
     phone: '',
     email: '',
-    farm_size_acres: ''
+    farm_size_acres: '',
+    geo_latitude: '',
+    geo_longitude: ''
   });
+  const [documents, setDocuments] = useState<File[]>([]);
 
   useEffect(() => {
     fetchFarmers();
@@ -66,34 +69,115 @@ export default function Farmers() {
     setLoading(false);
   };
 
+  const getCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      toast({
+        title: "Getting location...",
+        description: "Please allow location access",
+      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData({
+            ...formData,
+            geo_latitude: position.coords.latitude.toString(),
+            geo_longitude: position.coords.longitude.toString()
+          });
+          toast({
+            title: "Success",
+            description: "GPS location captured!",
+          });
+        },
+        (error) => {
+          toast({
+            title: "Error",
+            description: "Could not get location: " + error.message,
+            variant: "destructive",
+          });
+        }
+      );
+    } else {
+      toast({
+        title: "Error",
+        description: "Geolocation not supported",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFileChange = (files: FileList | null) => {
+    if (files) {
+      setDocuments(Array.from(files));
+    }
+  };
+
+  const uploadDocument = async (file: File, farmerId: string, index: number) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${farmerId}/document_${index}_${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('registration-documents')
+      .upload(fileName, file);
+
+    if (error) throw error;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('registration-documents')
+      .getPublicUrl(fileName);
+
+    return { publicUrl, originalName: file.name };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { error } = await supabase
-      .from('farmers')
-      .insert([{
-        name: formData.name,
-        location: formData.location,
-        phone: formData.phone,
-        email: formData.email,
-        farm_size_acres: parseFloat(formData.farm_size_acres) || 0,
-        status: 'active'
-      }]);
+    try {
+      const { data: farmerData, error: farmerError } = await supabase
+        .from('farmers')
+        .insert([{
+          name: formData.name,
+          location: formData.location,
+          phone: formData.phone || null,
+          email: formData.email || null,
+          farm_size_acres: formData.farm_size_acres ? parseFloat(formData.farm_size_acres) : null,
+          geo_latitude: formData.geo_latitude ? parseFloat(formData.geo_latitude) : null,
+          geo_longitude: formData.geo_longitude ? parseFloat(formData.geo_longitude) : null,
+          status: 'active'
+        }])
+        .select()
+        .single();
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+      if (farmerError) throw farmerError;
+
+      // Upload documents if any
+      if (documents.length > 0) {
+        const documentUploads = documents.map(async (file, index) => {
+          const { publicUrl, originalName } = await uploadDocument(file, farmerData.id, index);
+          
+          await supabase.from('farmer_documents').insert({
+            farmer_id: farmerData.id,
+            document_type: 'registration_document',
+            document_url: publicUrl,
+            uploaded_by: (await supabase.auth.getUser()).data.user?.id
+          });
+        });
+
+        await Promise.all(documentUploads);
+      }
+
       toast({
         title: "Success",
-        description: "Farmer registered successfully",
+        description: "Farmer registered successfully with documents!",
       });
       setOpen(false);
-      setFormData({ name: '', location: '', phone: '', email: '', farm_size_acres: '' });
+      setFormData({ name: '', location: '', phone: '', email: '', farm_size_acres: '', geo_latitude: '', geo_longitude: '' });
+      setDocuments([]);
       fetchFarmers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Registration failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -191,6 +275,55 @@ export default function Farmers() {
                   onChange={(e) => setFormData({...formData, farm_size_acres: e.target.value})}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={getCurrentLocation}
+                >
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Capture GPS Location
+                </Button>
+                {formData.geo_latitude && formData.geo_longitude && (
+                  <div className="p-2 bg-success/10 rounded-md text-xs">
+                    <p className="font-medium text-success">GPS Captured</p>
+                    <p className="text-muted-foreground">
+                      Lat: {parseFloat(formData.geo_latitude).toFixed(6)}, 
+                      Lng: {parseFloat(formData.geo_longitude).toFixed(6)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="documents" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Upload Documents
+                </Label>
+                <Input
+                  id="documents"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.docx,.doc"
+                  multiple
+                  onChange={(e) => handleFileChange(e.target.files)}
+                />
+                {documents.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium">
+                      Selected {documents.length} file(s):
+                    </p>
+                    {documents.map((file, index) => (
+                      <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <FileText className="h-3 w-3" />
+                        <span>{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <Button type="submit" className="w-full">Register Farmer</Button>
             </form>
           </DialogContent>
