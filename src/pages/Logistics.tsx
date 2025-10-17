@@ -154,7 +154,7 @@ export default function Logistics() {
 
   const inTransit = shipments.filter(s => s.status === 'in-transit').length;
   const delivered = shipments.filter(s => s.status === 'delivered').length;
-  const totalShipments = shipments.length;
+  const totalShipments = shipments.filter(s => s.status !== 'delivered').length;
 
   const markInTransit = async (shipmentId: string) => {
     const { error } = await supabase
@@ -175,6 +175,25 @@ export default function Logistics() {
 
     toast.success('Shipment marked as in transit! 🚚');
     fetchShipments();
+  };
+
+  const formatETA = (eta: string, status: string) => {
+    if (status === 'delivered') {
+      return 'Delivered';
+    }
+    
+    const etaDate = new Date(eta);
+    const now = new Date();
+    const diffMs = etaDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return 'Within 1 day';
+    } else {
+      return `Within ${diffDays} days`;
+    }
   };
 
   return (
@@ -246,7 +265,7 @@ export default function Logistics() {
                       {shipment.eta && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">ETA:</span>
-                          <span className="font-medium">{new Date(shipment.eta).toLocaleTimeString()}</span>
+                          <span className="font-medium">{formatETA(shipment.eta, shipment.status)}</span>
                         </div>
                       )}
                       <div className="flex gap-2 mt-2">
@@ -254,7 +273,7 @@ export default function Logistics() {
                           size="sm" 
                           onClick={(e) => { e.stopPropagation(); markInTransit(shipment.id); }} 
                           className="flex-1"
-                          disabled={shipment.status === 'in-transit' || shipment.status === 'delivered'}
+                          disabled={shipment.status !== 'pending'}
                         >
                           Transit
                         </Button>

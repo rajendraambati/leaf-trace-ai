@@ -87,7 +87,7 @@ export function ShipmentCreationForm() {
           vehicle_id: formData.vehicle_id,
           driver_name: formData.driver_name,
           departure_time: formData.departure_time || new Date().toISOString(),
-          status: "in-transit",
+          status: "pending",
           eta: calculateETA(formData.departure_time),
         });
 
@@ -115,8 +115,8 @@ export function ShipmentCreationForm() {
 
   const calculateETA = (departureTime: string) => {
     const departure = new Date(departureTime || Date.now());
-    // Add 6 hours as estimated transit time
-    departure.setHours(departure.getHours() + 6);
+    // Add 3 days as estimated transit time
+    departure.setDate(departure.getDate() + 3);
     return departure.toISOString();
   };
 
