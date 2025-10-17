@@ -134,15 +134,30 @@ export default function Procurement() {
   };
 
   const handleSubmit = async () => {
+    // Determine which farmer ID to use
+    const farmerId = formData.farmer_id_manual.trim() || formData.farmer_id;
+    
     // Validate form data
-    if (!formData.farmer_id || !formData.quantity_kg || !formData.price_per_kg || !formData.moisture_percentage) {
-      toast.error("Please fill in all required fields (Farmer, Quantity, Price, Moisture %)");
+    if (!farmerId || !formData.quantity_kg || !formData.price_per_kg || !formData.moisture_percentage) {
+      toast.error("Please fill in all required fields (Farmer ID, Quantity, Price, Moisture %)");
       return;
     }
 
     // Validate farmer ID is exactly 8 characters
-    if (formData.farmer_id_manual && formData.farmer_id_manual.trim().length !== 8) {
+    if (farmerId.length !== 8) {
       toast.error("Farmer ID must be exactly 8 characters");
+      return;
+    }
+
+    // Verify farmer exists
+    const { data: farmerExists } = await supabase
+      .from('farmers')
+      .select('id')
+      .eq('id', farmerId)
+      .single();
+    
+    if (!farmerExists) {
+      toast.error("Farmer ID not found. Please check the ID and try again.");
       return;
     }
 
@@ -227,7 +242,7 @@ export default function Procurement() {
     
     const { error } = await supabase.from('procurement_batches').insert({
       id: batchId,
-      farmer_id: formData.farmer_id,
+      farmer_id: farmerId,
       quantity_kg: quantity,
       grade: finalGrade,
       price_per_kg: pricePerKg,
