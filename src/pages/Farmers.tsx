@@ -226,7 +226,7 @@ export default function Farmers() {
                 Register Farmer
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Register New Farmer</DialogTitle>
             </DialogHeader>
