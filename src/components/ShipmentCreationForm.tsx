@@ -87,7 +87,7 @@ export function ShipmentCreationForm() {
           vehicle_id: formData.vehicle_id,
           driver_name: formData.driver_name,
           departure_time: formData.departure_time || new Date().toISOString(),
-          status: "in_transit",
+          status: "in-transit",
           eta: calculateETA(formData.departure_time),
         });
 
