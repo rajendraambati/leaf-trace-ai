@@ -154,6 +154,28 @@ export default function Logistics() {
 
   const inTransit = shipments.filter(s => s.status === 'in_transit').length;
   const delivered = shipments.filter(s => s.status === 'delivered').length;
+  const totalShipments = shipments.length;
+
+  const markInTransit = async (shipmentId: string) => {
+    const { error } = await supabase
+      .from('shipments')
+      .update({ status: 'in_transit', departure_time: new Date().toISOString() })
+      .eq('id', shipmentId);
+
+    if (error) {
+      toast.error('Failed to mark as in transit');
+      return;
+    }
+
+    await logAction({
+      action: 'shipment_in_transit',
+      resource: 'shipment',
+      resourceId: shipmentId
+    });
+
+    toast.success('Shipment marked as in transit! 🚚');
+    fetchShipments();
+  };
 
   return (
     <div className="space-y-8">
@@ -167,19 +189,10 @@ export default function Logistics() {
         <ShipmentCreationForm />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-4">
-        <StatCard title="In Transit" value={inTransit.toString()} icon={Truck} />
-        <StatCard title="Delivered Today" value={delivered.toString()} icon={MapPin} />
-        <StatCard 
-          title="Active Routes" 
-          value={shipments.filter(s => s.status === 'in_transit' && s.route).length.toString()} 
-          icon={RouteIcon} 
-        />
-        <StatCard 
-          title="Maintenance Alerts" 
-          value={shipments.filter(s => s.predictive_maintenance_alert).length.toString()} 
-          icon={AlertTriangle} 
-        />
+      <div className="grid gap-6 md:grid-cols-3">
+        <StatCard title="Total Shipments" value={totalShipments.toString()} icon={Truck} />
+        <StatCard title="In Transit" value={inTransit.toString()} icon={MapPin} />
+        <StatCard title="Delivered Today" value={delivered.toString()} icon={Clock} />
       </div>
 
       <Tabs defaultValue="tracking" className="space-y-6">
@@ -210,7 +223,7 @@ export default function Logistics() {
             </Card>
 
             <div className="space-y-4">
-              {shipments.slice(0, 3).map((shipment) => (
+              {shipments.map((shipment) => (
                 <Card key={shipment.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedShipment(shipment)}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -236,15 +249,31 @@ export default function Logistics() {
                           <span className="font-medium">{new Date(shipment.eta).toLocaleTimeString()}</span>
                         </div>
                       )}
-                      {shipment.status === 'in_transit' && (
-                        <Button size="sm" onClick={(e) => { e.stopPropagation(); confirmDelivery(shipment.id); }} className="w-full mt-2">
-                          Confirm Delivery
+                      <div className="flex gap-2 mt-2">
+                        <Button 
+                          size="sm" 
+                          onClick={(e) => { e.stopPropagation(); markInTransit(shipment.id); }} 
+                          className="flex-1"
+                          disabled={shipment.status === 'in_transit' || shipment.status === 'delivered'}
+                        >
+                          Transit
                         </Button>
-                      )}
+                        <Button 
+                          size="sm" 
+                          onClick={(e) => { e.stopPropagation(); confirmDelivery(shipment.id); }} 
+                          className="flex-1"
+                          disabled={shipment.status === 'delivered'}
+                        >
+                          Delivered
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
+              {shipments.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">No shipments available</p>
+              )}
             </div>
           </div>
 
@@ -337,6 +366,45 @@ export default function Logistics() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Shipment Status Overview</CardTitle>
+              <CardDescription>Track the status of all shipments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 font-semibold">Shipment ID</th>
+                      <th className="text-center p-4 font-semibold">In Transit</th>
+                      <th className="text-center p-4 font-semibold">Delivered Today</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shipments.map((shipment) => (
+                      <tr key={shipment.id} className="border-b hover:bg-muted/50">
+                        <td className="p-4 font-medium">{shipment.id}</td>
+                        <td className="p-4 text-center">
+                          {shipment.status === 'in_transit' && (
+                            <span className="text-green-600 text-2xl">✓</span>
+                          )}
+                        </td>
+                        <td className="p-4 text-center">
+                          {shipment.status === 'delivered' && (
+                            <span className="text-green-600 text-2xl">✓</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {shipments.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">No shipments available</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
           <AnalyticsDashboard moduleType="logistics" />
         </TabsContent>
       </Tabs>
