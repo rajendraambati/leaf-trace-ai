@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatCard from "@/components/StatCard";
 import IoTSensorMonitor from "@/components/IoTSensorMonitor";
 import WarehouseAnalytics from "@/components/WarehouseAnalytics";
+import WarehouseInventoryTracker from "@/components/WarehouseInventoryTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { WarehouseCreationForm } from "@/components/WarehouseCreationForm";
 import { toast } from "sonner";
@@ -184,30 +185,7 @@ export default function Warehouse() {
         </TabsContent>
 
         <TabsContent value="inventory" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Stock Movement History</CardTitle>
-              <CardDescription>Track inventory entries and exits</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {inventory.slice(0, 10).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-semibold">Batch: {item.batch_id}</p>
-                      <p className="text-sm text-muted-foreground">Warehouse: {item.warehouse_id}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{item.quantity_kg} kg</p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.exit_date ? 'Exited' : 'In Stock'}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <WarehouseInventoryTracker />
         </TabsContent>
       </Tabs>
     </div>
