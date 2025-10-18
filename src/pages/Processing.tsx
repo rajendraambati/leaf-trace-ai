@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import StatCard from "@/components/StatCard";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { supabase } from "@/integrations/supabase/client";
+import { ProcessingUnitCreationForm } from "@/components/ProcessingUnitCreationForm";
 
 export default function Processing() {
   const [units, setUnits] = useState<any[]>([]);
@@ -38,11 +39,14 @@ export default function Processing() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Processing Management</h1>
-        <p className="text-muted-foreground mt-2">
-          Track tobacco processing, quality control, and equipment monitoring
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Processing Management</h1>
+          <p className="text-muted-foreground mt-2">
+            Track tobacco processing, quality control, and equipment monitoring
+          </p>
+        </div>
+        <ProcessingUnitCreationForm />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
