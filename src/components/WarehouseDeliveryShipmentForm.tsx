@@ -25,7 +25,8 @@ export function WarehouseDeliveryShipmentForm() {
   const [open, setOpen] = useState(false);
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [processingUnits, setProcessingUnits] = useState<any[]>([]);
-  const [batches, setBatches] = useState<any[]>([]);
+  const [allBatches, setAllBatches] = useState<any[]>([]);
+  const [filteredBatches, setFilteredBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const form = useForm<FormValues>({
@@ -55,10 +56,36 @@ export function WarehouseDeliveryShipmentForm() {
     if (warehousesRes.data) setWarehouses(warehousesRes.data);
     if (unitsRes.data) setProcessingUnits(unitsRes.data);
     if (batchesRes.data) {
-      const uniqueBatches = Array.from(new Set(batchesRes.data.map(b => b.batch_id)));
-      setBatches(uniqueBatches.map(id => ({ id })));
+      setAllBatches(batchesRes.data);
     }
   };
+
+  // Watch for warehouse selection changes and filter batches
+  const selectedWarehouse = form.watch("from_warehouse_id");
+  
+  useEffect(() => {
+    if (selectedWarehouse) {
+      const warehouseBatches = allBatches
+        .filter(b => b.warehouse_id === selectedWarehouse)
+        .map(b => ({ id: b.batch_id }));
+      
+      // Remove duplicates
+      const uniqueBatches = Array.from(
+        new Map(warehouseBatches.map(item => [item.id, item])).values()
+      );
+      
+      setFilteredBatches(uniqueBatches);
+      
+      // Reset batch selection if it's not in the filtered list
+      const currentBatch = form.getValues("batch_id");
+      if (currentBatch && !uniqueBatches.some(b => b.id === currentBatch)) {
+        form.setValue("batch_id", "");
+      }
+    } else {
+      setFilteredBatches([]);
+      form.setValue("batch_id", "");
+    }
+  }, [selectedWarehouse, allBatches]);
 
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
@@ -176,11 +203,17 @@ export function WarehouseDeliveryShipmentForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {batches.map((batch) => (
-                        <SelectItem key={batch.id} value={batch.id}>
-                          {batch.id}
-                        </SelectItem>
-                      ))}
+                      {filteredBatches.length === 0 ? (
+                        <div className="px-2 py-3 text-sm text-muted-foreground">
+                          {selectedWarehouse ? "No batches available in this warehouse" : "Please select a warehouse first"}
+                        </div>
+                      ) : (
+                        filteredBatches.map((batch) => (
+                          <SelectItem key={batch.id} value={batch.id}>
+                            {batch.id}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
