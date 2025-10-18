@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: "pending" | "approved" | "in-transit" | "delivered" | "processing" | "completed" | "active" | "inactive";
+  status: "pending" | "approved" | "in-transit" | "delivered" | "processing" | "completed" | "active" | "inactive" | "idle";
   className?: string;
 }
 
@@ -36,6 +36,10 @@ const statusConfig = {
   },
   inactive: {
     label: "Inactive",
+    className: "bg-muted text-muted-foreground border-border",
+  },
+  idle: {
+    label: "Idle",
     className: "bg-muted text-muted-foreground border-border",
   },
 };
