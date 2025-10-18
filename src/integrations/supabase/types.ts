@@ -1045,6 +1045,7 @@ export type Database = {
           temperature_max: number | null
           temperature_min: number | null
           to_location: string
+          to_processing_unit_id: string | null
           to_warehouse_id: string | null
           traffic_conditions: string | null
           updated_at: string | null
@@ -1075,6 +1076,7 @@ export type Database = {
           temperature_max?: number | null
           temperature_min?: number | null
           to_location: string
+          to_processing_unit_id?: string | null
           to_warehouse_id?: string | null
           traffic_conditions?: string | null
           updated_at?: string | null
@@ -1105,6 +1107,7 @@ export type Database = {
           temperature_max?: number | null
           temperature_min?: number | null
           to_location?: string
+          to_processing_unit_id?: string | null
           to_warehouse_id?: string | null
           traffic_conditions?: string | null
           updated_at?: string | null
@@ -1131,6 +1134,13 @@ export type Database = {
             columns: ["from_warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_to_processing_unit_id_fkey"
+            columns: ["to_processing_unit_id"]
+            isOneToOne: false
+            referencedRelation: "processing_units"
             referencedColumns: ["id"]
           },
           {

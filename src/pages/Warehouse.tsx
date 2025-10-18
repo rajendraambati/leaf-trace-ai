@@ -11,6 +11,8 @@ import WarehouseInventoryTracker from "@/components/WarehouseInventoryTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { WarehouseCreationForm } from "@/components/WarehouseCreationForm";
 import { toast } from "sonner";
+import { WarehouseDeliveryShipmentForm } from "@/components/WarehouseDeliveryShipmentForm";
+import WarehouseDeliveryTracker from "@/components/WarehouseDeliveryTracker";
 
 export default function Warehouse() {
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -107,11 +109,12 @@ export default function Warehouse() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="iot">IoT Sensors</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="delivery">Delivery</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -186,6 +189,19 @@ export default function Warehouse() {
 
         <TabsContent value="inventory" className="space-y-6">
           <WarehouseInventoryTracker />
+        </TabsContent>
+
+        <TabsContent value="delivery" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-semibold">Warehouse Delivery Tracking</h3>
+              <p className="text-sm text-muted-foreground">
+                Track shipments from warehouses to processing units
+              </p>
+            </div>
+            <WarehouseDeliveryShipmentForm />
+          </div>
+          <WarehouseDeliveryTracker />
         </TabsContent>
       </Tabs>
     </div>
