@@ -17,16 +17,19 @@ import WarehouseDeliveryTracker from "@/components/WarehouseDeliveryTracker";
 export default function Warehouse() {
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
+  const [shipments, setShipments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchWarehouses();
     fetchInventory();
+    fetchShipments();
 
     const channel = supabase
       .channel('warehouse-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouses' }, fetchWarehouses)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouse_inventory' }, fetchInventory)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments' }, fetchShipments)
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
@@ -63,12 +66,24 @@ export default function Warehouse() {
     if (data) setInventory(data);
   };
 
+  const fetchShipments = async () => {
+    const { data } = await supabase
+      .from('shipments')
+      .select('*')
+      .not('to_warehouse_id', 'is', null);
+    if (data) setShipments(data);
+  };
+
   const totalStock = warehouses.reduce((sum, w) => sum + (w.current_stock_kg || 0), 0);
   const totalCapacity = warehouses.reduce((sum, w) => sum + (w.max_capacity_kg || 0), 0);
   const availableSpace = totalCapacity - totalStock;
   const avgCapacity = totalCapacity > 0 ? Math.round((totalStock / totalCapacity) * 100) : 0;
   const alerts = warehouses.filter(w => (w.current_stock_kg / w.max_capacity_kg) > 0.9).length;
   const activeWarehouses = warehouses.filter(w => w.status === 'active').length;
+  
+  // Shipment statistics
+  const inTransitShipments = shipments.filter(s => s.status === 'in-transit').length;
+  const deliveredShipments = shipments.filter(s => s.status === 'delivered').length;
 
   return (
     <div className="space-y-8">
@@ -82,7 +97,7 @@ export default function Warehouse() {
         <WarehouseCreationForm />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-6">
         <StatCard
           title="Total Stock"
           value={`${totalStock.toLocaleString()} kg`}
@@ -105,6 +120,16 @@ export default function Warehouse() {
           value={alerts.toString()}
           icon={AlertTriangle}
           className={alerts > 0 ? "border-destructive" : ""}
+        />
+        <StatCard
+          title="In Transit"
+          value={inTransitShipments.toString()}
+          icon={TrendingUp}
+        />
+        <StatCard
+          title="Delivered"
+          value={deliveredShipments.toString()}
+          icon={Package}
         />
       </div>
 
