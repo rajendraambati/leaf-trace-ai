@@ -80,7 +80,14 @@ export default function Logistics() {
   }, [selectedShipment]);
 
   const fetchShipments = async () => {
-    const { data } = await supabase.from('shipments').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase
+      .from('shipments')
+      .select(`
+        *,
+        from_warehouse:warehouses!shipments_from_warehouse_id_fkey(id, name, city, state),
+        to_warehouse:warehouses!shipments_to_warehouse_id_fkey(id, name, city, state)
+      `)
+      .order('created_at', { ascending: false });
     if (data) {
       setShipments(data);
       // Update map locations
@@ -258,6 +265,22 @@ export default function Logistics() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 text-sm">
+                      {shipment.from_warehouse && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">From Warehouse:</span>
+                          <span className="font-medium">
+                            {shipment.from_warehouse.name} ({shipment.from_warehouse.city})
+                          </span>
+                        </div>
+                      )}
+                      {shipment.to_warehouse && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">To Warehouse:</span>
+                          <span className="font-medium">
+                            {shipment.to_warehouse.name} ({shipment.to_warehouse.city})
+                          </span>
+                        </div>
+                      )}
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Route:</span>
                         <span className="font-medium">{shipment.from_location} → {shipment.to_location}</span>

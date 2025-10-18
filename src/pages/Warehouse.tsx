@@ -8,6 +8,7 @@ import StatCard from "@/components/StatCard";
 import IoTSensorMonitor from "@/components/IoTSensorMonitor";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { supabase } from "@/integrations/supabase/client";
+import { WarehouseCreationForm } from "@/components/WarehouseCreationForm";
 
 export default function Warehouse() {
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -45,11 +46,14 @@ export default function Warehouse() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Warehouse Management</h1>
-        <p className="text-muted-foreground mt-2">
-          Monitor storage facilities, inventory levels, and IoT sensors
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Warehouse Management</h1>
+          <p className="text-muted-foreground mt-2">
+            Monitor storage facilities, inventory levels, and IoT sensors
+          </p>
+        </div>
+        <WarehouseCreationForm />
       </div>
 
       <div className="grid gap-6 md:grid-cols-4">
@@ -93,7 +97,10 @@ export default function Warehouse() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>{item.name}</CardTitle>
-                      <CardDescription>ID: {item.id} | Location: {item.location}</CardDescription>
+                      <CardDescription>
+                        ID: {item.id} | {item.address && `${item.address}, `}
+                        {item.city}{item.district && `, ${item.district}`}, {item.state}, {item.country}
+                      </CardDescription>
                     </div>
                     <Badge variant={
                       (item.current_stock_kg / item.max_capacity_kg * 100) > 90 ? "destructive" : 

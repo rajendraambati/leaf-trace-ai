@@ -30,14 +30,25 @@ interface Batch {
   status: string;
 }
 
+interface Warehouse {
+  id: string;
+  name: string;
+  location: string;
+  city: string;
+  state: string;
+}
+
 export function ShipmentCreationForm() {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [batches, setBatches] = useState<Batch[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const { logAction } = useAuditLog();
 
   const [formData, setFormData] = useState({
     batch_id: "",
+    from_warehouse_id: "",
+    to_warehouse_id: "",
     from_location: "",
     to_location: "",
     vehicle_id: "",
@@ -48,6 +59,7 @@ export function ShipmentCreationForm() {
   useEffect(() => {
     if (open) {
       fetchAvailableBatches();
+      fetchWarehouses();
     }
   }, [open]);
 
@@ -66,6 +78,21 @@ export function ShipmentCreationForm() {
     setBatches(data || []);
   };
 
+  const fetchWarehouses = async () => {
+    const { data, error } = await supabase
+      .from("warehouses")
+      .select("id, name, location, city, state")
+      .eq("status", "active")
+      .order("name", { ascending: true });
+
+    if (error) {
+      toast.error("Failed to fetch warehouses");
+      return;
+    }
+
+    setWarehouses(data || []);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -82,6 +109,8 @@ export function ShipmentCreationForm() {
         .insert({
           id: shipmentId,
           batch_id: formData.batch_id,
+          from_warehouse_id: formData.from_warehouse_id,
+          to_warehouse_id: formData.to_warehouse_id,
           from_location: formData.from_location,
           to_location: formData.to_location,
           vehicle_id: formData.vehicle_id,
@@ -123,6 +152,8 @@ export function ShipmentCreationForm() {
   const resetForm = () => {
     setFormData({
       batch_id: "",
+      from_warehouse_id: "",
+      to_warehouse_id: "",
       from_location: "",
       to_location: "",
       vehicle_id: "",
@@ -173,25 +204,57 @@ export function ShipmentCreationForm() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="from_location">From Location *</Label>
-              <Input
-                id="from_location"
-                value={formData.from_location}
-                onChange={(e) => setFormData({ ...formData, from_location: e.target.value })}
-                placeholder="e.g., Warehouse A"
+              <Label htmlFor="from_warehouse_id">From Warehouse *</Label>
+              <Select
+                value={formData.from_warehouse_id}
+                onValueChange={(value) => {
+                  const warehouse = warehouses.find(w => w.id === value);
+                  setFormData({ 
+                    ...formData, 
+                    from_warehouse_id: value,
+                    from_location: warehouse ? `${warehouse.name}, ${warehouse.city}` : ""
+                  });
+                }}
                 required
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select source warehouse" />
+                </SelectTrigger>
+                <SelectContent>
+                  {warehouses.map((warehouse) => (
+                    <SelectItem key={warehouse.id} value={warehouse.id}>
+                      {warehouse.name} - {warehouse.city}, {warehouse.state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="to_location">To Location *</Label>
-              <Input
-                id="to_location"
-                value={formData.to_location}
-                onChange={(e) => setFormData({ ...formData, to_location: e.target.value })}
-                placeholder="e.g., Processing Center"
+              <Label htmlFor="to_warehouse_id">To Warehouse *</Label>
+              <Select
+                value={formData.to_warehouse_id}
+                onValueChange={(value) => {
+                  const warehouse = warehouses.find(w => w.id === value);
+                  setFormData({ 
+                    ...formData, 
+                    to_warehouse_id: value,
+                    to_location: warehouse ? `${warehouse.name}, ${warehouse.city}` : ""
+                  });
+                }}
                 required
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select destination warehouse" />
+                </SelectTrigger>
+                <SelectContent>
+                  {warehouses.map((warehouse) => (
+                    <SelectItem key={warehouse.id} value={warehouse.id}>
+                      {warehouse.name} - {warehouse.city}, {warehouse.state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

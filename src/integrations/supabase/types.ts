@@ -1033,6 +1033,7 @@ export type Database = {
           estimated_delay_minutes: number | null
           eta: string | null
           from_location: string
+          from_warehouse_id: string | null
           gps_latitude: number | null
           gps_longitude: number | null
           id: string
@@ -1044,6 +1045,7 @@ export type Database = {
           temperature_max: number | null
           temperature_min: number | null
           to_location: string
+          to_warehouse_id: string | null
           traffic_conditions: string | null
           updated_at: string | null
           vehicle_id: string | null
@@ -1061,6 +1063,7 @@ export type Database = {
           estimated_delay_minutes?: number | null
           eta?: string | null
           from_location: string
+          from_warehouse_id?: string | null
           gps_latitude?: number | null
           gps_longitude?: number | null
           id: string
@@ -1072,6 +1075,7 @@ export type Database = {
           temperature_max?: number | null
           temperature_min?: number | null
           to_location: string
+          to_warehouse_id?: string | null
           traffic_conditions?: string | null
           updated_at?: string | null
           vehicle_id?: string | null
@@ -1089,6 +1093,7 @@ export type Database = {
           estimated_delay_minutes?: number | null
           eta?: string | null
           from_location?: string
+          from_warehouse_id?: string | null
           gps_latitude?: number | null
           gps_longitude?: number | null
           id?: string
@@ -1100,6 +1105,7 @@ export type Database = {
           temperature_max?: number | null
           temperature_min?: number | null
           to_location?: string
+          to_warehouse_id?: string | null
           traffic_conditions?: string | null
           updated_at?: string | null
           vehicle_id?: string | null
@@ -1118,6 +1124,20 @@ export type Database = {
             columns: ["batch_id"]
             isOneToOne: false
             referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_from_warehouse_id_fkey"
+            columns: ["from_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_to_warehouse_id_fkey"
+            columns: ["to_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -1326,35 +1346,50 @@ export type Database = {
       }
       warehouses: {
         Row: {
+          address: string | null
+          city: string | null
+          country: string | null
           created_at: string | null
           current_stock_kg: number | null
+          district: string | null
           humidity: number | null
           id: string
           location: string
           max_capacity_kg: number
           name: string
+          state: string | null
           status: string | null
           temperature: number | null
         }
         Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           current_stock_kg?: number | null
+          district?: string | null
           humidity?: number | null
           id: string
           location: string
           max_capacity_kg: number
           name: string
+          state?: string | null
           status?: string | null
           temperature?: number | null
         }
         Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           current_stock_kg?: number | null
+          district?: string | null
           humidity?: number | null
           id?: string
           location?: string
           max_capacity_kg?: number
           name?: string
+          state?: string | null
           status?: string | null
           temperature?: number | null
         }
