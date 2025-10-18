@@ -70,7 +70,7 @@ export default function Warehouse() {
     const { data } = await supabase
       .from('shipments')
       .select('*')
-      .not('to_warehouse_id', 'is', null);
+      .or('to_warehouse_id.not.is.null,from_warehouse_id.not.is.null');
     if (data) setShipments(data);
   };
 
@@ -81,9 +81,14 @@ export default function Warehouse() {
   const alerts = warehouses.filter(w => (w.current_stock_kg / w.max_capacity_kg) > 0.9).length;
   const activeWarehouses = warehouses.filter(w => w.status === 'active').length;
   
-  // Shipment statistics
-  const inTransitShipments = shipments.filter(s => s.status === 'in-transit').length;
-  const deliveredShipments = shipments.filter(s => s.status === 'delivered').length;
+  // Warehouse delivery shipment statistics (from warehouse to processing unit)
+  const outgoingInTransit = shipments.filter(s => 
+    s.from_warehouse_id && s.to_processing_unit_id && s.status === 'in-transit'
+  ).length;
+  
+  const outgoingDelivered = shipments.filter(s => 
+    s.from_warehouse_id && s.to_processing_unit_id && s.status === 'delivered'
+  ).length;
 
   return (
     <div className="space-y-8">
@@ -123,12 +128,12 @@ export default function Warehouse() {
         />
         <StatCard
           title="In Transit"
-          value={inTransitShipments.toString()}
+          value={outgoingInTransit.toString()}
           icon={TrendingUp}
         />
         <StatCard
           title="Delivered"
-          value={deliveredShipments.toString()}
+          value={outgoingDelivered.toString()}
           icon={Package}
         />
       </div>
