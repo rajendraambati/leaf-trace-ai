@@ -38,16 +38,25 @@ interface Warehouse {
   state: string;
 }
 
+interface Farmer {
+  id: string;
+  name: string;
+  location: string;
+  geo_latitude: number | null;
+  geo_longitude: number | null;
+}
+
 export function ShipmentCreationForm() {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [farmers, setFarmers] = useState<Farmer[]>([]);
+  const [selectedFarmer, setSelectedFarmer] = useState<Farmer | null>(null);
   const { logAction } = useAuditLog();
 
   const [formData, setFormData] = useState({
     batch_id: "",
-    from_warehouse_id: "",
     to_warehouse_id: "",
     from_location: "",
     to_location: "",
@@ -60,8 +69,28 @@ export function ShipmentCreationForm() {
     if (open) {
       fetchAvailableBatches();
       fetchWarehouses();
+      fetchFarmers();
     }
   }, [open]);
+
+  // Update from_location when batch is selected
+  useEffect(() => {
+    if (formData.batch_id && batches.length > 0 && farmers.length > 0) {
+      const batch = batches.find(b => b.id === formData.batch_id);
+      if (batch?.farmer_id) {
+        const farmer = farmers.find(f => f.id === batch.farmer_id);
+        if (farmer) {
+          setSelectedFarmer(farmer);
+          // Use farmer's location or GPS coordinates
+          const farmerLocation = farmer.location || 
+            (farmer.geo_latitude && farmer.geo_longitude 
+              ? `GPS: ${farmer.geo_latitude}, ${farmer.geo_longitude}` 
+              : 'Location not available');
+          setFormData(prev => ({ ...prev, from_location: farmerLocation }));
+        }
+      }
+    }
+  }, [formData.batch_id, batches, farmers]);
 
   const fetchAvailableBatches = async () => {
     const { data, error } = await supabase
@@ -93,6 +122,20 @@ export function ShipmentCreationForm() {
     setWarehouses(data || []);
   };
 
+  const fetchFarmers = async () => {
+    const { data, error } = await supabase
+      .from("farmers")
+      .select("id, name, location, geo_latitude, geo_longitude")
+      .eq("status", "active");
+
+    if (error) {
+      toast.error("Failed to fetch farmers");
+      return;
+    }
+
+    setFarmers(data || []);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -109,7 +152,6 @@ export function ShipmentCreationForm() {
         .insert({
           id: shipmentId,
           batch_id: formData.batch_id,
-          from_warehouse_id: formData.from_warehouse_id,
           to_warehouse_id: formData.to_warehouse_id,
           from_location: formData.from_location,
           to_location: formData.to_location,
@@ -152,7 +194,6 @@ export function ShipmentCreationForm() {
   const resetForm = () => {
     setFormData({
       batch_id: "",
-      from_warehouse_id: "",
       to_warehouse_id: "",
       from_location: "",
       to_location: "",
@@ -160,6 +201,7 @@ export function ShipmentCreationForm() {
       driver_name: "",
       departure_time: "",
     });
+    setSelectedFarmer(null);
   };
 
   return (
@@ -204,30 +246,19 @@ export function ShipmentCreationForm() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="from_warehouse_id">From Warehouse *</Label>
-              <Select
-                value={formData.from_warehouse_id}
-                onValueChange={(value) => {
-                  const warehouse = warehouses.find(w => w.id === value);
-                  setFormData({ 
-                    ...formData, 
-                    from_warehouse_id: value,
-                    from_location: warehouse ? `${warehouse.name}, ${warehouse.city}` : ""
-                  });
-                }}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select source warehouse" />
-                </SelectTrigger>
-                <SelectContent>
-                  {warehouses.map((warehouse) => (
-                    <SelectItem key={warehouse.id} value={warehouse.id}>
-                      {warehouse.name} - {warehouse.city}, {warehouse.state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="from_location">From Location (Farmer)</Label>
+              <Input
+                id="from_location"
+                value={formData.from_location}
+                placeholder="Select a batch first"
+                disabled
+                className="bg-muted"
+              />
+              {selectedFarmer && (
+                <p className="text-xs text-muted-foreground">
+                  Farmer: {selectedFarmer.name}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

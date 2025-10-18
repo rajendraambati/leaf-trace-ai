@@ -69,15 +69,15 @@ export default function Warehouse() {
           icon={WarehouseIcon}
         />
         <StatCard
+          title="Active Warehouses"
+          value={warehouses.filter(w => w.status === 'active').length.toString()}
+          icon={WarehouseIcon}
+        />
+        <StatCard
           title="Alerts"
           value={alerts.toString()}
           icon={AlertTriangle}
           className={alerts > 0 ? "border-destructive" : ""}
-        />
-        <StatCard
-          title="Warehouses"
-          value={warehouses.length.toString()}
-          icon={TrendingUp}
         />
       </div>
 
@@ -102,12 +102,17 @@ export default function Warehouse() {
                         {item.city}{item.district && `, ${item.district}`}, {item.state}, {item.country}
                       </CardDescription>
                     </div>
-                    <Badge variant={
-                      (item.current_stock_kg / item.max_capacity_kg * 100) > 90 ? "destructive" : 
-                      (item.current_stock_kg / item.max_capacity_kg * 100) > 75 ? "secondary" : "default"
-                    }>
-                      {Math.round((item.current_stock_kg / item.max_capacity_kg) * 100)}% Capacity
-                    </Badge>
+                    <div className="flex gap-2">
+                      <Badge variant={item.status === 'active' ? 'default' : 'secondary'}>
+                        {item.status === 'active' ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Badge variant={
+                        (item.current_stock_kg / item.max_capacity_kg * 100) > 90 ? "destructive" : 
+                        (item.current_stock_kg / item.max_capacity_kg * 100) > 75 ? "secondary" : "default"
+                      }>
+                        {Math.round((item.current_stock_kg / item.max_capacity_kg) * 100)}% Capacity
+                      </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">

@@ -84,7 +84,6 @@ export default function Logistics() {
       .from('shipments')
       .select(`
         *,
-        from_warehouse:warehouses!shipments_from_warehouse_id_fkey(id, name, city, state),
         to_warehouse:warehouses!shipments_to_warehouse_id_fkey(id, name, city, state)
       `)
       .order('created_at', { ascending: false });
@@ -265,14 +264,10 @@ export default function Logistics() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 text-sm">
-                      {shipment.from_warehouse && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">From Warehouse:</span>
-                          <span className="font-medium">
-                            {shipment.from_warehouse.name} ({shipment.from_warehouse.city})
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">From (Farmer):</span>
+                        <span className="font-medium">{shipment.from_location}</span>
+                      </div>
                       {shipment.to_warehouse && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">To Warehouse:</span>
