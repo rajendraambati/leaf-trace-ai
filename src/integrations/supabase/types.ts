@@ -772,25 +772,46 @@ export type Database = {
       }
       processing_units: {
         Row: {
+          address: string | null
           capacity_kg_per_day: number | null
+          city: string | null
+          country: string | null
           created_at: string | null
+          district: string | null
           id: string
+          location: string | null
           name: string
+          state: string | null
           status: string | null
+          updated_at: string | null
         }
         Insert: {
+          address?: string | null
           capacity_kg_per_day?: number | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
+          district?: string | null
           id: string
+          location?: string | null
           name: string
+          state?: string | null
           status?: string | null
+          updated_at?: string | null
         }
         Update: {
+          address?: string | null
           capacity_kg_per_day?: number | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
+          district?: string | null
           id?: string
+          location?: string | null
           name?: string
+          state?: string | null
           status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

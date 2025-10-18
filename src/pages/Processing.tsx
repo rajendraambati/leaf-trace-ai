@@ -80,7 +80,10 @@ export default function Processing() {
                         <Factory className="h-5 w-5" />
                         {unit.name}
                       </CardTitle>
-                      <CardDescription>ID: {unit.id} | Capacity: {unit.capacity_kg_per_day} kg/day</CardDescription>
+                      <CardDescription>
+                        ID: {unit.id} | {unit.address && `${unit.address}, `}
+                        {unit.city}{unit.district && `, ${unit.district}`}, {unit.state}, {unit.country} | Capacity: {unit.capacity_kg_per_day} kg/day
+                      </CardDescription>
                     </div>
                     <StatusBadge status={unit.status as any} />
                   </div>
