@@ -47,16 +47,21 @@ export function WarehouseDeliveryShipmentForm() {
   }, [open]);
 
   const fetchData = async () => {
-    const [warehousesRes, unitsRes, batchesRes] = await Promise.all([
+    const [warehousesRes, unitsRes, batchesRes, deliveredShipmentsRes] = await Promise.all([
       supabase.from('warehouses').select('*').eq('status', 'active'),
       supabase.from('processing_units').select('*'),
-      supabase.from('warehouse_inventory').select('batch_id, warehouse_id').is('exit_date', null)
+      supabase.from('warehouse_inventory').select('batch_id, warehouse_id').is('exit_date', null),
+      supabase.from('shipments').select('batch_id').not('from_warehouse_id', 'is', null).not('to_processing_unit_id', 'is', null).eq('status', 'delivered')
     ]);
 
     if (warehousesRes.data) setWarehouses(warehousesRes.data);
     if (unitsRes.data) setProcessingUnits(unitsRes.data);
+    
+    // Filter out batches that have already been delivered
     if (batchesRes.data) {
-      setAllBatches(batchesRes.data);
+      const deliveredBatchIds = new Set(deliveredShipmentsRes.data?.map(s => s.batch_id) || []);
+      const availableBatches = batchesRes.data.filter(b => !deliveredBatchIds.has(b.batch_id));
+      setAllBatches(availableBatches);
     }
   };
 
