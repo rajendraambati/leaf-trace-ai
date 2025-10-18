@@ -1360,6 +1360,7 @@ export type Database = {
           state: string | null
           status: string | null
           temperature: number | null
+          updated_at: string | null
         }
         Insert: {
           address?: string | null
@@ -1376,6 +1377,7 @@ export type Database = {
           state?: string | null
           status?: string | null
           temperature?: number | null
+          updated_at?: string | null
         }
         Update: {
           address?: string | null
@@ -1392,6 +1394,7 @@ export type Database = {
           state?: string | null
           status?: string | null
           temperature?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
