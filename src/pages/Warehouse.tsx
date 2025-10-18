@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { Package, Warehouse as WarehouseIcon, AlertTriangle, TrendingUp } from "lucide-react";
+import { Package, Warehouse as WarehouseIcon, AlertTriangle, TrendingUp, Thermometer, Droplets } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatCard from "@/components/StatCard";
 import IoTSensorMonitor from "@/components/IoTSensorMonitor";
-import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import WarehouseAnalytics from "@/components/WarehouseAnalytics";
 import { supabase } from "@/integrations/supabase/client";
 import { WarehouseCreationForm } from "@/components/WarehouseCreationForm";
+import { toast } from "sonner";
 
 export default function Warehouse() {
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -23,10 +24,30 @@ export default function Warehouse() {
       .channel('warehouse-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouses' }, fetchWarehouses)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouse_inventory' }, fetchInventory)
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'iot_events',
+        filter: 'event_type=eq.temperature_alert'
+      }, handleIoTAlert)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  const handleIoTAlert = (payload: any) => {
+    const eventData = payload.new;
+    
+    // Check if the alert is related to a warehouse (via shipment)
+    if (eventData.shipment_id) {
+      const alertMessage = `${eventData.event_type.toUpperCase()}: ${eventData.event_data?.message || 'IoT sensor alert detected'}`;
+      
+      toast.error(alertMessage, {
+        description: `Device: ${eventData.device_id} | Temperature: ${eventData.temperature}°C`,
+        duration: 8000,
+      });
+    }
+  };
 
   const fetchWarehouses = async () => {
     const { data } = await supabase.from('warehouses').select('*');
@@ -41,8 +62,10 @@ export default function Warehouse() {
 
   const totalStock = warehouses.reduce((sum, w) => sum + (w.current_stock_kg || 0), 0);
   const totalCapacity = warehouses.reduce((sum, w) => sum + (w.max_capacity_kg || 0), 0);
+  const availableSpace = totalCapacity - totalStock;
   const avgCapacity = totalCapacity > 0 ? Math.round((totalStock / totalCapacity) * 100) : 0;
   const alerts = warehouses.filter(w => (w.current_stock_kg / w.max_capacity_kg) > 0.9).length;
+  const activeWarehouses = warehouses.filter(w => w.status === 'active').length;
 
   return (
     <div className="space-y-8">
@@ -64,17 +87,18 @@ export default function Warehouse() {
           trend={{ value: 12, isPositive: true }}
         />
         <StatCard
-          title="Avg. Capacity"
-          value={`${avgCapacity}%`}
-          icon={WarehouseIcon}
+          title="Available Space"
+          value={`${availableSpace.toLocaleString()} kg`}
+          icon={Package}
+          trend={{ value: avgCapacity, isPositive: avgCapacity < 80 }}
         />
         <StatCard
           title="Active Warehouses"
-          value={warehouses.filter(w => w.status === 'active').length.toString()}
+          value={`${activeWarehouses} / ${warehouses.length}`}
           icon={WarehouseIcon}
         />
         <StatCard
-          title="Alerts"
+          title="Capacity Alerts"
           value={alerts.toString()}
           icon={AlertTriangle}
           className={alerts > 0 ? "border-destructive" : ""}
@@ -121,14 +145,26 @@ export default function Warehouse() {
                     <span className="text-muted-foreground">Current Stock: {item.current_stock_kg?.toLocaleString() || 0} kg</span>
                     <span className="text-muted-foreground">Max: {item.max_capacity_kg?.toLocaleString() || 0} kg</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                  <div className="grid grid-cols-3 gap-4 pt-4 border-t">
                     <div>
-                      <p className="text-sm text-muted-foreground">Temperature</p>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Thermometer className="w-4 h-4" />
+                        Temperature
+                      </p>
                       <p className="text-lg font-semibold">{item.temperature || 'N/A'}°C</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Humidity</p>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Droplets className="w-4 h-4" />
+                        Humidity
+                      </p>
                       <p className="text-lg font-semibold">{item.humidity || 'N/A'}%</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Available Space</p>
+                      <p className="text-lg font-semibold">
+                        {(item.max_capacity_kg - item.current_stock_kg).toLocaleString()} kg
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -144,7 +180,7 @@ export default function Warehouse() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          <AnalyticsDashboard moduleType="warehouse" />
+          <WarehouseAnalytics />
         </TabsContent>
 
         <TabsContent value="inventory" className="space-y-6">
