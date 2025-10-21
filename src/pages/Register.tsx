@@ -93,15 +93,31 @@ export default function Register() {
         return;
       }
 
-      // Create pending registration
+      // Create user account in Supabase Auth immediately
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth`,
+          data: {
+            full_name: formData.fullName,
+            phone: formData.phone
+          }
+        }
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Failed to create user account');
+
+      // Create pending registration linked to the user
       const { data: registration, error: regError } = await supabase
         .from('pending_registrations')
         .insert([{
+          user_id: authData.user.id,
           full_name: formData.fullName,
           email: formData.email,
           phone: formData.phone,
           requested_role: role as any,
-          password_hash: formData.password, // In production, this should be hashed
           email_verified: false,
           phone_verified: false
         }])

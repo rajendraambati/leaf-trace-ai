@@ -657,7 +657,6 @@ export type Database = {
           email_verified: boolean | null
           full_name: string
           id: string
-          password_hash: string
           phone: string
           phone_verified: boolean | null
           requested_role: Database["public"]["Enums"]["app_role"]
@@ -665,6 +664,7 @@ export type Database = {
           reviewed_by: string | null
           status: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           admin_notes?: string | null
@@ -674,7 +674,6 @@ export type Database = {
           email_verified?: boolean | null
           full_name: string
           id?: string
-          password_hash: string
           phone: string
           phone_verified?: boolean | null
           requested_role: Database["public"]["Enums"]["app_role"]
@@ -682,6 +681,7 @@ export type Database = {
           reviewed_by?: string | null
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           admin_notes?: string | null
@@ -691,7 +691,6 @@ export type Database = {
           email_verified?: boolean | null
           full_name?: string
           id?: string
-          password_hash?: string
           phone?: string
           phone_verified?: boolean | null
           requested_role?: Database["public"]["Enums"]["app_role"]
@@ -699,6 +698,7 @@ export type Database = {
           reviewed_by?: string | null
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

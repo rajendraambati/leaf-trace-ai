@@ -1,10 +1,16 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import 'https://deno.land/x/xhr@0.1.0/mod.ts';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const GradingSchema = z.object({
+  imageUrl: z.string().url('Invalid image URL').max(2048, 'Image URL too long'),
+  batchId: z.string().min(1, 'Batch ID is required').max(50, 'Batch ID too long')
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,11 +18,8 @@ serve(async (req) => {
   }
 
   try {
-    const { imageUrl, batchId } = await req.json();
-
-    if (!imageUrl) {
-      throw new Error('Image URL is required');
-    }
+    const requestBody = await req.json();
+    const { imageUrl, batchId } = GradingSchema.parse(requestBody);
 
     console.log('Processing AI grading for batch:', batchId);
 

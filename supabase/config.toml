@@ -1,43 +1,43 @@
 project_id = "syhqhdyvyahutymbzllg"
 
 [functions.ai-grading]
-verify_jwt = false
+verify_jwt = true
 
 [functions.crop-health-prediction]
-verify_jwt = false
+verify_jwt = true
 
 [functions.route-optimization]
-verify_jwt = false
+verify_jwt = true
 
 [functions.esg-scoring]
-verify_jwt = false
+verify_jwt = true
 
 [functions.farmer-management]
-verify_jwt = false
+verify_jwt = true
 
 [functions.procurement-management]
-verify_jwt = false
+verify_jwt = true
 
 [functions.logistics-tracking]
-verify_jwt = false
+verify_jwt = true
 
 [functions.inventory-management]
-verify_jwt = false
+verify_jwt = true
 
 [functions.compliance-reporting]
-verify_jwt = false
+verify_jwt = true
 
 [functions.mqtt-handler]
-verify_jwt = false
+verify_jwt = true
 
 [functions.logistics-ai-optimization]
-verify_jwt = false
+verify_jwt = true
 
 [functions.logistics-batch-assign]
-verify_jwt = false
+verify_jwt = true
 
 [functions.logistics-track-update]
-verify_jwt = false
+verify_jwt = true
 
 [functions.logistics-batch-status]
-verify_jwt = false
+verify_jwt = true

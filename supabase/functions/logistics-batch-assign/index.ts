@@ -1,10 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const ShipmentSchema = z.object({
+  batch_id: z.string().min(1, 'Batch ID is required').max(50, 'Batch ID too long'),
+  vehicle_id: z.string().min(1, 'Vehicle ID is required').max(50, 'Vehicle ID too long'),
+  driver_name: z.string().min(2, 'Driver name must be at least 2 characters').max(100, 'Driver name too long'),
+  from_location: z.string().min(3, 'From location must be at least 3 characters').max(200, 'From location too long'),
+  to_location: z.string().min(3, 'To location must be at least 3 characters').max(200, 'To location too long'),
+  departure_time: z.string().datetime().optional(),
+  eta: z.string().datetime().optional()
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -46,27 +57,8 @@ serve(async (req) => {
       );
     }
 
-    const { 
-      batch_id, 
-      vehicle_id, 
-      driver_name, 
-      from_location, 
-      to_location,
-      departure_time,
-      eta,
-      route_data 
-    } = await req.json();
-
-    // Validate required fields
-    if (!batch_id || !vehicle_id || !driver_name || !from_location || !to_location) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Missing required fields',
-          required: ['batch_id', 'vehicle_id', 'driver_name', 'from_location', 'to_location']
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const requestBody = await req.json();
+    const { batch_id, vehicle_id, driver_name, from_location, to_location, departure_time, eta } = ShipmentSchema.parse(requestBody);
 
     // Verify batch exists
     const { data: batch, error: batchError } = await supabase
@@ -121,8 +113,7 @@ serve(async (req) => {
         vehicle_id,
         driver_name,
         from_location,
-        to_location,
-        route_data
+        to_location
       }
     });
 

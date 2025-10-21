@@ -1,16 +1,17 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ApprovalRequest {
-  registrationId: string;
-  action: 'approve' | 'decline';
-  notes?: string;
-}
+const ApprovalSchema = z.object({
+  registrationId: z.string().uuid('Invalid registration ID format'),
+  action: z.enum(['approve', 'decline'], { errorMap: () => ({ message: 'Action must be approve or decline' }) }),
+  notes: z.string().max(1000, 'Notes must be less than 1000 characters').optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -40,7 +41,8 @@ serve(async (req) => {
       );
     }
 
-    const { registrationId, action, notes }: ApprovalRequest = await req.json();
+    const requestBody = await req.json();
+    const { registrationId, action, notes } = ApprovalSchema.parse(requestBody);
 
     // Get registration details
     const { data: registration, error: regError } = await supabaseClient
@@ -57,23 +59,13 @@ serve(async (req) => {
     }
 
     if (action === 'approve') {
-      // Create user account using admin API
-      const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
-        email: registration.email,
-        password: registration.password_hash,
-        email_confirm: true,
-        user_metadata: {
-          full_name: registration.full_name,
-          phone: registration.phone,
-          role: registration.requested_role
-        }
-      });
-
-      if (createError || !newUser.user) {
-        console.error('Error creating user:', createError);
+      // User already exists in Auth, just assign the role
+      const userId = registration.user_id;
+      
+      if (!userId) {
         return new Response(
-          JSON.stringify({ error: 'Failed to create user account' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'User ID not found in registration' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -81,12 +73,16 @@ serve(async (req) => {
       const { error: roleError } = await supabaseClient
         .from('user_roles')
         .insert({
-          user_id: newUser.user.id,
+          user_id: userId,
           role: registration.requested_role
         });
 
       if (roleError) {
         console.error('Error assigning role:', roleError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to assign role' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       // Update registration status
@@ -96,20 +92,11 @@ serve(async (req) => {
         _notes: notes
       });
 
-      // Transfer documents to new user
-      const { data: documents } = await supabaseClient
+      // Ensure documents are linked to the user
+      await supabaseClient
         .from('user_documents')
-        .select('*')
+        .update({ user_id: userId })
         .eq('registration_id', registrationId);
-
-      if (documents) {
-        for (const doc of documents) {
-          await supabaseClient
-            .from('user_documents')
-            .update({ user_id: newUser.user.id })
-            .eq('id', doc.id);
-        }
-      }
 
       console.log('Registration approved for:', registration.email);
 
@@ -117,11 +104,15 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: 'Registration approved',
-          userId: newUser.user.id
+          userId: userId
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else if (action === 'decline') {
+      // Delete the user account from Auth
+      if (registration.user_id) {
+        await supabaseClient.auth.admin.deleteUser(registration.user_id);
+      }
       // Update registration status
       await supabaseClient.rpc('decline_registration', {
         _registration_id: registrationId,
