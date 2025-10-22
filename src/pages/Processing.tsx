@@ -60,10 +60,8 @@ export default function Processing() {
     setLoading(false);
   };
 
-  // Count units that have batches assigned or are not idle
-  const activeUnits = units.filter(u => 
-    (batchesByUnit[u.id] && batchesByUnit[u.id].length > 0) || u.status !== 'idle'
-  ).length;
+  // Count total available processing units
+  const activeUnits = units.length;
   const todayOutput = batches.reduce((sum, b) => sum + (b.output_quantity_kg || 0), 0);
 
   return (
