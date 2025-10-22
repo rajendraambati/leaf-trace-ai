@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { Factory, Activity } from "lucide-react";
+import { Factory, Activity, Package } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/StatusBadge";
 import { Progress } from "@/components/ui/progress";
 import StatCard from "@/components/StatCard";
@@ -12,7 +14,9 @@ import { ProcessingUnitCreationForm } from "@/components/ProcessingUnitCreationF
 export default function Processing() {
   const [units, setUnits] = useState<any[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
+  const [batchesByUnit, setBatchesByUnit] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
+  const [selectedUnit, setSelectedUnit] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -29,12 +33,27 @@ export default function Processing() {
   const fetchData = async () => {
     const { data: unitsData } = await supabase.from('processing_units').select('*');
     const { data: batchesData } = await supabase.from('processing_batches').select('*');
+    
     if (unitsData) setUnits(unitsData);
-    if (batchesData) setBatches(batchesData);
+    if (batchesData) {
+      setBatches(batchesData);
+      // Group batches by unit_id
+      const grouped = batchesData.reduce((acc, batch) => {
+        if (!acc[batch.unit_id]) {
+          acc[batch.unit_id] = [];
+        }
+        acc[batch.unit_id].push(batch);
+        return acc;
+      }, {} as Record<string, any[]>);
+      setBatchesByUnit(grouped);
+    }
     setLoading(false);
   };
 
-  const activeUnits = units.filter(u => u.status === 'processing').length;
+  // Count units that have batches assigned or are not idle
+  const activeUnits = units.filter(u => 
+    (batchesByUnit[u.id] && batchesByUnit[u.id].length > 0) || u.status !== 'idle'
+  ).length;
   const todayOutput = batches.reduce((sum, b) => sum + (b.output_quantity_kg || 0), 0);
 
   return (
@@ -71,25 +90,102 @@ export default function Processing() {
 
         <TabsContent value="units" className="space-y-6">
           <div className="grid gap-6">
-            {units.map((unit) => (
-              <Card key={unit.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Factory className="h-5 w-5" />
-                        {unit.name}
-                      </CardTitle>
-                      <CardDescription>
-                        ID: {unit.id} | {unit.address && `${unit.address}, `}
-                        {unit.city}{unit.district && `, ${unit.district}`}, {unit.state}, {unit.country} | Capacity: {unit.capacity_kg_per_day} kg/day
-                      </CardDescription>
+            {units.map((unit) => {
+              const unitBatches = batchesByUnit[unit.id] || [];
+              return (
+                <Card key={unit.id}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="flex items-center gap-2">
+                          <Factory className="h-5 w-5" />
+                          {unit.name}
+                        </CardTitle>
+                        <CardDescription>
+                          ID: {unit.id} | {unit.address && `${unit.address}, `}
+                          {unit.city}{unit.district && `, ${unit.district}`}, {unit.state}, {unit.country} | Capacity: {unit.capacity_kg_per_day} kg/day
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">Batches</p>
+                          <p className="text-2xl font-bold">{unitBatches.length}</p>
+                        </div>
+                        <StatusBadge status={unit.status as any} />
+                      </div>
                     </div>
-                    <StatusBadge status={unit.status as any} />
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
+                  </CardHeader>
+                  {unitBatches.length > 0 && (
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">Available Batches</p>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" onClick={() => setSelectedUnit(unit)}>
+                                <Package className="h-4 w-4 mr-2" />
+                                View All ({unitBatches.length})
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Batches in {unit.name}</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4 mt-4">
+                                {unitBatches.map((batch) => (
+                                  <Card key={batch.id}>
+                                    <CardHeader>
+                                      <CardTitle className="text-base">Batch {batch.batch_id}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                      <div className="flex items-center justify-between text-sm">
+                                        <span className="font-medium">Progress</span>
+                                        <span className="text-muted-foreground">{batch.progress}%</span>
+                                      </div>
+                                      <Progress value={batch.progress || 0} />
+                                      <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                                        <div>
+                                          <p className="text-sm text-muted-foreground">Input</p>
+                                          <p className="text-lg font-semibold">{batch.input_quantity_kg} kg</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-sm text-muted-foreground">Output</p>
+                                          <p className="text-lg font-semibold">{batch.output_quantity_kg || 0} kg</p>
+                                        </div>
+                                        {batch.quality_score && (
+                                          <div>
+                                            <p className="text-sm text-muted-foreground">Quality</p>
+                                            <p className="text-lg font-semibold">{batch.quality_score}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {unitBatches.slice(0, 2).map((batch) => (
+                            <div key={batch.id} className="border rounded-lg p-3">
+                              <p className="text-sm font-medium">Batch {batch.batch_id}</p>
+                              <Progress value={batch.progress || 0} className="mt-2" />
+                              <p className="text-xs text-muted-foreground mt-1">{batch.progress}% complete</p>
+                            </div>
+                          ))}
+                        </div>
+                        {unitBatches.length > 2 && (
+                          <p className="text-xs text-muted-foreground text-center">
+                            +{unitBatches.length - 2} more batches
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
 
