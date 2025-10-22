@@ -32,7 +32,17 @@ export default function Processing() {
 
   const fetchData = async () => {
     const { data: unitsData } = await supabase.from('processing_units').select('*');
-    const { data: batchesData } = await supabase.from('processing_batches').select('*');
+    const { data: batchesData } = await supabase
+      .from('processing_batches')
+      .select(`
+        *,
+        procurement_batches:batch_id (
+          id,
+          farmer_name,
+          quantity_kg,
+          grade
+        )
+      `);
     
     if (unitsData) setUnits(unitsData);
     if (batchesData) {
@@ -135,7 +145,18 @@ export default function Processing() {
                                 {unitBatches.map((batch) => (
                                   <Card key={batch.id}>
                                     <CardHeader>
-                                      <CardTitle className="text-base">Batch {batch.batch_id}</CardTitle>
+                                      <div className="flex items-center justify-between">
+                                        <CardTitle className="text-base">Batch {batch.batch_id}</CardTitle>
+                                        {batch.procurement_batches && (
+                                          <StatusBadge status={batch.procurement_batches.grade as any} />
+                                        )}
+                                      </div>
+                                      {batch.procurement_batches && (
+                                        <CardDescription>
+                                          Farmer: {batch.procurement_batches.farmer_name} | 
+                                          Original Qty: {batch.procurement_batches.quantity_kg} kg
+                                        </CardDescription>
+                                      )}
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                       <div className="flex items-center justify-between text-sm">
@@ -159,6 +180,18 @@ export default function Processing() {
                                           </div>
                                         )}
                                       </div>
+                                      {batch.start_time && (
+                                        <div className="pt-2 border-t">
+                                          <p className="text-xs text-muted-foreground">
+                                            Started: {new Date(batch.start_time).toLocaleString()}
+                                          </p>
+                                          {batch.end_time && (
+                                            <p className="text-xs text-muted-foreground">
+                                              Completed: {new Date(batch.end_time).toLocaleString()}
+                                            </p>
+                                          )}
+                                        </div>
+                                      )}
                                     </CardContent>
                                   </Card>
                                 ))}
