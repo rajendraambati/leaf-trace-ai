@@ -36,7 +36,7 @@ export default function Processing() {
       .from('processing_batches')
       .select(`
         *,
-        procurement_batches:batch_id (
+        procurement_batches!processing_batches_batch_id_fkey (
           id,
           farmer_name,
           quantity_kg,
