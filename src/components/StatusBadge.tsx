@@ -45,7 +45,7 @@ const statusConfig = {
 };
 
 export default function StatusBadge({ status, className }: StatusBadgeProps) {
-  const config = statusConfig[status];
+  const config = (statusConfig as Record<string, { label: string; className: string }>)[status as string] ?? { label: (typeof status === 'string' ? status.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Unknown'), className: 'bg-muted text-muted-foreground border-border' };
 
   return (
     <span
