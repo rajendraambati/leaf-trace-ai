@@ -233,21 +233,7 @@ export default function Logistics() {
         </TabsContent>
 
         <TabsContent value="tracking" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Navigation className="h-5 w-5" />
-                  GPS Vehicle Tracking
-                </CardTitle>
-                <CardDescription>Real-time location monitoring of all active shipments</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MapView locations={locations} />
-              </CardContent>
-            </Card>
-
-            <div className="space-y-4">
+          <div className="space-y-4">
               {shipments.map((shipment) => (
                 <Card key={shipment.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedShipment(shipment)}>
                   <CardHeader>
@@ -308,10 +294,9 @@ export default function Logistics() {
                   </CardContent>
                 </Card>
               ))}
-              {shipments.length === 0 && (
-                <p className="text-center text-muted-foreground py-8">No shipments available</p>
-              )}
-            </div>
+            {shipments.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">No shipments available</p>
+            )}
           </div>
 
           {selectedShipment && (
