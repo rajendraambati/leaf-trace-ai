@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
-import { Factory, Activity, Package } from "lucide-react";
+import { Factory, Activity, Package, TrendingUp, Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import StatusBadge from "@/components/StatusBadge";
 import { Progress } from "@/components/ui/progress";
 import StatCard from "@/components/StatCard";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { ProcessingUnitCreationForm } from "@/components/ProcessingUnitCreationForm";
+import { toast } from "sonner";
 
 export default function Processing() {
   const [units, setUnits] = useState<any[]>([]);
@@ -17,6 +20,9 @@ export default function Processing() {
   const [batchesByUnit, setBatchesByUnit] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [selectedUnit, setSelectedUnit] = useState<any>(null);
+  const [processingBatch, setProcessingBatch] = useState<any>(null);
+  const [outputKg, setOutputKg] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -42,7 +48,8 @@ export default function Processing() {
           quantity_kg,
           grade
         )
-      `);
+      `)
+      .or('progress.lt.100,progress.is.null');
 
     if (unitsError) console.error('Error fetching units:', unitsError);
     if (batchesError) console.error('Error fetching processing batches:', batchesError);
@@ -66,9 +73,76 @@ export default function Processing() {
     setLoading(false);
   };
 
+  const handleProcessBatch = async () => {
+    if (!processingBatch || !outputKg || parseFloat(outputKg) <= 0) {
+      toast.error("Please enter a valid output quantity");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('processing_batches')
+        .update({
+          output_quantity_kg: parseFloat(outputKg),
+          progress: 100,
+          end_time: new Date().toISOString()
+        })
+        .eq('id', processingBatch.id);
+
+      if (error) throw error;
+
+      toast.success("Batch processed successfully!");
+      setProcessingBatch(null);
+      setOutputKg("");
+      fetchData();
+    } catch (error) {
+      console.error('Error processing batch:', error);
+      toast.error("Failed to process batch");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const calculateProcessingStats = async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const startOfYear = new Date(today.getFullYear(), 0, 1);
+
+    // Fetch completed batches for calculations
+    const { data: completedBatches } = await supabase
+      .from('processing_batches')
+      .select('output_quantity_kg, end_time')
+      .eq('progress', 100)
+      .not('end_time', 'is', null);
+
+    if (!completedBatches) return { daily: 0, monthly: 0, yearly: 0 };
+
+    const daily = completedBatches
+      .filter(b => new Date(b.end_time!) >= today)
+      .reduce((sum, b) => sum + (b.output_quantity_kg || 0), 0);
+
+    const monthly = completedBatches
+      .filter(b => new Date(b.end_time!) >= startOfMonth)
+      .reduce((sum, b) => sum + (b.output_quantity_kg || 0), 0);
+
+    const yearly = completedBatches
+      .filter(b => new Date(b.end_time!) >= startOfYear)
+      .reduce((sum, b) => sum + (b.output_quantity_kg || 0), 0);
+
+    return { daily, monthly, yearly };
+  };
+
+  const [processingStats, setProcessingStats] = useState({ daily: 0, monthly: 0, yearly: 0 });
+
+  useEffect(() => {
+    calculateProcessingStats().then(setProcessingStats);
+  }, [batches]);
+
   // Count total available processing units
   const activeUnits = units.length;
-  const todayOutput = batches.reduce((sum, b) => sum + (b.output_quantity_kg || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -82,7 +156,7 @@ export default function Processing() {
         <ProcessingUnitCreationForm />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-4">
         <StatCard
           title="Active Units"
           value={activeUnits.toString()}
@@ -90,8 +164,18 @@ export default function Processing() {
         />
         <StatCard
           title="Processing Today"
-          value={`${todayOutput.toLocaleString()} kg`}
+          value={`${processingStats.daily.toLocaleString()} kg`}
           icon={Activity}
+        />
+        <StatCard
+          title="Monthly Processing"
+          value={`${processingStats.monthly.toLocaleString()} kg`}
+          icon={TrendingUp}
+        />
+        <StatCard
+          title="Yearly Processing"
+          value={`${processingStats.yearly.toLocaleString()} kg`}
+          icon={Calendar}
         />
       </div>
 
@@ -308,6 +392,18 @@ export default function Processing() {
                                   )}
                                 </div>
                               )}
+                              <div className="pt-4 border-t">
+                                <Button 
+                                  onClick={() => {
+                                    setProcessingBatch(batch);
+                                    setOutputKg("");
+                                  }}
+                                  className="w-full"
+                                >
+                                  <Package className="h-4 w-4 mr-2" />
+                                  Processed
+                                </Button>
+                              </div>
                             </CardContent>
                           </Card>
                         ))}
@@ -330,6 +426,47 @@ export default function Processing() {
           <AnalyticsDashboard moduleType="processing" />
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!processingBatch} onOpenChange={(open) => !open && setProcessingBatch(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Process Batch {processingBatch?.batch_id}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="output-kg">Output Quantity (kg)</Label>
+              <Input
+                id="output-kg"
+                type="number"
+                placeholder="Enter output in kg"
+                value={outputKg}
+                onChange={(e) => setOutputKg(e.target.value)}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Input: {processingBatch?.input_quantity_kg} kg
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleProcessBatch} 
+                disabled={isProcessing || !outputKg || parseFloat(outputKg) <= 0}
+                className="flex-1"
+              >
+                {isProcessing ? "Processing..." : "Confirm"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setProcessingBatch(null)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
