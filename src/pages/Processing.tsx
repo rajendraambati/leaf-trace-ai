@@ -24,17 +24,6 @@ export default function Processing() {
   const [outputKg, setOutputKg] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-
-    const channel = supabase
-      .channel('processing-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'processing_units' }, fetchData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'processing_batches' }, fetchData)
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, []);
 
   const fetchData = async () => {
     const { data: unitsData, error: unitsError } = await supabase.from('processing_units').select('*');
@@ -96,6 +85,7 @@ export default function Processing() {
       setProcessingBatch(null);
       setOutputKg("");
       fetchData();
+      calculateProcessingStats().then(setProcessingStats);
     } catch (error) {
       console.error('Error processing batch:', error);
       toast.error("Failed to process batch");
@@ -103,6 +93,8 @@ export default function Processing() {
       setIsProcessing(false);
     }
   };
+
+  const [processingStats, setProcessingStats] = useState({ daily: 0, monthly: 0, yearly: 0 });
 
   const calculateProcessingStats = async () => {
     const today = new Date();
@@ -135,11 +127,24 @@ export default function Processing() {
     return { daily, monthly, yearly };
   };
 
-  const [processingStats, setProcessingStats] = useState({ daily: 0, monthly: 0, yearly: 0 });
-
   useEffect(() => {
     calculateProcessingStats().then(setProcessingStats);
-  }, [batches]);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+
+    const channel = supabase
+      .channel('processing-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'processing_units' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'processing_batches' }, () => {
+        fetchData();
+        calculateProcessingStats().then(setProcessingStats);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   // Count total available processing units
   const activeUnits = units.length;
