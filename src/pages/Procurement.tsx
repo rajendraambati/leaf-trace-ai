@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { generateBatchQRData } from "@/utils/qrcode";
+import { generateBatchPDF } from "@/utils/pdfGenerator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/StatusBadge";
@@ -574,12 +575,6 @@ export default function Procurement() {
                       <Button size="sm" variant="outline" onClick={() => { setSelectedBatch(item); setEditFarmerId(item.farmer_id); setEditDialogOpen(true); }}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleAIGrade(item.id)}>
-                        <Camera className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedBatch(item); setQrDialogOpen(true); }}>
-                        <Download className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                 </div>
@@ -647,27 +642,27 @@ export default function Procurement() {
               </div>
               
               <div className="pt-4 border-t">
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => {
-                      setDetailDialogOpen(false);
-                      setQrDialogOpen(true);
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    View QR Code
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => handleAIGrade(selectedBatch.id)}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    AI Grade
-                  </Button>
-                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    generateBatchPDF({
+                      id: selectedBatch.id,
+                      farmer_id: selectedBatch.farmer_id,
+                      farmer_name: selectedBatch.farmers?.name,
+                      status: selectedBatch.status,
+                      quantity_kg: selectedBatch.quantity_kg,
+                      grade: selectedBatch.grade,
+                      price_per_kg: selectedBatch.price_per_kg,
+                      total_price: selectedBatch.total_price,
+                      procurement_date: format(new Date(selectedBatch.procurement_date), "dd-MM-yyyy HH:mm:ss")
+                    });
+                    toast.success("Batch details downloaded as PDF");
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
               </div>
             </div>
           )}
