@@ -82,7 +82,7 @@ export default function Dashboard() {
       const { count: transitCount } = await supabase
         .from("shipments")
         .select("*", { count: "exact", head: true })
-        .eq("status", "in_transit");
+        .eq("status", "in-transit");
 
       // Fetch warehouse stock
       const { data: warehouses } = await supabase
