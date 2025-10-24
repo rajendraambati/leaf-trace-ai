@@ -10,14 +10,17 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useAuditLog } from '@/hooks/useAuditLog';
-import { FileText, Download, Send, Calendar, Plus, Trash2, Play, AlertCircle } from 'lucide-react';
+import { FileText, Download, Send, Calendar, Plus, Trash2, Play, AlertCircle, BarChart3 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import BIReportDashboard from '@/components/BIReportDashboard';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function AutomatedReports() {
   const [scheduledReports, setScheduledReports] = useState<any[]>([]);
   const [reportSubmissions, setReportSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [showBIReport, setShowBIReport] = useState(false);
   const { toast } = useToast();
   const { logAction } = useAuditLog();
 
@@ -154,53 +157,19 @@ export default function AutomatedReports() {
   };
 
   const generateReportNow = async (type: string) => {
-    setGeneratingReport(true);
-    try {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 1);
+    setShowBIReport(true);
+    
+    await logAction({
+      action: 'GENERATE',
+      resource: 'bi_report',
+      resourceId: type,
+      dataSnapshot: { timestamp: new Date().toISOString() },
+    });
 
-      const { data, error } = await supabase.functions.invoke('generate-compliance-report', {
-        body: {
-          reportType: type,
-          startDate: startDate.toISOString().split('T')[0],
-          endDate: endDate.toISOString().split('T')[0],
-          format: 'json',
-        },
-      });
-
-      if (error) throw error;
-
-      await logAction({
-        action: 'GENERATE',
-        resource: 'compliance_report',
-        resourceId: type,
-        dataSnapshot: { startDate, endDate },
-      });
-
-      // Create blob and download
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${type}-report-${Date.now()}.json`;
-      a.click();
-
-      toast({
-        title: 'Success',
-        description: 'Report generated and downloaded',
-      });
-
-      fetchReportSubmissions();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setGeneratingReport(false);
-    }
+    toast({
+      title: 'Success',
+      description: 'BI Report generated with visualizations',
+    });
   };
 
   return (
@@ -220,7 +189,23 @@ export default function AutomatedReports() {
       </Alert>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">BI Analytics Report</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={() => generateReportNow('bi')} 
+              disabled={generatingReport}
+              className="w-full"
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Generate Now
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Generate GST Report</CardTitle>
@@ -496,6 +481,19 @@ export default function AutomatedReports() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* BI Report Dialog */}
+      <Dialog open={showBIReport} onOpenChange={setShowBIReport}>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Business Intelligence Report</DialogTitle>
+            <DialogDescription>
+              Comprehensive analytics across farmers, procurement, logistics, warehouses, and processing
+            </DialogDescription>
+          </DialogHeader>
+          <BIReportDashboard />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
