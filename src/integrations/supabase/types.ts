@@ -112,6 +112,75 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_vehicle_insights: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          insight_type: string
+          is_read: boolean | null
+          is_resolved: boolean | null
+          message: string
+          metadata: Json | null
+          recommendations: string[] | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string | null
+          shipment_id: string | null
+          title: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          insight_type: string
+          is_read?: boolean | null
+          is_resolved?: boolean | null
+          message: string
+          metadata?: Json | null
+          recommendations?: string[] | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          shipment_id?: string | null
+          title: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          insight_type?: string
+          is_read?: boolean | null
+          is_resolved?: boolean | null
+          message?: string
+          metadata?: Json | null
+          recommendations?: string[] | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          shipment_id?: string | null
+          title?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_vehicle_insights_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_vehicle_insights_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -288,6 +357,66 @@ export type Database = {
           status?: string | null
         }
         Relationships: []
+      }
+      driver_wellbeing_logs: {
+        Row: {
+          ai_recommendations: string[] | null
+          break_duration_minutes: number | null
+          concerns: string | null
+          created_at: string | null
+          driver_id: string | null
+          driving_hours: number | null
+          fatigue_level: number | null
+          id: string
+          mood_rating: number | null
+          shipment_id: string | null
+          stress_level: number | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          ai_recommendations?: string[] | null
+          break_duration_minutes?: number | null
+          concerns?: string | null
+          created_at?: string | null
+          driver_id?: string | null
+          driving_hours?: number | null
+          fatigue_level?: number | null
+          id?: string
+          mood_rating?: number | null
+          shipment_id?: string | null
+          stress_level?: number | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          ai_recommendations?: string[] | null
+          break_duration_minutes?: number | null
+          concerns?: string | null
+          created_at?: string | null
+          driver_id?: string | null
+          driving_hours?: number | null
+          fatigue_level?: number | null
+          id?: string
+          mood_rating?: number | null
+          shipment_id?: string | null
+          stress_level?: number | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_wellbeing_logs_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_wellbeing_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       erp_procurement_orders: {
         Row: {
@@ -1403,6 +1532,147 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           vehicle_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_tracking_history: {
+        Row: {
+          ai_insights: Json | null
+          driver_status: string | null
+          fuel_level: number | null
+          heading: number | null
+          id: string
+          latitude: number
+          location_name: string | null
+          longitude: number
+          recorded_at: string | null
+          shipment_id: string | null
+          speed_kmh: number | null
+          temperature: number | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          ai_insights?: Json | null
+          driver_status?: string | null
+          fuel_level?: number | null
+          heading?: number | null
+          id?: string
+          latitude: number
+          location_name?: string | null
+          longitude: number
+          recorded_at?: string | null
+          shipment_id?: string | null
+          speed_kmh?: number | null
+          temperature?: number | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          ai_insights?: Json | null
+          driver_status?: string | null
+          fuel_level?: number | null
+          heading?: number | null
+          id?: string
+          latitude?: number
+          location_name?: string | null
+          longitude?: number
+          recorded_at?: string | null
+          shipment_id?: string | null
+          speed_kmh?: number | null
+          temperature?: number | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_tracking_history_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_tracking_history_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          battery_level: number | null
+          capacity_kg: number | null
+          created_at: string | null
+          current_latitude: number | null
+          current_location: string | null
+          current_longitude: number | null
+          driver_id: string | null
+          driver_name: string | null
+          driver_phone: string | null
+          fuel_level: number | null
+          health_score: number | null
+          id: string
+          last_service_date: string | null
+          make: string | null
+          model: string | null
+          next_service_due: string | null
+          notes: string | null
+          registration_number: string
+          status: string | null
+          total_distance_km: number | null
+          updated_at: string | null
+          vehicle_type: string
+          year: number | null
+        }
+        Insert: {
+          battery_level?: number | null
+          capacity_kg?: number | null
+          created_at?: string | null
+          current_latitude?: number | null
+          current_location?: string | null
+          current_longitude?: number | null
+          driver_id?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          fuel_level?: number | null
+          health_score?: number | null
+          id: string
+          last_service_date?: string | null
+          make?: string | null
+          model?: string | null
+          next_service_due?: string | null
+          notes?: string | null
+          registration_number: string
+          status?: string | null
+          total_distance_km?: number | null
+          updated_at?: string | null
+          vehicle_type: string
+          year?: number | null
+        }
+        Update: {
+          battery_level?: number | null
+          capacity_kg?: number | null
+          created_at?: string | null
+          current_latitude?: number | null
+          current_location?: string | null
+          current_longitude?: number | null
+          driver_id?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          fuel_level?: number | null
+          health_score?: number | null
+          id?: string
+          last_service_date?: string | null
+          make?: string | null
+          model?: string | null
+          next_service_due?: string | null
+          notes?: string | null
+          registration_number?: string
+          status?: string | null
+          total_distance_km?: number | null
+          updated_at?: string | null
+          vehicle_type?: string
+          year?: number | null
         }
         Relationships: []
       }
