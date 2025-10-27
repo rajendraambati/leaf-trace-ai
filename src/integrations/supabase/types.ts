@@ -310,6 +310,7 @@ export type Database = {
           validated_at: string | null
           validated_by: string | null
           validation_errors: Json | null
+          validation_sla_hours: number | null
           validation_status: string | null
           warehouse_id: string | null
         }
@@ -333,6 +334,7 @@ export type Database = {
           validated_at?: string | null
           validated_by?: string | null
           validation_errors?: Json | null
+          validation_sla_hours?: number | null
           validation_status?: string | null
           warehouse_id?: string | null
         }
@@ -356,6 +358,7 @@ export type Database = {
           validated_at?: string | null
           validated_by?: string | null
           validation_errors?: Json | null
+          validation_sla_hours?: number | null
           validation_status?: string | null
           warehouse_id?: string | null
         }
