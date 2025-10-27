@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Navigation, Clock, AlertTriangle } from 'lucide-react';
+import { MapPin, Navigation, Clock, AlertTriangle, Brain, TrendingUp } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Card } from './ui/card';
+import { Button } from './ui/button';
 import { MapView, type Location } from './MapView';
+import { useLogisticsAI } from '@/hooks/useLogisticsAI';
 
 interface Vehicle {
   id: string;
@@ -26,6 +28,10 @@ interface Shipment {
   gps_longitude: number | null;
   estimated_delay_minutes: number;
   route: any;
+  ai_predicted_eta: string | null;
+  ai_eta_confidence: number | null;
+  ai_anomaly_detected: boolean;
+  ai_anomaly_severity: string | null;
 }
 
 interface TrackingData {
@@ -43,6 +49,7 @@ export function RealTimeVehicleMap() {
   const [shipments, setShipments] = useState<Map<string, Shipment>>(new Map());
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [vehiclePositions, setVehiclePositions] = useState<Map<string, TrackingData>>(new Map());
+  const { loading, predictDelay, detectAnomalies, scoreDriverPerformance } = useLogisticsAI();
 
   // Fetch vehicles
   useEffect(() => {
@@ -218,6 +225,43 @@ export function RealTimeVehicleMap() {
   const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle);
   const selectedShipment = selectedVehicle ? shipments.get(selectedVehicle) : null;
 
+  const handlePredictDelay = async () => {
+    if (!selectedShipment || !selectedVehicle) return;
+    
+    const tracking = vehiclePositions.get(selectedVehicle);
+    if (!tracking) return;
+
+    await predictDelay({
+      shipment_id: selectedShipment.id,
+      current_location: { lat: tracking.latitude, lng: tracking.longitude },
+      destination: { 
+        lat: selectedShipment.gps_latitude || 0, 
+        lng: selectedShipment.gps_longitude || 0,
+        name: selectedShipment.to_location 
+      },
+      weather_conditions: 'Clear',
+      road_conditions: 'Normal'
+    });
+  };
+
+  const handleDetectAnomalies = async () => {
+    if (!selectedShipment || !selectedVehicle) return;
+    
+    const tracking = vehiclePositions.get(selectedVehicle);
+    if (!tracking) return;
+
+    await detectAnomalies({
+      shipment_id: selectedShipment.id,
+      current_location: { lat: tracking.latitude, lng: tracking.longitude },
+      weather_conditions: 'Clear'
+    });
+  };
+
+  const handleScorePerformance = async () => {
+    if (!selectedVehicle) return;
+    await scoreDriverPerformance({ vehicle_id: selectedVehicle });
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-200px)]">
       {/* Map */}
@@ -289,6 +333,39 @@ export function RealTimeVehicleMap() {
                     </div>
                   )}
                   
+                  {selectedShipment.ai_predicted_eta && (
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                      <Brain className="h-4 w-4 text-primary mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-primary flex items-center gap-2">
+                          AI Predicted ETA
+                          {selectedShipment.ai_eta_confidence && (
+                            <Badge variant="outline" className="text-xs">
+                              {Math.round(selectedShipment.ai_eta_confidence * 100)}% confident
+                            </Badge>
+                          )}
+                        </p>
+                        <p className="text-sm">
+                          {new Date(selectedShipment.ai_predicted_eta).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedShipment.ai_anomaly_detected && (
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
+                      <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-warning">
+                          Anomaly Detected
+                        </p>
+                        <p className="text-sm">
+                          Severity: {selectedShipment.ai_anomaly_severity}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {selectedShipment.estimated_delay_minutes > 0 && (
                     <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                       <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
@@ -317,6 +394,46 @@ export function RealTimeVehicleMap() {
                   <p className="text-sm font-medium truncate">
                     {selectedVehicleData.current_location || 'Unknown'}
                   </p>
+                </div>
+              </div>
+
+              {/* AI Actions */}
+              <div className="pt-3 border-t space-y-2">
+                <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Brain className="h-4 w-4" />
+                  AI Analysis
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handlePredictDelay}
+                    disabled={loading || !selectedShipment}
+                    className="text-xs"
+                  >
+                    <Clock className="h-3 w-3 mr-1" />
+                    ETA
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handleDetectAnomalies}
+                    disabled={loading || !selectedShipment}
+                    className="text-xs"
+                  >
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Anomaly
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handleScorePerformance}
+                    disabled={loading}
+                    className="text-xs"
+                  >
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    Score
+                  </Button>
                 </div>
               </div>
             </div>

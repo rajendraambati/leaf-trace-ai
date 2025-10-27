@@ -35,6 +35,17 @@ interface DelayPredictionResult {
   recommendations?: string[];
 }
 
+interface DriverPerformanceResult {
+  overall_score: number;
+  on_time_score?: number;
+  safety_score: number;
+  efficiency_score: number;
+  strengths?: string[];
+  areas_for_improvement?: string[];
+  recommendations?: string[];
+  risk_level?: 'LOW' | 'MEDIUM' | 'HIGH';
+}
+
 export const useLogisticsAI = () => {
   const [loading, setLoading] = useState(false);
 
@@ -184,10 +195,50 @@ export const useLogisticsAI = () => {
     }
   };
 
+  const scoreDriverPerformance = async (params: {
+    vehicle_id: string;
+  }): Promise<DriverPerformanceResult | null> => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('logistics-ai-optimization', {
+        body: {
+          type: 'driver_performance',
+          vehicle_id: params.vehicle_id
+        }
+      });
+
+      if (error) {
+        if (error.message?.includes('429')) {
+          toast.error('Rate limit exceeded. Please try again in a few moments.');
+          return null;
+        }
+        if (error.message?.includes('402')) {
+          toast.error('AI credits depleted. Please add credits to continue.');
+          return null;
+        }
+        throw error;
+      }
+
+      if (data?.result) {
+        toast.success('Driver performance analyzed successfully');
+        return data.result as DriverPerformanceResult;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error scoring driver performance:', error);
+      toast.error('Failed to analyze driver performance');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     predictRoute,
     detectAnomalies,
-    predictDelay
+    predictDelay,
+    scoreDriverPerformance
   };
 };

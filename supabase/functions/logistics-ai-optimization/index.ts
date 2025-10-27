@@ -18,8 +18,9 @@ serve(async (req) => {
     );
 
     const { 
-      type, // 'route_prediction' | 'anomaly_detection' | 'delay_prediction'
+      type, // 'route_prediction' | 'anomaly_detection' | 'delay_prediction' | 'driver_performance'
       shipment_id,
+      vehicle_id,
       origin,
       destination,
       current_location,
@@ -317,6 +318,139 @@ Calculate updated ETA and delay probability.`;
         const delayData = await delayResponse.json();
         const delayArgs = JSON.parse(delayData.choices[0].message.tool_calls[0].function.arguments);
         result = delayArgs;
+        
+        // Update shipment with AI predictions
+        if (shipment_id) {
+          await supabase.from('shipments').update({
+            ai_predicted_eta: delayArgs.updated_eta,
+            ai_eta_confidence: delayArgs.confidence_level === 'HIGH' ? 0.9 : delayArgs.confidence_level === 'MEDIUM' ? 0.7 : 0.5,
+            estimated_delay_minutes: delayArgs.estimated_delay_minutes || 0
+          }).eq('id', shipment_id);
+        }
+        break;
+
+      case 'driver_performance':
+        // Fetch historical trip data
+        const { data: tripStats } = await supabase
+          .from('vehicle_trip_statistics')
+          .select('*')
+          .eq('vehicle_id', vehicle_id)
+          .single();
+        
+        // Fetch recent tracking history
+        const { data: recentTracking } = await supabase
+          .from('vehicle_tracking_history')
+          .select('*')
+          .eq('vehicle_id', vehicle_id)
+          .order('recorded_at', { ascending: false })
+          .limit(100);
+
+        // Fetch vehicle data
+        const { data: vehicleData } = await supabase
+          .from('vehicles')
+          .select('*')
+          .eq('id', vehicle_id)
+          .single();
+
+        systemPrompt = `You are an AI driver performance analyst. Evaluate driver performance based on:
+- On-time delivery rate
+- Average speed vs speed limits
+- Harsh braking/acceleration incidents
+- Idle time optimization
+- Fuel efficiency
+- Safety metrics
+Provide a comprehensive performance score (0-100) and specific recommendations.`;
+
+        userPrompt = `Analyze driver performance:
+Vehicle: ${vehicle_id}
+Total Trips: ${tripStats?.total_trips || 0}
+On-Time Trips: ${tripStats?.on_time_trips || 0}
+Avg Speed: ${tripStats?.avg_speed || 0} km/h
+Max Speed: ${tripStats?.max_speed || 0} km/h
+Harsh Braking: ${vehicleData?.harsh_braking_incidents || 0}
+Harsh Acceleration: ${vehicleData?.harsh_acceleration_incidents || 0}
+Idle Time: ${vehicleData?.idle_time_minutes || 0} minutes
+Recent Tracking Points: ${recentTracking?.length || 0}
+
+Provide detailed performance analysis and actionable recommendations.`;
+
+        const perfResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            tools: [{
+              type: 'function',
+              function: {
+                name: 'score_driver_performance',
+                description: 'Score driver performance and provide recommendations',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    overall_score: { type: 'number', minimum: 0, maximum: 100 },
+                    on_time_score: { type: 'number', minimum: 0, maximum: 100 },
+                    safety_score: { type: 'number', minimum: 0, maximum: 100 },
+                    efficiency_score: { type: 'number', minimum: 0, maximum: 100 },
+                    strengths: { type: 'array', items: { type: 'string' } },
+                    areas_for_improvement: { type: 'array', items: { type: 'string' } },
+                    recommendations: { type: 'array', items: { type: 'string' } },
+                    risk_level: { 
+                      type: 'string',
+                      enum: ['LOW', 'MEDIUM', 'HIGH']
+                    }
+                  },
+                  required: ['overall_score', 'safety_score', 'efficiency_score']
+                }
+              }
+            }],
+            tool_choice: { type: 'function', function: { name: 'score_driver_performance' } }
+          }),
+        });
+
+        if (!perfResponse.ok) {
+          if (perfResponse.status === 429) {
+            return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+              status: 429,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          if (perfResponse.status === 402) {
+            return new Response(JSON.stringify({ error: 'Payment required' }), {
+              status: 402,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          throw new Error('AI request failed');
+        }
+
+        const perfData = await perfResponse.json();
+        const perfArgs = JSON.parse(perfData.choices[0].message.tool_calls[0].function.arguments);
+        result = perfArgs;
+
+        // Update vehicle with performance score
+        await supabase.from('vehicles').update({
+          driver_performance_score: perfArgs.overall_score
+        }).eq('id', vehicle_id);
+
+        // Create AI insight
+        if (perfArgs.risk_level === 'HIGH' || perfArgs.overall_score < 60) {
+          await supabase.from('ai_vehicle_insights').insert({
+            vehicle_id,
+            insight_type: 'performance',
+            severity: perfArgs.risk_level === 'HIGH' ? 'critical' : 'warning',
+            title: 'Driver Performance Alert',
+            message: `Performance score: ${perfArgs.overall_score}/100. ${perfArgs.areas_for_improvement?.[0] || 'Needs attention'}`,
+            recommendations: perfArgs.recommendations || [],
+            confidence_score: 0.85
+          });
+        }
         break;
 
       default:
