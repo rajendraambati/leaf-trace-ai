@@ -35,6 +35,7 @@ import SignIn from "./pages/SignIn";
 import AdminApprovals from "./pages/AdminApprovals";
 import NotFound from "./pages/NotFound";
 import ERPIntegration from "./pages/ERPIntegration";
+import AIVehicleTracking from "./pages/AIVehicleTracking";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/training-support" element={<ProtectedRoute><Layout><TrainingSupport /></Layout></ProtectedRoute>} />
             <Route path="/system-monitoring" element={<ProtectedRoute><Layout><SystemMonitoring /></Layout></ProtectedRoute>} />
             <Route path="/erp-integration" element={<ProtectedRoute><Layout><ERPIntegration /></Layout></ProtectedRoute>} />
+            <Route path="/ai-vehicle-tracking" element={<ProtectedRoute><Layout><AIVehicleTracking /></Layout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

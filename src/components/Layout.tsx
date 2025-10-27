@@ -36,6 +36,7 @@ const navigation = [
   { name: "Farmers", href: "/farmers", icon: Users },
   { name: "Procurement", href: "/procurement", icon: ShoppingCart },
   { name: "Logistics", href: "/logistics", icon: Truck },
+  { name: "AI Vehicle Tracking", href: "/ai-vehicle-tracking", icon: Sparkles },
   { name: "Warehouse", href: "/warehouse", icon: Warehouse },
   { name: "Processing", href: "/processing", icon: Factory },
   { name: "Compliance", href: "/compliance", icon: FileCheck },
