@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Navigation, Clock, AlertTriangle } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Card } from './ui/card';
+import { MapView, type Location } from './MapView';
 
 interface Vehicle {
   id: string;
@@ -40,27 +39,10 @@ interface TrackingData {
 }
 
 export function RealTimeVehicleMap() {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const markers = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [shipments, setShipments] = useState<Map<string, Shipment>>(new Map());
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
-
-  // Fetch Mapbox token
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (error) throw error;
-        setMapboxToken(data.token);
-      } catch (error) {
-        console.error('Error fetching Mapbox token:', error);
-      }
-    };
-    fetchToken();
-  }, []);
+  const [vehiclePositions, setVehiclePositions] = useState<Map<string, TrackingData>>(new Map());
 
   // Fetch vehicles
   useEffect(() => {
@@ -158,7 +140,7 @@ export function RealTimeVehicleMap() {
         },
         (payload) => {
           const tracking = payload.new as TrackingData;
-          updateVehicleMarker(tracking);
+          setVehiclePositions(prev => new Map(prev).set(tracking.vehicle_id, tracking));
         }
       )
       .subscribe();
@@ -168,131 +150,28 @@ export function RealTimeVehicleMap() {
     };
   }, []);
 
-  // Initialize map
+  // Initialize vehicle positions from current data
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
-    if (map.current) return;
-
-    mapboxgl.accessToken = mapboxToken;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [78.9629, 20.5937], // Center of India
-      zoom: 5,
-      pitch: 45,
-    });
-
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-
-    return () => {
-      map.current?.remove();
-      map.current = null;
-    };
-  }, [mapboxToken]);
-
-  // Update vehicle markers
-  useEffect(() => {
-    if (!map.current) return;
-
     vehicles.forEach(vehicle => {
       if (vehicle.current_latitude && vehicle.current_longitude) {
-        updateVehicleMarker({
-          id: vehicle.id,
-          vehicle_id: vehicle.id,
-          latitude: vehicle.current_latitude,
-          longitude: vehicle.current_longitude,
-          speed_kmh: null,
-          recorded_at: new Date().toISOString(),
-          driver_status: null
+        setVehiclePositions(prev => {
+          const newMap = new Map(prev);
+          if (!newMap.has(vehicle.id)) {
+            newMap.set(vehicle.id, {
+              id: vehicle.id,
+              vehicle_id: vehicle.id,
+              latitude: vehicle.current_latitude!,
+              longitude: vehicle.current_longitude!,
+              speed_kmh: null,
+              recorded_at: new Date().toISOString(),
+              driver_status: null
+            });
+          }
+          return newMap;
         });
       }
     });
   }, [vehicles]);
-
-  const updateVehicleMarker = (tracking: TrackingData) => {
-    if (!map.current) return;
-
-    const vehicle = vehicles.find(v => v.id === tracking.vehicle_id);
-    if (!vehicle) return;
-
-    const shipment = shipments.get(tracking.vehicle_id);
-    
-    // Determine color based on status and alerts
-    let color = '#10b981'; // green - normal
-    if (shipment) {
-      if (shipment.estimated_delay_minutes > 30) {
-        color = '#ef4444'; // red - major delay
-      } else if (shipment.estimated_delay_minutes > 10) {
-        color = '#f59e0b'; // orange - minor delay
-      }
-    }
-    if (vehicle.status === 'maintenance') {
-      color = '#6b7280'; // gray - maintenance
-    }
-    if (tracking.speed_kmh !== null && tracking.speed_kmh < 1) {
-      color = '#f59e0b'; // orange - idle
-    }
-
-    // Create or update marker
-    let marker = markers.current.get(tracking.vehicle_id);
-    
-    if (marker) {
-      marker.setLngLat([tracking.longitude, tracking.latitude]);
-      const el = marker.getElement();
-      el.style.backgroundColor = color;
-    } else {
-      const el = document.createElement('div');
-      el.className = 'vehicle-marker';
-      el.style.width = '30px';
-      el.style.height = '30px';
-      el.style.borderRadius = '50%';
-      el.style.backgroundColor = color;
-      el.style.border = '3px solid white';
-      el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-      el.style.cursor = 'pointer';
-      el.style.transition = 'all 0.3s';
-
-      el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.2)';
-      });
-
-      el.addEventListener('mouseleave', () => {
-        el.style.transform = 'scale(1)';
-      });
-
-      marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([tracking.longitude, tracking.latitude])
-        .addTo(map.current);
-
-      // Add popup with vehicle info
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-        <div style="padding: 8px;">
-          <h3 style="margin: 0 0 8px 0; font-weight: bold;">${vehicle.registration_number}</h3>
-          <p style="margin: 4px 0;"><strong>Status:</strong> ${vehicle.status}</p>
-          ${shipment ? `
-            <p style="margin: 4px 0;"><strong>To:</strong> ${shipment.to_location}</p>
-            <p style="margin: 4px 0;"><strong>ETA:</strong> ${shipment.eta ? new Date(shipment.eta).toLocaleString() : 'N/A'}</p>
-            ${shipment.estimated_delay_minutes > 0 ? `
-              <p style="margin: 4px 0; color: #ef4444;"><strong>Delay:</strong> ${shipment.estimated_delay_minutes} min</p>
-            ` : ''}
-          ` : ''}
-          ${tracking.speed_kmh !== null ? `
-            <p style="margin: 4px 0;"><strong>Speed:</strong> ${tracking.speed_kmh.toFixed(1)} km/h</p>
-          ` : ''}
-        </div>
-      `);
-
-      marker.setPopup(popup);
-      
-      el.addEventListener('click', () => {
-        setSelectedVehicle(tracking.vehicle_id);
-      });
-
-      markers.current.set(tracking.vehicle_id, marker);
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -313,14 +192,37 @@ export function RealTimeVehicleMap() {
     return { level: 'normal', color: 'success' };
   };
 
+  const getStatusBadgeColor = (vehicle: Vehicle, shipment?: Shipment) => {
+    if (vehicle.status === 'maintenance') return 'maintenance';
+    if (shipment) {
+      if (shipment.estimated_delay_minutes > 30) return 'major-delay';
+      if (shipment.estimated_delay_minutes > 10) return 'minor-delay';
+    }
+    return 'normal';
+  };
+
+  // Convert vehicle positions to Location format for MapView
+  const mapLocations: Location[] = Array.from(vehiclePositions.entries()).map(([vehicleId, tracking]) => {
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    const shipment = shipments.get(vehicleId);
+    const statusColor = getStatusBadgeColor(vehicle!, shipment);
+    
+    return {
+      lat: tracking.latitude,
+      lng: tracking.longitude,
+      name: vehicle?.registration_number || 'Unknown',
+      status: statusColor
+    };
+  });
+
   const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle);
   const selectedShipment = selectedVehicle ? shipments.get(selectedVehicle) : null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-200px)]">
       {/* Map */}
-      <div className="lg:col-span-2 rounded-lg overflow-hidden border border-border">
-        <div ref={mapContainer} className="h-full w-full" />
+      <div className="lg:col-span-2">
+        <MapView locations={mapLocations} />
       </div>
 
       {/* Vehicle List & Details */}
@@ -425,6 +327,11 @@ export function RealTimeVehicleMap() {
         <Card className="p-4">
           <h3 className="font-semibold mb-3">Active Vehicles ({vehicles.length})</h3>
           <div className="space-y-2">
+            {vehicles.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No active vehicles found. Vehicles will appear here when they are in transit.
+              </p>
+            )}
             {vehicles.map(vehicle => {
               const shipment = shipments.get(vehicle.id);
               const alert = shipment ? getAlertLevel(shipment.estimated_delay_minutes) : null;
