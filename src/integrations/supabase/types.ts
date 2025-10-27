@@ -291,43 +291,73 @@ export type Database = {
       }
       erp_procurement_orders: {
         Row: {
+          confirmed_quantity_kg: number | null
           created_at: string | null
           delivery_date: string
+          dispatch_scheduled_date: string | null
           id: string
+          inventory_check_notes: string | null
+          inventory_verified: boolean | null
           po_number: string
           processing_unit_id: string | null
           product_type: string
+          quantity_confirmed: boolean | null
           quantity_kg: number
+          rejection_reason: string | null
           source_system: string
           status: string | null
           updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
           validation_errors: Json | null
+          validation_status: string | null
+          warehouse_id: string | null
         }
         Insert: {
+          confirmed_quantity_kg?: number | null
           created_at?: string | null
           delivery_date: string
+          dispatch_scheduled_date?: string | null
           id?: string
+          inventory_check_notes?: string | null
+          inventory_verified?: boolean | null
           po_number: string
           processing_unit_id?: string | null
           product_type: string
+          quantity_confirmed?: boolean | null
           quantity_kg: number
+          rejection_reason?: string | null
           source_system: string
           status?: string | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
           validation_errors?: Json | null
+          validation_status?: string | null
+          warehouse_id?: string | null
         }
         Update: {
+          confirmed_quantity_kg?: number | null
           created_at?: string | null
           delivery_date?: string
+          dispatch_scheduled_date?: string | null
           id?: string
+          inventory_check_notes?: string | null
+          inventory_verified?: boolean | null
           po_number?: string
           processing_unit_id?: string | null
           product_type?: string
+          quantity_confirmed?: boolean | null
           quantity_kg?: number
+          rejection_reason?: string | null
           source_system?: string
           status?: string | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
           validation_errors?: Json | null
+          validation_status?: string | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -335,6 +365,13 @@ export type Database = {
             columns: ["processing_unit_id"]
             isOneToOne: false
             referencedRelation: "processing_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "erp_procurement_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -1365,6 +1402,76 @@ export type Database = {
           vehicle_id?: string
         }
         Relationships: []
+      }
+      warehouse_dispatch_schedule: {
+        Row: {
+          actual_dispatch_date: string | null
+          batch_id: string | null
+          created_at: string | null
+          created_by: string | null
+          dispatch_notes: string | null
+          dispatch_status: string | null
+          driver_name: string | null
+          erp_order_id: string
+          id: string
+          scheduled_dispatch_date: string
+          updated_at: string | null
+          vehicle_id: string | null
+          warehouse_id: string
+        }
+        Insert: {
+          actual_dispatch_date?: string | null
+          batch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          dispatch_notes?: string | null
+          dispatch_status?: string | null
+          driver_name?: string | null
+          erp_order_id: string
+          id?: string
+          scheduled_dispatch_date: string
+          updated_at?: string | null
+          vehicle_id?: string | null
+          warehouse_id: string
+        }
+        Update: {
+          actual_dispatch_date?: string | null
+          batch_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          dispatch_notes?: string | null
+          dispatch_status?: string | null
+          driver_name?: string | null
+          erp_order_id?: string
+          id?: string
+          scheduled_dispatch_date?: string
+          updated_at?: string | null
+          vehicle_id?: string | null
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_dispatch_schedule_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_dispatch_schedule_erp_order_id_fkey"
+            columns: ["erp_order_id"]
+            isOneToOne: false
+            referencedRelation: "erp_procurement_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_dispatch_schedule_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       warehouse_inventory: {
         Row: {

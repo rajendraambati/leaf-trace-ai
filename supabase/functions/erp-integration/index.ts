@@ -189,11 +189,12 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Unexpected error in ERP integration:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({
         success: false,
         error: 'Internal server error',
-        details: error.message,
+        details: errorMessage,
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
