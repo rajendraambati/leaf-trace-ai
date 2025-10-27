@@ -34,6 +34,7 @@ import Register from "./pages/Register";
 import SignIn from "./pages/SignIn";
 import AdminApprovals from "./pages/AdminApprovals";
 import NotFound from "./pages/NotFound";
+import ERPIntegration from "./pages/ERPIntegration";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => (
             <Route path="/analytics" element={<ProtectedRoute><Layout><AnalyticsDashboard /></Layout></ProtectedRoute>} />
             <Route path="/training-support" element={<ProtectedRoute><Layout><TrainingSupport /></Layout></ProtectedRoute>} />
             <Route path="/system-monitoring" element={<ProtectedRoute><Layout><SystemMonitoring /></Layout></ProtectedRoute>} />
+            <Route path="/erp-integration" element={<ProtectedRoute><Layout><ERPIntegration /></Layout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.logistics-batch-status]
 verify_jwt = true
+
+[functions.erp-integration]
+verify_jwt = false

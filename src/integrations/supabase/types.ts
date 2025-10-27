@@ -289,6 +289,56 @@ export type Database = {
         }
         Relationships: []
       }
+      erp_procurement_orders: {
+        Row: {
+          created_at: string | null
+          delivery_date: string
+          id: string
+          po_number: string
+          processing_unit_id: string | null
+          product_type: string
+          quantity_kg: number
+          source_system: string
+          status: string | null
+          updated_at: string | null
+          validation_errors: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_date: string
+          id?: string
+          po_number: string
+          processing_unit_id?: string | null
+          product_type: string
+          quantity_kg: number
+          source_system: string
+          status?: string | null
+          updated_at?: string | null
+          validation_errors?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_date?: string
+          id?: string
+          po_number?: string
+          processing_unit_id?: string | null
+          product_type?: string
+          quantity_kg?: number
+          source_system?: string
+          status?: string | null
+          updated_at?: string | null
+          validation_errors?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "erp_procurement_orders_processing_unit_id_fkey"
+            columns: ["processing_unit_id"]
+            isOneToOne: false
+            referencedRelation: "processing_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       esg_scores: {
         Row: {
           assessed_by: string | null
@@ -1368,6 +1418,51 @@ export type Database = {
           },
           {
             foreignKeyName: "warehouse_inventory_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          order_id: string | null
+          warehouse_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: string
+          order_id?: string | null
+          warehouse_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          order_id?: string | null
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "erp_procurement_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_notifications_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
