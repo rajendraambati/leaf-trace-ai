@@ -176,6 +176,13 @@ export type Database = {
             foreignKeyName: "ai_vehicle_insights_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
+            referencedRelation: "vehicle_trip_statistics"
+            referencedColumns: ["vehicle_id"]
+          },
+          {
+            foreignKeyName: "ai_vehicle_insights_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
             referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
@@ -408,6 +415,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_wellbeing_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_trip_statistics"
+            referencedColumns: ["vehicle_id"]
           },
           {
             foreignKeyName: "driver_wellbeing_logs_vehicle_id_fkey"
@@ -1264,6 +1278,11 @@ export type Database = {
         Row: {
           actual_arrival: string | null
           actual_route: Json | null
+          ai_anomaly_details: Json | null
+          ai_anomaly_detected: boolean | null
+          ai_anomaly_severity: string | null
+          ai_eta_confidence: number | null
+          ai_predicted_eta: string | null
           batch_id: string
           checkpoint_status: Json | null
           created_at: string | null
@@ -1295,6 +1314,11 @@ export type Database = {
         Insert: {
           actual_arrival?: string | null
           actual_route?: Json | null
+          ai_anomaly_details?: Json | null
+          ai_anomaly_detected?: boolean | null
+          ai_anomaly_severity?: string | null
+          ai_eta_confidence?: number | null
+          ai_predicted_eta?: string | null
           batch_id: string
           checkpoint_status?: Json | null
           created_at?: string | null
@@ -1326,6 +1350,11 @@ export type Database = {
         Update: {
           actual_arrival?: string | null
           actual_route?: Json | null
+          ai_anomaly_details?: Json | null
+          ai_anomaly_detected?: boolean | null
+          ai_anomaly_severity?: string | null
+          ai_eta_confidence?: number | null
+          ai_predicted_eta?: string | null
           batch_id?: string
           checkpoint_status?: Json | null
           created_at?: string | null
@@ -1537,11 +1566,15 @@ export type Database = {
       }
       vehicle_tracking_history: {
         Row: {
+          acceleration: number | null
           ai_insights: Json | null
+          braking_force: number | null
           driver_status: string | null
+          engine_rpm: number | null
           fuel_level: number | null
           heading: number | null
           id: string
+          is_idle: boolean | null
           latitude: number
           location_name: string | null
           longitude: number
@@ -1552,11 +1585,15 @@ export type Database = {
           vehicle_id: string | null
         }
         Insert: {
+          acceleration?: number | null
           ai_insights?: Json | null
+          braking_force?: number | null
           driver_status?: string | null
+          engine_rpm?: number | null
           fuel_level?: number | null
           heading?: number | null
           id?: string
+          is_idle?: boolean | null
           latitude: number
           location_name?: string | null
           longitude: number
@@ -1567,11 +1604,15 @@ export type Database = {
           vehicle_id?: string | null
         }
         Update: {
+          acceleration?: number | null
           ai_insights?: Json | null
+          braking_force?: number | null
           driver_status?: string | null
+          engine_rpm?: number | null
           fuel_level?: number | null
           heading?: number | null
           id?: string
+          is_idle?: boolean | null
           latitude?: number
           location_name?: string | null
           longitude?: number
@@ -1593,6 +1634,13 @@ export type Database = {
             foreignKeyName: "vehicle_tracking_history_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
+            referencedRelation: "vehicle_trip_statistics"
+            referencedColumns: ["vehicle_id"]
+          },
+          {
+            foreignKeyName: "vehicle_tracking_history_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
             referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
@@ -1600,6 +1648,7 @@ export type Database = {
       }
       vehicles: {
         Row: {
+          average_speed_kmh: number | null
           battery_level: number | null
           capacity_kg: number | null
           created_at: string | null
@@ -1608,23 +1657,30 @@ export type Database = {
           current_longitude: number | null
           driver_id: string | null
           driver_name: string | null
+          driver_performance_score: number | null
           driver_phone: string | null
           fuel_level: number | null
+          harsh_acceleration_incidents: number | null
+          harsh_braking_incidents: number | null
           health_score: number | null
           id: string
+          idle_time_minutes: number | null
           last_service_date: string | null
           make: string | null
           model: string | null
           next_service_due: string | null
           notes: string | null
+          on_time_deliveries: number | null
           registration_number: string
           status: string | null
           total_distance_km: number | null
+          total_trips: number | null
           updated_at: string | null
           vehicle_type: string
           year: number | null
         }
         Insert: {
+          average_speed_kmh?: number | null
           battery_level?: number | null
           capacity_kg?: number | null
           created_at?: string | null
@@ -1633,23 +1689,30 @@ export type Database = {
           current_longitude?: number | null
           driver_id?: string | null
           driver_name?: string | null
+          driver_performance_score?: number | null
           driver_phone?: string | null
           fuel_level?: number | null
+          harsh_acceleration_incidents?: number | null
+          harsh_braking_incidents?: number | null
           health_score?: number | null
           id: string
+          idle_time_minutes?: number | null
           last_service_date?: string | null
           make?: string | null
           model?: string | null
           next_service_due?: string | null
           notes?: string | null
+          on_time_deliveries?: number | null
           registration_number: string
           status?: string | null
           total_distance_km?: number | null
+          total_trips?: number | null
           updated_at?: string | null
           vehicle_type: string
           year?: number | null
         }
         Update: {
+          average_speed_kmh?: number | null
           battery_level?: number | null
           capacity_kg?: number | null
           created_at?: string | null
@@ -1658,18 +1721,24 @@ export type Database = {
           current_longitude?: number | null
           driver_id?: string | null
           driver_name?: string | null
+          driver_performance_score?: number | null
           driver_phone?: string | null
           fuel_level?: number | null
+          harsh_acceleration_incidents?: number | null
+          harsh_braking_incidents?: number | null
           health_score?: number | null
           id?: string
+          idle_time_minutes?: number | null
           last_service_date?: string | null
           make?: string | null
           model?: string | null
           next_service_due?: string | null
           notes?: string | null
+          on_time_deliveries?: number | null
           registration_number?: string
           status?: string | null
           total_distance_km?: number | null
+          total_trips?: number | null
           updated_at?: string | null
           vehicle_type?: string
           year?: number | null
@@ -1906,7 +1975,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vehicle_trip_statistics: {
+        Row: {
+          avg_speed: number | null
+          avg_trip_duration_hours: number | null
+          idle_count: number | null
+          max_speed: number | null
+          on_time_trips: number | null
+          registration_number: string | null
+          total_trips: number | null
+          vehicle_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       approve_registration: {
@@ -1928,6 +2009,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      refresh_vehicle_statistics: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role:
