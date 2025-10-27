@@ -36,6 +36,8 @@ import AdminApprovals from "./pages/AdminApprovals";
 import NotFound from "./pages/NotFound";
 import ERPIntegration from "./pages/ERPIntegration";
 import AIVehicleTracking from "./pages/AIVehicleTracking";
+import DriverApp from "./pages/DriverApp";
+import InstallApp from "./pages/InstallApp";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +78,8 @@ const App = () => (
             <Route path="/system-monitoring" element={<ProtectedRoute><Layout><SystemMonitoring /></Layout></ProtectedRoute>} />
             <Route path="/erp-integration" element={<ProtectedRoute><Layout><ERPIntegration /></Layout></ProtectedRoute>} />
             <Route path="/ai-vehicle-tracking" element={<ProtectedRoute><Layout><AIVehicleTracking /></Layout></ProtectedRoute>} />
+            <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
+            <Route path="/install" element={<InstallApp />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

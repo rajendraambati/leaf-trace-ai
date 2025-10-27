@@ -365,6 +365,125 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_confirmations: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string | null
+          driver_id: string
+          gps_latitude: number | null
+          gps_longitude: number | null
+          id: string
+          notes: string | null
+          photo_url: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
+          shipment_id: string
+          signature_url: string | null
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string | null
+          driver_id: string
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          shipment_id: string
+          signature_url?: string | null
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string | null
+          driver_id?: string
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          shipment_id?: string
+          signature_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_confirmations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          driver_id: string
+          id: string
+          metadata: Json | null
+          role: string
+          shipment_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          metadata?: Json | null
+          role: string
+          shipment_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          shipment_id?: string | null
+        }
+        Relationships: []
+      }
+      driver_sessions: {
+        Row: {
+          created_at: string | null
+          current_latitude: number | null
+          current_longitude: number | null
+          driver_id: string
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
+          driver_id: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
+          driver_id?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: []
+      }
       driver_wellbeing_logs: {
         Row: {
           ai_recommendations: string[] | null
@@ -878,6 +997,39 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           sample_size?: number | null
+        }
+        Relationships: []
+      }
+      offline_sync_queue: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          operation: string
+          synced: boolean | null
+          synced_at: string | null
+          table_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data: Json
+          id?: string
+          operation: string
+          synced?: boolean | null
+          synced_at?: string | null
+          table_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          operation?: string
+          synced?: boolean | null
+          synced_at?: string | null
+          table_name?: string
+          user_id?: string
         }
         Relationships: []
       }
