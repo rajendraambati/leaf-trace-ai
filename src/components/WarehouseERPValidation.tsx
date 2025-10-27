@@ -53,6 +53,7 @@ interface ProcurementBatch {
 
 interface DispatchSchedule {
   id: string;
+  batch_id: string | null;
   scheduled_dispatch_date: string;
   dispatch_status: string;
   vehicle_id: string | null;
@@ -196,12 +197,71 @@ export function WarehouseERPValidation() {
         updates.inventory_check_notes = inventoryNotes;
         updates.quantity_confirmed = quantityConfirmed;
         updates.confirmed_quantity_kg = parseFloat(confirmedQuantity) || validatingOrder.quantity_kg;
+
+        // Generate batch ID
+        const batchId = `BTH-${Date.now()}-${validatingOrder.po_number.substring(0, 4)}`;
+        
+        // Create procurement batch
+        const { error: batchError } = await supabase
+          .from('procurement_batches')
+          .insert({
+            id: batchId,
+            farmer_id: 'ERP-AUTO',
+            farmer_name: `ERP Order ${validatingOrder.po_number}`,
+            quantity_kg: updates.confirmed_quantity_kg,
+            grade: validatingOrder.product_type,
+            price_per_kg: 0,
+            total_price: 0,
+            status: 'approved',
+            procurement_date: new Date().toISOString(),
+            created_by: user.id,
+          });
+
+        if (batchError) throw batchError;
+
+        // Create warehouse dispatch schedule
+        const scheduledDate = new Date();
+        scheduledDate.setHours(scheduledDate.getHours() + 2);
+
+        const { error: dispatchError } = await supabase
+          .from('warehouse_dispatch_schedule')
+          .insert({
+            erp_order_id: validatingOrder.id,
+            warehouse_id: selectedWarehouse,
+            batch_id: batchId,
+            scheduled_dispatch_date: scheduledDate.toISOString(),
+            dispatch_status: 'scheduled',
+            created_by: user.id,
+          });
+
+        if (dispatchError) throw dispatchError;
+
+        // Send callback to ERP system
+        await supabase.functions.invoke('erp-callback', {
+          body: {
+            po_number: validatingOrder.po_number,
+            status: 'accepted',
+            batch_id: batchId,
+            warehouse_id: selectedWarehouse,
+            confirmed_quantity_kg: updates.confirmed_quantity_kg,
+          },
+        });
       } else {
         if (!rejectionReason) {
           toast.error('Please provide a rejection reason');
           return;
         }
         updates.rejection_reason = rejectionReason;
+
+        // Send rejection callback to ERP system
+        await supabase.functions.invoke('erp-callback', {
+          body: {
+            po_number: validatingOrder.po_number,
+            status: 'rejected',
+            rejection_reason: rejectionReason,
+            warehouse_id: validatingOrder.warehouse_id,
+          },
+        });
       }
 
       const { error } = await supabase
@@ -211,7 +271,7 @@ export function WarehouseERPValidation() {
 
       if (error) throw error;
 
-      toast.success(`Order ${accepted ? 'accepted' : 'rejected'} successfully`);
+      toast.success(`Order ${accepted ? 'accepted' : 'rejected'} successfully${accepted ? ', batch created, and dispatch scheduled' : ' and ERP notified'}`);
       setValidatingOrder(null);
       resetValidationForm();
       fetchOrders();
@@ -284,7 +344,22 @@ export function WarehouseERPValidation() {
 
       if (error) throw error;
 
-      toast.success('Dispatch started - Shipment created automatically');
+      // Get order details for callback
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        // Send dispatch callback to ERP system
+        await supabase.functions.invoke('erp-callback', {
+          body: {
+            po_number: order.po_number,
+            status: 'dispatched',
+            batch_id: schedule.batch_id,
+            warehouse_id: order.warehouse_id,
+            dispatch_date: new Date().toISOString(),
+          },
+        });
+      }
+
+      toast.success('Dispatch started - Shipment created and ERP notified');
       fetchData();
     } catch (error) {
       console.error('Error starting dispatch:', error);
