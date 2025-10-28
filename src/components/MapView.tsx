@@ -54,41 +54,43 @@ export function MapView({ locations }: MapViewProps) {
         </div>
         <div className="flex-1">
           <AnyMapContainer center={center as any} zoom={13} className="h-full w-full">
-            <AnyTileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <FitToMarkers points={locations.map((l) => ({ lat: l.lat, lng: l.lng }))} />
-            {hasPoints && polyline.length > 1 && (
-              <AnyPolyline positions={polyline as any} pathOptions={{ color: "hsl(var(--primary))", weight: 4, opacity: 0.6 }} />
-            )}
-            {locations.map((loc, idx) => (
-              <AnyCircleMarker
-                key={idx}
-                center={[loc.lat, loc.lng] as any}
-                radius={8}
-                pathOptions={{
-                  color: loc.status === "warning" ? "hsl(var(--warning))" : loc.status === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))",
-                  fillColor: loc.status === "warning" ? "hsl(var(--warning))" : loc.status === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))",
-                  fillOpacity: 0.85,
-                  weight: 2,
-                }}
-              >
-                <Popup>
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{loc.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {loc.lat.toFixed(6)}, {loc.lng.toFixed(6)}
-                    </p>
-                    {loc.status && (
-                      <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded-full bg-success/10 text-success">
-                        {loc.status}
-                      </span>
-                    )}
-                  </div>
-                </Popup>
-              </AnyCircleMarker>
-            ))}
+            <>
+              <AnyTileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <FitToMarkers points={locations.map((l) => ({ lat: l.lat, lng: l.lng }))} />
+              {hasPoints && polyline.length > 1 && (
+                <AnyPolyline positions={polyline as any} pathOptions={{ color: "hsl(var(--primary))", weight: 4, opacity: 0.6 }} />
+              )}
+              {locations.map((loc, idx) => (
+                <AnyCircleMarker
+                  key={idx}
+                  center={[loc.lat, loc.lng] as any}
+                  radius={8}
+                  pathOptions={{
+                    color: loc.status === "warning" ? "hsl(var(--warning))" : loc.status === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))",
+                    fillColor: loc.status === "warning" ? "hsl(var(--warning))" : loc.status === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))",
+                    fillOpacity: 0.85,
+                    weight: 2,
+                  }}
+                >
+                  <Popup>
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm">{loc.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {loc.lat.toFixed(6)}, {loc.lng.toFixed(6)}
+                      </p>
+                      {loc.status && (
+                        <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded-full bg-success/10 text-success">
+                          {loc.status}
+                        </span>
+                      )}
+                    </div>
+                  </Popup>
+                </AnyCircleMarker>
+              ))}
+            </>
           </AnyMapContainer>
         </div>
       </div>
