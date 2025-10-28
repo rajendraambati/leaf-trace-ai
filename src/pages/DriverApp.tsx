@@ -9,9 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { MapView, Location } from '@/components/MapView';
+import { TripStartFlow } from '@/components/TripStartFlow';
 import { 
   MapPin, Navigation, CheckCircle, MessageSquare, 
-  Camera as CameraIcon, User, LogOut, Menu 
+  Camera as CameraIcon, User, LogOut, Menu, Truck 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -41,6 +42,7 @@ export default function DriverApp() {
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showTripStart, setShowTripStart] = useState(false);
   // Realtime phone-based tracking
   const [phoneNumber, setPhoneNumber] = useState('');
   const channelRef = useRef<any>(null);
@@ -283,6 +285,12 @@ export default function DriverApp() {
     fetchActiveShipments();
   };
 
+  const handleTripStarted = (shipmentId: string) => {
+    setShowTripStart(false);
+    fetchActiveShipments();
+    toast.success(`Trip started! Shipment ${shipmentId} is now active.`);
+  };
+
   const mapLocations: Location[] = [
     ...(currentLocation ? [{
       lat: currentLocation.lat,
@@ -398,6 +406,27 @@ export default function DriverApp() {
     );
   }
 
+  if (showTripStart) {
+    return (
+      <div className="min-h-screen p-4">
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => setShowTripStart(false)}
+            className="mb-4"
+          >
+            ← Back
+          </Button>
+        </div>
+        <TripStartFlow
+          currentLocation={currentLocation}
+          vehicleId={session?.vehicle_id || null}
+          onTripStarted={handleTripStarted}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -465,8 +494,13 @@ export default function DriverApp() {
       )}
 
       {!selectedShipment && shipments.length === 0 && (
-        <Card className="m-4 p-8 text-center">
+        <Card className="m-4 p-8 text-center space-y-4">
+          <Truck className="h-12 w-12 mx-auto text-muted-foreground" />
           <p className="text-muted-foreground">No active deliveries</p>
+          <Button onClick={() => setShowTripStart(true)} className="mt-4">
+            <MapPin className="mr-2 h-4 w-4" />
+            Start New Trip
+          </Button>
         </Card>
       )}
     </div>
