@@ -8,7 +8,6 @@ const AnyTileLayer = TileLayer as unknown as React.ComponentType<any>;
 const AnyCircleMarker = CircleMarker as unknown as React.ComponentType<any>;
 const AnyPolyline = Polyline as unknown as React.ComponentType<any>;
 
-
 export interface Location {
   lat: number;
   lng: number;
@@ -35,10 +34,11 @@ function FitToMarkers({ points }: { points: { lat: number; lng: number }[] }) {
 }
 
 export function MapView({ locations }: MapViewProps) {
-  const hasPoints = locations && locations.length > 0;
-  const center = hasPoints ? [locations[0].lat, locations[0].lng] : [20, 0];
+  const points = Array.isArray(locations) ? locations : [];
+  const hasPoints = points.length > 0;
+  const center = hasPoints ? [points[0].lat, points[0].lng] : [20, 0];
 
-  const polyline = useMemo(() => locations.map((l) => [l.lat, l.lng]) as [number, number][], [locations]);
+  const polyline = useMemo(() => points.map((l) => [l.lat, l.lng]) as [number, number][], [points]);
 
   return (
     <div className="h-[400px] w-full rounded-lg overflow-hidden border border-border bg-card">
@@ -49,7 +49,7 @@ export function MapView({ locations }: MapViewProps) {
             Location Tracking
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {locations.length} location(s) being tracked
+            {points.length} location(s) being tracked
           </p>
         </div>
         <div className="flex-1">
@@ -59,11 +59,11 @@ export function MapView({ locations }: MapViewProps) {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <FitToMarkers points={locations.map((l) => ({ lat: l.lat, lng: l.lng }))} />
+              <FitToMarkers points={points.map((l) => ({ lat: l.lat, lng: l.lng }))} />
               {hasPoints && polyline.length > 1 && (
                 <AnyPolyline positions={polyline as any} pathOptions={{ color: "hsl(var(--primary))", weight: 4, opacity: 0.6 }} />
               )}
-              {locations.map((loc, idx) => (
+              {points.map((loc, idx) => (
                 <AnyCircleMarker
                   key={idx}
                   center={[loc.lat, loc.lng] as any}
