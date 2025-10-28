@@ -1,12 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MapPin } from "lucide-react";
-import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, useMap } from "react-leaflet";
+import L from "leaflet";
 import type React from "react";
 
-const AnyMapContainer = MapContainer as unknown as React.ComponentType<any>;
-const AnyTileLayer = TileLayer as unknown as React.ComponentType<any>;
-const AnyCircleMarker = CircleMarker as unknown as React.ComponentType<any>;
-const AnyPolyline = Polyline as unknown as React.ComponentType<any>;
 
 export interface Location {
   lat: number;
@@ -19,19 +15,6 @@ interface MapViewProps {
   locations: Location[];
 }
 
-function FitToMarkers({ points }: { points: { lat: number; lng: number }[] }) {
-  const map = useMap();
-  useEffect(() => {
-    if (!points.length) return;
-    if (points.length === 1) {
-      map.setView([points[0].lat, points[0].lng], 15, { animate: true });
-      return;
-    }
-    const bounds = points.map((p) => [p.lat, p.lng]) as [number, number][];
-    map.fitBounds(bounds as any, { padding: [40, 40] } as any);
-  }, [points, map]);
-  return null;
-}
 
 export function MapView({ locations }: MapViewProps) {
   const points = Array.isArray(locations) ? locations : [];
@@ -39,6 +22,65 @@ export function MapView({ locations }: MapViewProps) {
   const center = hasPoints ? [points[0].lat, points[0].lng] : [20, 0];
 
   const polyline = useMemo(() => points.map((l) => [l.lat, l.lng]) as [number, number][], [points]);
+  const statusColor = (s?: string) =>
+    s === "warning" ? "hsl(var(--warning))" : s === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))";
+
+  const mapDivRef = useRef<HTMLDivElement | null>(null);
+  const leafletMapRef = useRef<L.Map | null>(null);
+  const layerRef = useRef<L.LayerGroup | null>(null);
+
+  // Initialize Leaflet map once
+  useEffect(() => {
+    if (leafletMapRef.current || !mapDivRef.current) return;
+    const m = L.map(mapDivRef.current).setView(center as any, 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(m);
+    layerRef.current = L.layerGroup().addTo(m);
+    leafletMapRef.current = m;
+
+    return () => {
+      m.remove();
+      leafletMapRef.current = null;
+      layerRef.current = null;
+    };
+  }, []);
+
+  // Draw markers/polyline and fit bounds when points change
+  useEffect(() => {
+    const m = leafletMapRef.current;
+    const group = layerRef.current;
+    if (!m || !group) return;
+
+    group.clearLayers();
+    const latlngs: L.LatLngExpression[] = [];
+
+    points.forEach((loc) => {
+      const marker = L.circleMarker([loc.lat, loc.lng], {
+        radius: 8,
+        color: statusColor(loc.status),
+        fillColor: statusColor(loc.status),
+        fillOpacity: 0.85,
+        weight: 2,
+      }).bindPopup(`
+        <div>
+          <p><strong>${loc.name}</strong></p>
+          <p class="text-xs">${loc.lat.toFixed(6)}, ${loc.lng.toFixed(6)}</p>
+          ${loc.status ? `<span>${loc.status}</span>` : ""}
+        </div>
+      `);
+      marker.addTo(group);
+      latlngs.push([loc.lat, loc.lng]);
+    });
+
+    if (latlngs.length === 1) {
+      m.setView(latlngs[0] as any, 15, { animate: true });
+    } else if (latlngs.length > 1) {
+      L.polyline(latlngs as any, { color: "hsl(var(--primary))", weight: 4, opacity: 0.6 }).addTo(group);
+      const bounds = L.latLngBounds(latlngs as any);
+      m.fitBounds(bounds, { padding: [40, 40] } as any);
+    }
+  }, [points]);
 
   return (
     <div className="h-[400px] w-full rounded-lg overflow-hidden border border-border bg-card">
@@ -53,45 +95,7 @@ export function MapView({ locations }: MapViewProps) {
           </p>
         </div>
         <div className="flex-1">
-          <AnyMapContainer center={center as any} zoom={13} className="h-full w-full">
-            <>
-              <AnyTileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <FitToMarkers points={points.map((l) => ({ lat: l.lat, lng: l.lng }))} />
-              {hasPoints && polyline.length > 1 && (
-                <AnyPolyline positions={polyline as any} pathOptions={{ color: "hsl(var(--primary))", weight: 4, opacity: 0.6 }} />
-              )}
-              {points.map((loc, idx) => (
-                <AnyCircleMarker
-                  key={idx}
-                  center={[loc.lat, loc.lng] as any}
-                  radius={8}
-                  pathOptions={{
-                    color: loc.status === "warning" ? "hsl(var(--warning))" : loc.status === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))",
-                    fillColor: loc.status === "warning" ? "hsl(var(--warning))" : loc.status === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))",
-                    fillOpacity: 0.85,
-                    weight: 2,
-                  }}
-                >
-                  <Popup>
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm">{loc.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {loc.lat.toFixed(6)}, {loc.lng.toFixed(6)}
-                      </p>
-                      {loc.status && (
-                        <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded-full bg-success/10 text-success">
-                          {loc.status}
-                        </span>
-                      )}
-                    </div>
-                  </Popup>
-                </AnyCircleMarker>
-              ))}
-            </>
-          </AnyMapContainer>
+          <div ref={mapDivRef} className="h-full w-full" aria-label="Leaflet map" />
         </div>
       </div>
     </div>
