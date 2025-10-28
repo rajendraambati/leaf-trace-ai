@@ -38,6 +38,7 @@ import ERPIntegration from "./pages/ERPIntegration";
 import AIVehicleTracking from "./pages/AIVehicleTracking";
 import DriverApp from "./pages/DriverApp";
 import InstallApp from "./pages/InstallApp";
+import TrackByPhone from "./pages/TrackByPhone";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => (
             <Route path="/ai-vehicle-tracking" element={<ProtectedRoute><Layout><AIVehicleTracking /></Layout></ProtectedRoute>} />
             <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
             <Route path="/install" element={<InstallApp />} />
+            <Route path="/track" element={<TrackByPhone />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

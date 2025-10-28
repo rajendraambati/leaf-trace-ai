@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Geolocation } from '@capacitor/geolocation';
@@ -41,6 +41,10 @@ export default function DriverApp() {
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  // Realtime phone-based tracking
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const channelRef = useRef<any>(null);
+  const watchIdRef = useRef<string | null>(null);
   
   // Delivery form state
   const [recipientName, setRecipientName] = useState('');
@@ -86,9 +90,9 @@ export default function DriverApp() {
         lng: position.coords.longitude
       });
 
-      // Update location every 30 seconds
-      setInterval(async () => {
-        const pos = await Geolocation.getCurrentPosition();
+      // Start continuous location watch for smooth movement
+      const id = await Geolocation.watchPosition({ enableHighAccuracy: true }, async (pos) => {
+        if (!pos || !pos.coords) return;
         setCurrentLocation({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude
@@ -106,11 +110,41 @@ export default function DriverApp() {
             .eq('driver_id', user.id)
             .is('ended_at', null);
         }
-      }, 30000);
+
+        // Broadcast via realtime channel keyed by phone number
+        if (channelRef.current) {
+          channelRef.current.track({
+            phone: phoneNumber,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            updated_at: new Date().toISOString(),
+          });
+        }
+      });
+      watchIdRef.current = id as any;
     } catch (error) {
       console.error('Error tracking location:', error);
       toast.error('Unable to access GPS. Please enable location services.');
     }
+  };
+
+  const setupRealtime = async (phone: string) => {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    const channel = supabase.channel(`driver:${phone}`);
+    channel.subscribe(async (status: string) => {
+      if (status === 'SUBSCRIBED' && currentLocation) {
+        await channel.track({
+          phone,
+          lat: currentLocation.lat,
+          lng: currentLocation.lng,
+          updated_at: new Date().toISOString(),
+        });
+      }
+    });
+    channelRef.current = channel;
   };
 
   const fetchActiveShipments = async () => {
@@ -141,9 +175,14 @@ export default function DriverApp() {
   };
 
   const startSession = async () => {
+    if (!phoneNumber) {
+      toast.error('Please enter your phone number to start tracking');
+      return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
+ 
     const { data, error } = await supabase
       .from('driver_sessions')
       .insert({
@@ -154,11 +193,12 @@ export default function DriverApp() {
       })
       .select()
       .single();
-
+ 
     if (error) {
       toast.error('Failed to start session');
     } else {
       setSession(data);
+      await setupRealtime(phoneNumber);
       toast.success('Session started');
     }
   };
@@ -171,6 +211,16 @@ export default function DriverApp() {
       .from('driver_sessions')
       .update({ status: 'offline', ended_at: new Date().toISOString() })
       .eq('id', session.id);
+
+    // Cleanup tracking
+    if (watchIdRef.current) {
+      await Geolocation.clearWatch({ id: watchIdRef.current });
+      watchIdRef.current = null;
+    }
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
     setSession(null);
     toast.success('Session ended');
@@ -256,12 +306,19 @@ export default function DriverApp() {
             <Navigation className="h-20 w-20 text-primary" />
           </div>
           <h1 className="text-3xl font-bold">Driver App</h1>
-          <p className="text-muted-foreground">
-            Start your session to begin deliveries
-          </p>
-          <Button onClick={startSession} size="lg" className="w-full">
+          <p className="text-muted-foreground">Start your session to begin deliveries</p>
+          <div className="space-y-2 text-left">
+            <label className="text-sm font-medium">Phone Number</label>
+            <Input
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="Enter your phone number"
+              type="tel"
+            />
+          </div>
+          <Button onClick={startSession} size="lg" className="w-full" disabled={!phoneNumber}>
             <MapPin className="mr-2 h-5 w-5" />
-            Start Session
+            Start Session & Enable GPS
           </Button>
         </Card>
       </div>

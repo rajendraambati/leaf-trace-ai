@@ -1,4 +1,13 @@
+import { useEffect, useMemo } from "react";
 import { MapPin } from "lucide-react";
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, useMap } from "react-leaflet";
+import type React from "react";
+
+const AnyMapContainer = MapContainer as unknown as React.ComponentType<any>;
+const AnyTileLayer = TileLayer as unknown as React.ComponentType<any>;
+const AnyCircleMarker = CircleMarker as unknown as React.ComponentType<any>;
+const AnyPolyline = Polyline as unknown as React.ComponentType<any>;
+
 
 export interface Location {
   lat: number;
@@ -11,7 +20,26 @@ interface MapViewProps {
   locations: Location[];
 }
 
+function FitToMarkers({ points }: { points: { lat: number; lng: number }[] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!points.length) return;
+    if (points.length === 1) {
+      map.setView([points[0].lat, points[0].lng], 15, { animate: true });
+      return;
+    }
+    const bounds = points.map((p) => [p.lat, p.lng]) as [number, number][];
+    map.fitBounds(bounds as any, { padding: [40, 40] } as any);
+  }, [points, map]);
+  return null;
+}
+
 export function MapView({ locations }: MapViewProps) {
+  const hasPoints = locations && locations.length > 0;
+  const center = hasPoints ? [locations[0].lat, locations[0].lng] : [20, 0];
+
+  const polyline = useMemo(() => locations.map((l) => [l.lat, l.lng]) as [number, number][], [locations]);
+
   return (
     <div className="h-[400px] w-full rounded-lg overflow-hidden border border-border bg-card">
       <div className="h-full flex flex-col">
@@ -24,29 +52,47 @@ export function MapView({ locations }: MapViewProps) {
             {locations.length} location(s) being tracked
           </p>
         </div>
-        <div className="flex-1 overflow-auto p-4">
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="flex-1">
+          <AnyMapContainer center={center as any} zoom={13} className="h-full w-full">
+            <AnyTileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <FitToMarkers points={locations.map((l) => ({ lat: l.lat, lng: l.lng }))} />
+            {hasPoints && polyline.length > 1 && (
+              <AnyPolyline positions={polyline as any} pathOptions={{ color: "hsl(var(--primary))", weight: 4, opacity: 0.6 }} />
+            )}
             {locations.map((loc, idx) => (
-              <div key={idx} className="p-3 rounded-lg border border-border bg-background">
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{loc.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+              <AnyCircleMarker
+                key={idx}
+                center={[loc.lat, loc.lng] as any}
+                radius={8}
+                pathOptions={{
+                  color: loc.status === "warning" ? "hsl(var(--warning))" : loc.status === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))",
+                  fillColor: loc.status === "warning" ? "hsl(var(--warning))" : loc.status === "danger" ? "hsl(var(--destructive))" : "hsl(var(--success))",
+                  fillOpacity: 0.85,
+                  weight: 2,
+                }}
+              >
+                <Popup>
+                  <div className="space-y-1">
+                    <p className="font-medium text-sm">{loc.name}</p>
+                    <p className="text-xs text-muted-foreground">
                       {loc.lat.toFixed(6)}, {loc.lng.toFixed(6)}
                     </p>
                     {loc.status && (
-                      <span className="inline-block mt-2 px-2 py-1 text-xs rounded-full bg-success/10 text-success">
+                      <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded-full bg-success/10 text-success">
                         {loc.status}
                       </span>
                     )}
                   </div>
-                </div>
-              </div>
+                </Popup>
+              </AnyCircleMarker>
             ))}
-          </div>
+          </AnyMapContainer>
         </div>
       </div>
     </div>
   );
 }
+
