@@ -77,3 +77,6 @@ verify_jwt = true
 
 [functions.dispatcher-assistant-token]
 verify_jwt = true
+
+[functions.dispatcher-assistant-text]
+verify_jwt = true

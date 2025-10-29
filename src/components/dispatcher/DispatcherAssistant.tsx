@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Mic, MicOff, Send, X, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { DispatcherVoiceAssistant } from '@/utils/DispatcherVoiceAssistant';
 
 interface Message {
@@ -158,27 +159,39 @@ export function DispatcherAssistant({ onClose }: DispatcherAssistantProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = inputText;
     setInputText('');
+    setIsLoading(true);
 
     try {
       if (isConnected && assistantRef.current) {
-        setIsLoading(true);
+        // Use voice connection if active
         currentResponseRef.current = '';
-        await assistantRef.current.sendTextMessage(inputText);
+        await assistantRef.current.sendTextMessage(messageText);
       } else {
-        // Fallback: show helpful message when not connected
-        setTimeout(() => {
-          setMessages(prev => [...prev, {
-            id: `assistant-${Date.now()}`,
-            role: 'assistant',
-            content: "I'm not fully connected yet. Please start the voice session to enable real-time responses, or I can show you sample commands!",
-            timestamp: new Date()
-          }]);
-        }, 500);
+        // Use text-only API when voice is not connected
+        const { data, error } = await supabase.functions.invoke('dispatcher-assistant-text', {
+          body: { message: messageText }
+        });
+
+        if (error) throw error;
+
+        setMessages(prev => [...prev, {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: data.message || "I'm having trouble right now. Please try again!",
+          timestamp: new Date()
+        }]);
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      setMessages(prev => [...prev, {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content: "Sorry, I encountered an error. Please try again or start the voice session for better results.",
+        timestamp: new Date()
+      }]);
       setIsLoading(false);
     }
   };
