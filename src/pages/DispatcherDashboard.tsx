@@ -1,8 +1,5 @@
-import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MessageSquare } from 'lucide-react';
 import { MapView, Location } from '@/components/MapView';
 import { useDispatcherData } from '@/hooks/useDispatcherData';
 import { useDispatcherFilters } from '@/hooks/useDispatcherFilters';
@@ -13,10 +10,9 @@ import { TripCard } from '@/components/dispatcher/TripCard';
 import { VehicleCard } from '@/components/dispatcher/VehicleCard';
 import { DriverWellbeingCard } from '@/components/dispatcher/DriverWellbeingCard';
 import { LiveAlertsPanel } from '@/components/dispatcher/LiveAlertsPanel';
-import { UnifiedAssistant } from '@/components/UnifiedAssistant';
+import { FloatingAssistant } from '@/components/FloatingAssistant';
 
 export default function DispatcherDashboard() {
-  const [showAssistant, setShowAssistant] = useState(false);
   
   const {
     trips,
@@ -110,27 +106,7 @@ export default function DispatcherDashboard() {
       </Tabs>
       </div>
 
-      {/* AI Assistant Toggle Button */}
-      {!showAssistant && (
-        <Button
-          onClick={() => setShowAssistant(true)}
-          className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-40"
-          size="icon"
-        >
-          <MessageSquare className="h-6 w-6" />
-        </Button>
-      )}
-
-      {/* AI Assistant */}
-      {showAssistant && (
-        <div className="fixed bottom-20 right-8 z-50 shadow-2xl">
-          <UnifiedAssistant 
-            userRole="dispatcher" 
-            onClose={() => setShowAssistant(false)} 
-          />
-        </div>
-      )}
-
+      <FloatingAssistant userRole="dispatcher" />
       <LiveAlertsPanel />
     </>
   );

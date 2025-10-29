@@ -12,7 +12,7 @@ import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { MapView, Location } from "@/components/MapView";
 import { ShipmentCreationForm } from "@/components/ShipmentCreationForm";
 import { LiveShipmentTracker } from "@/components/LiveShipmentTracker";
-import { UnifiedAssistant } from "@/components/UnifiedAssistant";
+import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuditLog } from "@/hooks/useAuditLog";
@@ -23,7 +23,6 @@ export default function Logistics() {
   const [loading, setLoading] = useState(true);
   const [selectedShipment, setSelectedShipment] = useState<any>(null);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [showAssistant, setShowAssistant] = useState(false);
   const { logAction } = useAuditLog();
 
   useEffect(() => {
@@ -205,30 +204,17 @@ export default function Logistics() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">Logistics Tracking</h1>
-          <p className="text-muted-foreground mt-2">
-            Real-time shipment tracking, GPS monitoring, and temperature control
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => setShowAssistant(!showAssistant)}
-            variant={showAssistant ? "default" : "outline"}
-            className="gap-2"
-          >
-            <MessageSquare className="h-4 w-4" />
-            AI Assistant
-          </Button>
+    <>
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Logistics Tracking</h1>
+            <p className="text-muted-foreground mt-2">
+              Real-time shipment tracking, GPS monitoring, and temperature control
+            </p>
+          </div>
           <ShipmentCreationForm />
         </div>
-      </div>
-
-      {showAssistant && (
-        <UnifiedAssistant userRole="dispatcher" onClose={() => setShowAssistant(false)} />
-      )}
 
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard title="Total Shipments" value={totalShipments.toString()} icon={Truck} />
@@ -446,6 +432,9 @@ export default function Logistics() {
           <AnalyticsDashboard moduleType="logistics" />
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+
+      <FloatingAssistant userRole="dispatcher" />
+    </>
   );
 }

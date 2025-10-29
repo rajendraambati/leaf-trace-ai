@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Send, X, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Send, X, Loader2, Trash2, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DispatcherVoiceAssistant } from '@/utils/DispatcherVoiceAssistant';
@@ -202,6 +202,35 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
     }, 100);
   };
 
+  const clearConversation = () => {
+    setMessages([]);
+    toast({
+      title: "Conversation cleared",
+      description: "All messages have been removed",
+    });
+  };
+
+  const exportConversation = () => {
+    const conversationText = messages.map(msg => 
+      `[${msg.role.toUpperCase()}] ${msg.timestamp.toLocaleString()}\n${msg.content}\n`
+    ).join('\n---\n\n');
+
+    const blob = new Blob([conversationText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `conversation-${new Date().toISOString()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Conversation exported",
+      description: "Your conversation has been downloaded",
+    });
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -223,6 +252,26 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
               <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
               Speaking
             </span>
+          )}
+          {messages.length > 0 && (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={exportConversation}
+                title="Export conversation"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={clearConversation}
+                title="Clear conversation"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
           )}
           {onClose && (
             <Button variant="ghost" size="icon" onClick={onClose}>
@@ -262,7 +311,7 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                 >
                   <div
                     className={`max-w-[80%] rounded-lg px-4 py-2 ${
@@ -279,9 +328,10 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
                 </div>
               ))}
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-lg px-4 py-2">
+                <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="bg-muted rounded-lg px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Thinking...</span>
                   </div>
                 </div>
               )}

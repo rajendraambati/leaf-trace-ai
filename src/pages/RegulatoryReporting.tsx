@@ -11,6 +11,7 @@ import ReportAnalytics from '@/components/regulatory/ReportAnalytics';
 import BulkReportGenerator from '@/components/regulatory/BulkReportGenerator';
 import ReportExporter from '@/components/regulatory/ReportExporter';
 import { UnifiedAssistant } from '@/components/UnifiedAssistant';
+import { FloatingAssistant } from '@/components/FloatingAssistant';
 
 export default function RegulatoryReporting() {
   const [activeTab, setActiveTab] = useState('reports');
@@ -114,9 +115,11 @@ export default function RegulatoryReporting() {
 
           <TabsContent value="analytics" className="space-y-6">
             <ReportAnalytics reports={reports || []} />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </Layout>
+        </TabsContent>
+      </Tabs>
+    </div>
+
+    <FloatingAssistant userRole="compliance_officer" />
+  </Layout>
   );
 }

@@ -6,7 +6,7 @@ import { BulkDocumentGenerator } from '@/components/BulkDocumentGenerator';
 import { DocumentAnalytics } from '@/components/DocumentAnalytics';
 import { AutoGenerationSettings } from '@/components/AutoGenerationSettings';
 import { DocumentScheduler } from '@/components/DocumentScheduler';
-import { UnifiedAssistant } from '@/components/UnifiedAssistant';
+import { FloatingAssistant } from '@/components/FloatingAssistant';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,13 +25,11 @@ import {
   Calendar,
   Shield,
   QrCode,
-  Settings,
-  MessageSquare
+  Settings
 } from 'lucide-react';
 
 export default function DocumentManagement() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAssistant, setShowAssistant] = useState(false);
   const navigate = useNavigate();
 
   // Fetch recent documents
@@ -112,14 +110,6 @@ export default function DocumentManagement() {
           </div>
           <div className="flex gap-2">
             <Button 
-              onClick={() => setShowAssistant(!showAssistant)}
-              variant={showAssistant ? "default" : "outline"}
-              className="gap-2"
-            >
-              <MessageSquare className="h-4 w-4" />
-              AI Assistant
-            </Button>
-            <Button 
               onClick={() => navigate('/document-templates')}
               variant="outline"
               className="gap-2"
@@ -145,11 +135,6 @@ export default function DocumentManagement() {
             </Button>
           </div>
         </div>
-
-        {/* AI Assistant */}
-        {showAssistant && (
-          <UnifiedAssistant userRole="document_manager" onClose={() => setShowAssistant(false)} />
-        )}
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
@@ -303,6 +288,8 @@ export default function DocumentManagement() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <FloatingAssistant userRole="document_manager" />
     </Layout>
   );
 }
