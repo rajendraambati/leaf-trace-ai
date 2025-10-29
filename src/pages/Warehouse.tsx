@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Package, Warehouse as WarehouseIcon, AlertTriangle, TrendingUp, Thermometer, Droplets } from "lucide-react";
+import { Package, Warehouse as WarehouseIcon, AlertTriangle, TrendingUp, Thermometer, Droplets, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -8,17 +8,20 @@ import StatCard from "@/components/StatCard";
 import IoTSensorMonitor from "@/components/IoTSensorMonitor";
 import WarehouseAnalytics from "@/components/WarehouseAnalytics";
 import WarehouseInventoryTracker from "@/components/WarehouseInventoryTracker";
+import { UnifiedAssistant } from "@/components/UnifiedAssistant";
 import { supabase } from "@/integrations/supabase/client";
 import { WarehouseCreationForm } from "@/components/WarehouseCreationForm";
 import { toast } from "sonner";
 import { WarehouseDeliveryShipmentForm } from "@/components/WarehouseDeliveryShipmentForm";
 import WarehouseDeliveryTracker from "@/components/WarehouseDeliveryTracker";
+import { Button } from "@/components/ui/button";
 
 export default function Warehouse() {
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [shipments, setShipments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAssistant, setShowAssistant] = useState(false);
 
   useEffect(() => {
     fetchWarehouses();
@@ -99,8 +102,22 @@ export default function Warehouse() {
             Monitor storage facilities, inventory levels, and IoT sensors
           </p>
         </div>
-        <WarehouseCreationForm />
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowAssistant(!showAssistant)}
+            variant={showAssistant ? "default" : "outline"}
+            className="gap-2"
+          >
+            <MessageSquare className="h-4 w-4" />
+            AI Assistant
+          </Button>
+          <WarehouseCreationForm />
+        </div>
       </div>
+
+      {showAssistant && (
+        <UnifiedAssistant userRole="warehouse_manager" onClose={() => setShowAssistant(false)} />
+      )}
 
       <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-6">
         <StatCard

@@ -15,7 +15,7 @@ interface Message {
 }
 
 interface UnifiedAssistantProps {
-  userRole: 'dispatcher' | 'compliance_officer';
+  userRole: 'dispatcher' | 'compliance_officer' | 'document_manager' | 'warehouse_manager';
   onClose?: () => void;
 }
 
@@ -160,7 +160,10 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="text-xl font-semibold">
-          {userRole === 'dispatcher' ? 'Dispatcher' : 'Compliance'} Assistant
+          {userRole === 'dispatcher' ? 'Dispatcher' : 
+           userRole === 'compliance_officer' ? 'Compliance' :
+           userRole === 'document_manager' ? 'Document' :
+           'Warehouse'} Assistant
         </CardTitle>
         <div className="flex items-center gap-2">
           {isVoiceActive && (

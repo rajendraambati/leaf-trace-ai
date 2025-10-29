@@ -138,13 +138,37 @@ async function gatherContext(supabase: any, message: string, userRole: string) {
     context.reports = reports || [];
   }
 
+  // Document queries
+  if (lowerMessage.includes('document') || lowerMessage.includes('template') || lowerMessage.includes('generate')) {
+    const { data: documents } = await supabase
+      .from('documents')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    context.documents = documents || [];
+  }
+
+  // Warehouse queries
+  if (lowerMessage.includes('warehouse') || lowerMessage.includes('inventory') || lowerMessage.includes('stock')) {
+    const { data: warehouses } = await supabase
+      .from('warehouses')
+      .select('*')
+      .limit(10);
+    context.warehouses = warehouses || [];
+  }
+
   return context;
 }
 
 function buildSystemPrompt(userRole: string, context: any) {
-  const roleContext = userRole === 'dispatcher' 
-    ? 'You are a helpful assistant for dispatchers managing logistics operations.'
-    : 'You are a helpful assistant for compliance officers managing regulatory requirements.';
+  const roleContextMap: Record<string, string> = {
+    'dispatcher': 'You are a helpful assistant for dispatchers managing logistics operations.',
+    'compliance_officer': 'You are a helpful assistant for compliance officers managing regulatory requirements.',
+    'document_manager': 'You are a helpful assistant for document management and generation.',
+    'warehouse_manager': 'You are a helpful assistant for warehouse and inventory management.'
+  };
+
+  const roleContext = roleContextMap[userRole] || 'You are a helpful assistant.';
 
   let prompt = `${roleContext}
 
@@ -164,6 +188,14 @@ For Compliance Queries:
 For Vehicle Maintenance:
 - "I'm checking maintenance schedules, but I don't see any vehicles requiring service next week. That's good news! Would you like me to show the upcoming maintenance for the next month?"
 - "I don't have current maintenance records for that vehicle. This might mean it's a new vehicle or the data hasn't been updated. Would you like me to help you create a maintenance schedule?"
+
+For Document Queries:
+- "I'm looking for documents matching your request, but I don't see any in the system yet. Would you like guidance on creating a new document or template?"
+- "I don't have information about that specific document. It might have been archived or removed. Can you provide more details like the document type or creation date?"
+
+For Warehouse Queries:
+- "I'm checking inventory for that item, but I don't see current stock levels. This might mean the data needs to be updated. Would you like me to help you update the inventory?"
+- "I don't have records for that warehouse location. Can you verify the warehouse name or ID?"
 
 Always offer helpful alternatives and next steps when you can't find the exact information requested.
 
