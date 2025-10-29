@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { DocumentGenerator } from '@/components/DocumentGenerator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,11 +17,13 @@ import {
   Search,
   Download,
   Eye,
-  Calendar
+  Calendar,
+  Shield
 } from 'lucide-react';
 
 export default function DocumentManagement() {
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   // Fetch recent documents
   const { data: recentDocuments } = useQuery({
@@ -91,11 +94,21 @@ export default function DocumentManagement() {
   return (
     <Layout>
       <div className="container mx-auto p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Document Management</h1>
-          <p className="text-muted-foreground">
-            Generate and manage TPD labels, manifests, invoices, and declarations
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Document Management</h1>
+            <p className="text-muted-foreground">
+              Generate and manage TPD labels, manifests, invoices, and declarations
+            </p>
+          </div>
+          <Button 
+            onClick={() => navigate('/compliance-management')}
+            variant="outline"
+            className="gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Compliance Validation
+          </Button>
         </div>
 
         {/* Stats Cards */}

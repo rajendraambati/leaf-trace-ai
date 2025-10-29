@@ -42,6 +42,8 @@ const navigation = [
   { name: "Warehouse", href: "/warehouse", icon: Warehouse },
   { name: "Processing", href: "/processing", icon: Factory },
   { name: "Compliance", href: "/compliance", icon: FileCheck },
+  { name: "Document Management", href: "/document-management", icon: FileText },
+  { name: "Compliance Management", href: "/compliance-management", icon: ShieldCheck },
   { name: "AI Grading", href: "/ai-grading", icon: Sparkles },
   { name: "IoT Devices", href: "/iot-devices", icon: Radio },
   { name: "Analytics", href: "/analytics", icon: TrendingUp },

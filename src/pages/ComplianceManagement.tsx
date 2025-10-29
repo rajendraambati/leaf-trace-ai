@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,11 +20,13 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  FileType
 } from "lucide-react";
 
 export default function ComplianceManagement() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedEntity, setSelectedEntity] = useState<{id: string, type: string} | null>(null);
   const [reportType, setReportType] = useState<'customs' | 'excise' | 'gst' | 'compliance_summary'>('compliance_summary');
   const [region, setRegion] = useState('North');
@@ -147,11 +150,21 @@ export default function ComplianceManagement() {
   return (
     <Layout>
       <div className="container mx-auto p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Compliance Management</h1>
-          <p className="text-muted-foreground">
-            Auto-validate documents, flag issues, and generate regulatory reports
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Compliance Management</h1>
+            <p className="text-muted-foreground">
+              Auto-validate documents, flag issues, and generate regulatory reports
+            </p>
+          </div>
+          <Button 
+            onClick={() => navigate('/document-management')}
+            variant="outline"
+            className="gap-2"
+          >
+            <FileType className="h-4 w-4" />
+            Document Generation
+          </Button>
         </div>
 
         <Tabs defaultValue="validation" className="space-y-6">
