@@ -762,6 +762,86 @@ export type Database = {
           },
         ]
       }
+      document_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          template_config: Json
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template_config?: Json
+          template_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template_config?: Json
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      document_tracking: {
+        Row: {
+          created_at: string | null
+          document_id: string
+          id: string
+          qr_code: string
+          scan_data: Json | null
+          scan_latitude: number | null
+          scan_location: string | null
+          scan_longitude: number | null
+          scan_timestamp: string | null
+          scanned_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_id: string
+          id?: string
+          qr_code: string
+          scan_data?: Json | null
+          scan_latitude?: number | null
+          scan_location?: string | null
+          scan_longitude?: number | null
+          scan_timestamp?: string | null
+          scanned_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string
+          id?: string
+          qr_code?: string
+          scan_data?: Json | null
+          scan_latitude?: number | null
+          scan_location?: string | null
+          scan_longitude?: number | null
+          scan_timestamp?: string | null
+          scanned_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_tracking_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "generated_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_chat_messages: {
         Row: {
           content: string
@@ -1349,6 +1429,65 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_documents: {
+        Row: {
+          created_at: string | null
+          document_data: Json
+          document_number: string
+          document_type: string
+          entity_id: string
+          entity_type: string
+          generated_by: string | null
+          id: string
+          metadata: Json | null
+          pdf_url: string | null
+          qr_code_data: string | null
+          status: string | null
+          template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_data?: Json
+          document_number: string
+          document_type: string
+          entity_id: string
+          entity_type: string
+          generated_by?: string | null
+          id?: string
+          metadata?: Json | null
+          pdf_url?: string | null
+          qr_code_data?: string | null
+          status?: string | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_data?: Json
+          document_number?: string
+          document_type?: string
+          entity_id?: string
+          entity_type?: string
+          generated_by?: string | null
+          id?: string
+          metadata?: Json | null
+          pdf_url?: string | null
+          qr_code_data?: string | null
+          status?: string | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gps_tracking_logs: {
         Row: {
           accuracy: number | null
@@ -1404,6 +1543,53 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_line_items: {
+        Row: {
+          batch_id: string | null
+          created_at: string | null
+          id: string
+          invoice_id: string
+          item_description: string
+          line_total: number
+          quantity: number
+          tax_amount: number | null
+          tax_rate: number | null
+          unit_price: number
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string | null
+          id?: string
+          invoice_id: string
+          item_description: string
+          line_total: number
+          quantity: number
+          tax_amount?: number | null
+          tax_rate?: number | null
+          unit_price: number
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string | null
+          id?: string
+          invoice_id?: string
+          item_description?: string
+          line_total?: number
+          quantity?: number
+          tax_amount?: number | null
+          tax_rate?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "generated_documents"
             referencedColumns: ["id"]
           },
         ]

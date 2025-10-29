@@ -101,3 +101,6 @@ verify_jwt = true
 
 [functions.driver-wellness-scoring]
 verify_jwt = true
+
+[functions.generate-document]
+verify_jwt = true
