@@ -83,17 +83,25 @@ serve(async (req) => {
 
     // Generate report based on type
     if (report_type === 'customs') {
+      const customsDocs = documents?.filter(d => 
+        ['customs_declaration', 'export_license', 'bill_of_lading', 'certificate_of_origin'].includes(d.document_type)
+      ) || [];
+
       reportData.summary = {
         total_shipments: shipments?.length || 0,
-        total_customs_documents: documents?.filter(d => d.document_type === 'customs').length || 0,
-        active_documents: documents?.filter(d => d.document_type === 'customs' && d.status === 'active').length || 0,
-        expired_documents: documents?.filter(d => {
-          return d.document_type === 'customs' && d.expiry_date && new Date(d.expiry_date) < new Date();
-        }).length || 0
+        total_customs_declarations: customsDocs.filter(d => d.document_type === 'customs_declaration').length,
+        total_export_licenses: customsDocs.filter(d => d.document_type === 'export_license').length,
+        pending_clearances: customsDocs.filter(d => d.status === 'pending').length,
+        cleared_shipments: customsDocs.filter(d => d.status === 'cleared').length,
+        active_documents: customsDocs.filter(d => d.status === 'active').length,
+        expired_documents: customsDocs.filter(d => {
+          return d.expiry_date && new Date(d.expiry_date) < new Date();
+        }).length
       };
       
-      reportData.documents = documents?.filter(d => d.document_type === 'customs').map(d => ({
+      reportData.documents = customsDocs.map(d => ({
         document_number: d.document_number,
+        document_type: d.document_type,
         entity_id: d.entity_id,
         entity_type: d.entity_type,
         issue_date: d.issue_date,
@@ -112,17 +120,29 @@ serve(async (req) => {
     }
 
     if (report_type === 'excise') {
+      const exciseDocs = documents?.filter(d => 
+        ['excise_license', 'central_excise_registration', 'state_excise_permit', 'manufacturing_license'].includes(d.document_type)
+      ) || [];
+
       reportData.summary = {
-        total_excise_documents: documents?.filter(d => d.document_type === 'excise').length || 0,
-        active_documents: documents?.filter(d => d.document_type === 'excise' && d.status === 'active').length || 0,
-        pending_documents: documents?.filter(d => d.document_type === 'excise' && d.status === 'pending').length || 0
+        total_excise_licenses: exciseDocs.filter(d => d.document_type === 'excise_license').length,
+        total_excise_documents: exciseDocs.length,
+        active_licenses: exciseDocs.filter(d => d.status === 'active').length,
+        expired_licenses: exciseDocs.filter(d => d.status === 'expired' || (d.expiry_date && new Date(d.expiry_date) < new Date())).length,
+        pending_documents: exciseDocs.filter(d => d.status === 'pending').length,
+        total_production_units: new Set(exciseDocs.map(d => d.entity_id)).size,
+        compliance_rate: exciseDocs.length > 0 
+          ? ((exciseDocs.filter(d => d.status === 'active').length / exciseDocs.length) * 100).toFixed(2) + '%'
+          : '0%'
       };
 
-      reportData.documents = documents?.filter(d => d.document_type === 'excise').map(d => ({
+      reportData.documents = exciseDocs.map(d => ({
         document_number: d.document_number,
+        document_type: d.document_type,
         entity_id: d.entity_id,
         entity_type: d.entity_type,
         issue_date: d.issue_date,
+        expiry_date: d.expiry_date,
         status: d.status
       }));
     }
@@ -165,12 +185,18 @@ serve(async (req) => {
       };
 
       reportData.by_document_type = {};
-      ['emd', 'bg', 'gst', 'tender', 'customs', 'excise'].forEach(type => {
+      [
+        'emd', 'bg', 'gst', 'tender', 
+        'customs_declaration', 'excise_license', 
+        'transport_permit', 'export_license',
+        'central_excise_registration', 'manufacturing_license'
+      ].forEach(type => {
         const typeDocs = documents?.filter(d => d.document_type === type) || [];
         reportData.by_document_type[type] = {
           total: typeDocs.length,
           active: typeDocs.filter(d => d.status === 'active').length,
-          expired: typeDocs.filter(d => d.expiry_date && new Date(d.expiry_date) < new Date()).length
+          expired: typeDocs.filter(d => d.expiry_date && new Date(d.expiry_date) < new Date()).length,
+          pending: typeDocs.filter(d => d.status === 'pending').length
         };
       });
 

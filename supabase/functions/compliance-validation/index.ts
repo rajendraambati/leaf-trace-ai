@@ -42,23 +42,47 @@ serve(async (req) => {
     const requiredDocuments: string[] = [];
     
     if (validation_type === 'pre_dispatch') {
-      requiredDocuments.push('emd', 'bg', 'gst', 'tender');
+      requiredDocuments.push('emd', 'bg', 'gst', 'tender', 'transport_permit');
+      
+      // Region-specific requirements for pre-dispatch
+      if (region === 'maharashtra' || region === 'karnataka') {
+        requiredDocuments.push('state_excise_license');
+      }
+      if (region === 'international') {
+        requiredDocuments.push('export_license');
+      }
     }
     
     if (validation_type === 'customs') {
-      requiredDocuments.push('customs', 'gst');
+      requiredDocuments.push('customs_declaration', 'export_license', 'gst', 'bill_of_lading', 'certificate_of_origin');
+      
+      // International shipments need additional documents
+      if (region === 'international') {
+        requiredDocuments.push('phytosanitary_certificate', 'fumigation_certificate');
+      }
     }
     
     if (validation_type === 'excise') {
-      requiredDocuments.push('excise', 'gst');
+      requiredDocuments.push('excise_license', 'gst', 'central_excise_registration', 'manufacturing_license');
+      
+      // State-specific excise requirements
+      if (region === 'karnataka' || region === 'andhra_pradesh') {
+        requiredDocuments.push('state_excise_permit');
+      }
     }
 
-    // Fetch existing documents for this entity
-    const { data: documents, error: docError } = await supabase
+    // Fetch existing documents for this entity (with region filter if specified)
+    let documentsQuery = supabase
       .from('compliance_documents')
       .select('*')
       .eq('entity_id', entity_id)
       .eq('entity_type', entity_type);
+    
+    if (region) {
+      documentsQuery = documentsQuery.eq('region', region);
+    }
+    
+    const { data: documents, error: docError } = await documentsQuery;
 
     if (docError) {
       console.error('Error fetching documents:', docError);
@@ -94,10 +118,19 @@ serve(async (req) => {
         if (doc.expiry_date && new Date(doc.expiry_date) < now) {
           expiredDocuments.push(docType);
           validationDetails.warnings.push(`${docType.toUpperCase()} document expired on ${doc.expiry_date}`);
+        } else if (doc.expiry_date) {
+          // Check if expiring soon (within 30 days)
+          const daysUntilExpiry = Math.floor((new Date(doc.expiry_date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          if (daysUntilExpiry < 30 && daysUntilExpiry >= 0) {
+            validationDetails.warnings.push(`${docType.toUpperCase()} document expires in ${daysUntilExpiry} days`);
+          }
         }
 
         // Check document status
         if (doc.status !== 'active') {
+          if (doc.status === 'expired') {
+            expiredDocuments.push(docType);
+          }
           validationDetails.warnings.push(`${docType.toUpperCase()} document status is ${doc.status}`);
         }
       }
