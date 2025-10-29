@@ -103,6 +103,37 @@ export default function RegulatoryReporting() {
     }
   };
 
+  const downloadReport = (report: any) => {
+    const reportData = {
+      report_number: report.report_number,
+      authority: report.reporting_authorities?.authority_name,
+      country: report.reporting_authorities?.countries?.name,
+      report_type: report.report_type,
+      period: {
+        start: report.report_period_start,
+        end: report.report_period_end
+      },
+      status: report.submission_status,
+      submitted_at: report.submitted_at,
+      data: report.report_data
+    };
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${report.report_number}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Report Downloaded",
+      description: `${report.report_number} downloaded successfully`
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
       'draft': { variant: 'secondary', icon: Clock },
@@ -244,7 +275,11 @@ export default function RegulatoryReporting() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => downloadReport(report)}
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>
