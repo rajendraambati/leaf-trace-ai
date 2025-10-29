@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import StatCard from '@/components/StatCard';
 import { 
   FileText, 
   Send,
@@ -17,13 +18,18 @@ import {
   AlertCircle,
   Download,
   Calendar,
-  Building2
+  Building2,
+  RefreshCw,
+  Filter,
+  TrendingUp
 } from 'lucide-react';
 
 export default function RegulatoryReporting() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterAuthority, setFilterAuthority] = useState<string>('all');
   const [formData, setFormData] = useState({
     authority_id: '',
     report_type: 'shipment_summary',
@@ -46,18 +52,35 @@ export default function RegulatoryReporting() {
   });
 
   const { data: reports } = useQuery({
-    queryKey: ['compliance-reports'],
+    queryKey: ['compliance-reports', filterStatus, filterAuthority],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('compliance_reports')
         .select('*, reporting_authorities(*, countries(*)), countries(*)')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
+      
+      if (filterStatus !== 'all') {
+        query = query.eq('submission_status', filterStatus);
+      }
+      
+      if (filterAuthority !== 'all') {
+        query = query.eq('authority_id', filterAuthority);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data;
     }
   });
+
+  const reportStats = {
+    total: reports?.length || 0,
+    submitted: reports?.filter(r => r.submission_status === 'submitted').length || 0,
+    draft: reports?.filter(r => r.submission_status === 'draft').length || 0,
+    failed: reports?.filter(r => r.submission_status === 'failed').length || 0
+  };
 
   const submitReport = async () => {
     if (!formData.authority_id || !formData.period_start || !formData.period_end) {
@@ -100,6 +123,38 @@ export default function RegulatoryReporting() {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const retryReport = async (reportId: string) => {
+    try {
+      const report = reports?.find(r => r.id === reportId);
+      if (!report) return;
+
+      const { data, error } = await supabase.functions.invoke('submit-compliance-report', {
+        body: {
+          authority_id: report.authority_id,
+          report_type: report.report_type,
+          period_start: report.report_period_start,
+          period_end: report.report_period_end
+        }
+      });
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['compliance-reports'] });
+      
+      toast({
+        title: "Report Resubmitted",
+        description: "The report has been resubmitted successfully"
+      });
+    } catch (error) {
+      console.error('Error retrying report:', error);
+      toast({
+        title: "Retry Failed",
+        description: error instanceof Error ? error.message : "Failed to retry report",
+        variant: "destructive"
+      });
     }
   };
 
@@ -165,6 +220,30 @@ export default function RegulatoryReporting() {
               Submit compliance reports to regulatory authorities
             </p>
           </div>
+        </div>
+
+        {/* Statistics */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <StatCard
+            title="Total Reports"
+            value={reportStats.total}
+            icon={FileText}
+          />
+          <StatCard
+            title="Submitted"
+            value={reportStats.submitted}
+            icon={CheckCircle}
+          />
+          <StatCard
+            title="Draft"
+            value={reportStats.draft}
+            icon={Clock}
+          />
+          <StatCard
+            title="Failed"
+            value={reportStats.failed}
+            icon={AlertCircle}
+          />
         </div>
 
         {/* Submit Report Form */}
@@ -245,10 +324,42 @@ export default function RegulatoryReporting() {
         {/* Recent Reports */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Reports</CardTitle>
-            <CardDescription>
-              View submitted compliance reports and their status
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Recent Reports</CardTitle>
+                <CardDescription>
+                  View submitted compliance reports and their status
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-[150px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterAuthority} onValueChange={setFilterAuthority}>
+                  <SelectTrigger className="w-[180px]">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="All Authorities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Authorities</SelectItem>
+                    {authorities?.map((authority) => (
+                      <SelectItem key={authority.id} value={authority.id}>
+                        {authority.authority_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -275,6 +386,15 @@ export default function RegulatoryReporting() {
                   </div>
 
                   <div className="flex gap-2">
+                    {report.submission_status === 'failed' && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => retryReport(report.id)}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button 
                       size="sm" 
                       variant="outline"
