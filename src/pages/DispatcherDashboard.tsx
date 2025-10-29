@@ -9,6 +9,7 @@ import { DispatcherFilters } from '@/components/dispatcher/DispatcherFilters';
 import { TripCard } from '@/components/dispatcher/TripCard';
 import { VehicleCard } from '@/components/dispatcher/VehicleCard';
 import { DriverWellbeingCard } from '@/components/dispatcher/DriverWellbeingCard';
+import { LiveAlertsPanel } from '@/components/dispatcher/LiveAlertsPanel';
 
 export default function DispatcherDashboard() {
   const {
@@ -43,14 +44,15 @@ export default function DispatcherDashboard() {
     }));
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
-      <DispatcherHeader
-        onRefresh={fetchDashboardData}
-        onGenerateSummary={generateAISummary}
-        summaryLoading={summaryLoading}
-      />
+    <>
+      <div className="min-h-screen p-6 space-y-6">
+        <DispatcherHeader
+          onRefresh={fetchDashboardData}
+          onGenerateSummary={generateAISummary}
+          summaryLoading={summaryLoading}
+        />
 
-      {aiSummary && <AISummaryCard summary={aiSummary} />}
+        {aiSummary && <AISummaryCard summary={aiSummary} />}
 
       <DispatcherFilters
         searchQuery={searchQuery}
@@ -100,6 +102,9 @@ export default function DispatcherDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+
+      <LiveAlertsPanel />
+    </>
   );
 }
