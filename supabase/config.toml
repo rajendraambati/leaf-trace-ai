@@ -68,3 +68,12 @@ verify_jwt = true
 
 [functions.get-mapbox-token]
 verify_jwt = false
+
+[functions.dispatcher-summary]
+verify_jwt = true
+
+[functions.driver-ai-assistant]
+verify_jwt = true
+
+[functions.dispatcher-assistant-token]
+verify_jwt = true
