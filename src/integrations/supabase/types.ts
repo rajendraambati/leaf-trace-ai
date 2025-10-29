@@ -404,6 +404,54 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_documents: {
+        Row: {
+          created_at: string | null
+          document_number: string
+          document_type: string
+          document_url: string | null
+          entity_id: string
+          entity_type: string
+          expiry_date: string | null
+          id: string
+          issue_date: string
+          metadata: Json | null
+          region: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_number: string
+          document_type: string
+          document_url?: string | null
+          entity_id: string
+          entity_type: string
+          expiry_date?: string | null
+          id?: string
+          issue_date: string
+          metadata?: Json | null
+          region: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_number?: string
+          document_type?: string
+          document_url?: string | null
+          entity_id?: string
+          entity_type?: string
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string
+          metadata?: Json | null
+          region?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       compliance_sync_logs: {
         Row: {
           created_at: string | null
@@ -446,6 +494,51 @@ export type Database = {
           sync_direction?: string
           sync_started_at?: string | null
           sync_type?: string
+        }
+        Relationships: []
+      }
+      compliance_validations: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          expired_documents: string[] | null
+          id: string
+          missing_documents: string[] | null
+          required_documents: string[]
+          validated_at: string | null
+          validated_by: string | null
+          validation_details: Json | null
+          validation_status: string | null
+          validation_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          expired_documents?: string[] | null
+          id?: string
+          missing_documents?: string[] | null
+          required_documents: string[]
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_details?: Json | null
+          validation_status?: string | null
+          validation_type: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          expired_documents?: string[] | null
+          id?: string
+          missing_documents?: string[] | null
+          required_documents?: string[]
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_details?: Json | null
+          validation_status?: string | null
+          validation_type?: string
         }
         Relationships: []
       }
@@ -546,6 +639,66 @@ export type Database = {
           trend_factor?: number | null
         }
         Relationships: []
+      }
+      dispatch_compliance_checks: {
+        Row: {
+          batch_id: string | null
+          blocking_issues: string[] | null
+          checked_at: string | null
+          cleared_at: string | null
+          cleared_by: string | null
+          compliance_status: string | null
+          created_at: string | null
+          dispatch_id: string | null
+          id: string
+          metadata: Json | null
+          shipment_id: string | null
+          warnings: string[] | null
+        }
+        Insert: {
+          batch_id?: string | null
+          blocking_issues?: string[] | null
+          checked_at?: string | null
+          cleared_at?: string | null
+          cleared_by?: string | null
+          compliance_status?: string | null
+          created_at?: string | null
+          dispatch_id?: string | null
+          id?: string
+          metadata?: Json | null
+          shipment_id?: string | null
+          warnings?: string[] | null
+        }
+        Update: {
+          batch_id?: string | null
+          blocking_issues?: string[] | null
+          checked_at?: string | null
+          cleared_at?: string | null
+          cleared_by?: string | null
+          compliance_status?: string | null
+          created_at?: string | null
+          dispatch_id?: string | null
+          id?: string
+          metadata?: Json | null
+          shipment_id?: string | null
+          warnings?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_compliance_checks_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatch_compliance_checks_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dispatch_predictions: {
         Row: {
@@ -1695,6 +1848,48 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      regulatory_reports: {
+        Row: {
+          created_at: string | null
+          generated_by: string | null
+          id: string
+          region: string
+          report_data: Json
+          report_period_end: string
+          report_period_start: string
+          report_type: string
+          report_url: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          generated_by?: string | null
+          id?: string
+          region: string
+          report_data: Json
+          report_period_end: string
+          report_period_start: string
+          report_type: string
+          report_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          generated_by?: string | null
+          id?: string
+          region?: string
+          report_data?: Json
+          report_period_end?: string
+          report_period_start?: string
+          report_type?: string
+          report_url?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -92,3 +92,9 @@ verify_jwt = true
 
 [functions.predictive-analytics]
 verify_jwt = true
+
+[functions.compliance-validation]
+verify_jwt = true
+
+[functions.generate-regulatory-report]
+verify_jwt = true
