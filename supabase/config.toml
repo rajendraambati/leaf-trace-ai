@@ -98,3 +98,6 @@ verify_jwt = true
 
 [functions.generate-regulatory-report]
 verify_jwt = true
+
+[functions.driver-wellness-scoring]
+verify_jwt = true

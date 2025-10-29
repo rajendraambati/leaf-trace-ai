@@ -973,6 +973,66 @@ export type Database = {
           },
         ]
       }
+      driver_wellness_analytics: {
+        Row: {
+          alerts: Json | null
+          analysis_period_end: string
+          analysis_period_start: string
+          average_daily_hours: number | null
+          compliance_score: number | null
+          created_at: string | null
+          driver_id: string
+          fatigue_score: number | null
+          id: string
+          incidents_count: number | null
+          mood_score: number | null
+          recommendations: Json | null
+          stress_score: number | null
+          total_break_time_minutes: number | null
+          total_driving_hours: number | null
+          wellness_score: number
+          wellness_trends: Json | null
+        }
+        Insert: {
+          alerts?: Json | null
+          analysis_period_end: string
+          analysis_period_start: string
+          average_daily_hours?: number | null
+          compliance_score?: number | null
+          created_at?: string | null
+          driver_id: string
+          fatigue_score?: number | null
+          id?: string
+          incidents_count?: number | null
+          mood_score?: number | null
+          recommendations?: Json | null
+          stress_score?: number | null
+          total_break_time_minutes?: number | null
+          total_driving_hours?: number | null
+          wellness_score: number
+          wellness_trends?: Json | null
+        }
+        Update: {
+          alerts?: Json | null
+          analysis_period_end?: string
+          analysis_period_start?: string
+          average_daily_hours?: number | null
+          compliance_score?: number | null
+          created_at?: string | null
+          driver_id?: string
+          fatigue_score?: number | null
+          id?: string
+          incidents_count?: number | null
+          mood_score?: number | null
+          recommendations?: Json | null
+          stress_score?: number | null
+          total_break_time_minutes?: number | null
+          total_driving_hours?: number | null
+          wellness_score?: number
+          wellness_trends?: Json | null
+        }
+        Relationships: []
+      }
       erp_procurement_orders: {
         Row: {
           confirmed_quantity_kg: number | null
@@ -1289,6 +1349,65 @@ export type Database = {
         }
         Relationships: []
       }
+      gps_tracking_logs: {
+        Row: {
+          accuracy: number | null
+          altitude: number | null
+          battery_level: number | null
+          created_at: string | null
+          driver_id: string
+          heading: number | null
+          id: string
+          is_moving: boolean | null
+          latitude: number
+          longitude: number
+          shipment_id: string | null
+          speed: number | null
+          timestamp: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          altitude?: number | null
+          battery_level?: number | null
+          created_at?: string | null
+          driver_id: string
+          heading?: number | null
+          id?: string
+          is_moving?: boolean | null
+          latitude: number
+          longitude: number
+          shipment_id?: string | null
+          speed?: number | null
+          timestamp?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          altitude?: number | null
+          battery_level?: number | null
+          created_at?: string | null
+          driver_id?: string
+          heading?: number | null
+          id?: string
+          is_moving?: boolean | null
+          latitude?: number
+          longitude?: number
+          shipment_id?: string | null
+          speed?: number | null
+          timestamp?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gps_tracking_logs_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       iot_devices: {
         Row: {
           battery_level: number | null
@@ -1451,6 +1570,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mobile_checklist_responses: {
+        Row: {
+          checklist_type: string
+          completed_at: string | null
+          compliance_status: string | null
+          created_at: string | null
+          driver_id: string
+          gps_latitude: number | null
+          gps_longitude: number | null
+          id: string
+          notes: string | null
+          photos: Json | null
+          responses: Json
+          shipment_id: string | null
+          signature_data: string | null
+          template_id: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          checklist_type: string
+          completed_at?: string | null
+          compliance_status?: string | null
+          created_at?: string | null
+          driver_id: string
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          notes?: string | null
+          photos?: Json | null
+          responses?: Json
+          shipment_id?: string | null
+          signature_data?: string | null
+          template_id?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          checklist_type?: string
+          completed_at?: string | null
+          compliance_status?: string | null
+          created_at?: string | null
+          driver_id?: string
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          notes?: string | null
+          photos?: Json | null
+          responses?: Json
+          shipment_id?: string | null
+          signature_data?: string | null
+          template_id?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mobile_checklist_responses_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mobile_checklist_responses_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "mobile_checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mobile_checklist_templates: {
+        Row: {
+          checklist_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          items: Json
+          name: string
+          required_for_roles: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          checklist_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          items?: Json
+          name: string
+          required_for_roles?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          checklist_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          items?: Json
+          name?: string
+          required_for_roles?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       model_performance_metrics: {
         Row: {
@@ -2463,6 +2687,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      translation_keys: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          en: string
+          hi: string | null
+          id: string
+          key_name: string
+          kn: string | null
+          ta: string | null
+          te: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          en: string
+          hi?: string | null
+          id?: string
+          key_name: string
+          kn?: string | null
+          ta?: string | null
+          te?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          en?: string
+          hi?: string | null
+          id?: string
+          key_name?: string
+          kn?: string | null
+          ta?: string | null
+          te?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       user_documents: {
         Row: {
