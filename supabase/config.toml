@@ -129,6 +129,6 @@ verify_jwt = true
 [functions.wholesaler-erp-sync]
 verify_jwt = true
 
-[functions.submit-compliance-report]
+[functions.detect-anomalies]
 verify_jwt = true
 

@@ -227,6 +227,81 @@ export type Database = {
           },
         ]
       }
+      anomaly_logs: {
+        Row: {
+          anomaly_type: string
+          created_at: string | null
+          description: string
+          detected_at: string
+          detected_by: string | null
+          entity_id: string
+          entity_type: string
+          escalated: boolean | null
+          escalated_at: string | null
+          escalated_to: string | null
+          id: string
+          impact_assessment: string | null
+          metadata: Json | null
+          resolution_applied: string | null
+          resolution_suggested: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          root_cause: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          anomaly_type: string
+          created_at?: string | null
+          description: string
+          detected_at?: string
+          detected_by?: string | null
+          entity_id: string
+          entity_type: string
+          escalated?: boolean | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          id?: string
+          impact_assessment?: string | null
+          metadata?: Json | null
+          resolution_applied?: string | null
+          resolution_suggested?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          root_cause?: string | null
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          anomaly_type?: string
+          created_at?: string | null
+          description?: string
+          detected_at?: string
+          detected_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          escalated?: boolean | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          id?: string
+          impact_assessment?: string | null
+          metadata?: Json | null
+          resolution_applied?: string | null
+          resolution_suggested?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          root_cause?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       assistant_conversations: {
         Row: {
           created_at: string

@@ -12,6 +12,7 @@ import { DriverWellbeingCard } from '@/components/dispatcher/DriverWellbeingCard
 import { LiveAlertsPanel } from '@/components/dispatcher/LiveAlertsPanel';
 import { FloatingAssistant } from '@/components/FloatingAssistant';
 import { AssistantWelcome } from '@/components/AssistantWelcome';
+import AnomalyMonitor from '@/components/AnomalyMonitor';
 
 export default function DispatcherDashboard() {
   
@@ -77,6 +78,7 @@ export default function DispatcherDashboard() {
           <TabsTrigger value="vehicles">Vehicles ({vehicles.length})</TabsTrigger>
           <TabsTrigger value="drivers">Driver Wellbeing ({driverWellbeing.length})</TabsTrigger>
           <TabsTrigger value="map">Live Map</TabsTrigger>
+          <TabsTrigger value="anomalies">Anomalies</TabsTrigger>
         </TabsList>
 
         <TabsContent value="trips" className="space-y-4">
@@ -105,6 +107,10 @@ export default function DispatcherDashboard() {
           <Card className="p-0 overflow-hidden" style={{ height: '600px' }}>
             <MapView locations={mapLocations} />
           </Card>
+        </TabsContent>
+
+        <TabsContent value="anomalies">
+          <AnomalyMonitor />
         </TabsContent>
       </Tabs>
       </div>
