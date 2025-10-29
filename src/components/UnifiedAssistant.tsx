@@ -14,6 +14,14 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  actions?: AssistantAction[];
+}
+
+interface AssistantAction {
+  label: string;
+  action: string;
+  params: Record<string, any>;
+  variant?: 'default' | 'secondary' | 'outline';
 }
 
 interface SuggestedQuery {
@@ -215,6 +223,40 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
     }
   };
 
+  const handleAssistantAction = async (action: string, params: Record<string, any>) => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.functions.invoke('assistant-actions', {
+        body: { action, params }
+      });
+
+      if (error) throw error;
+
+      // Add result as assistant message
+      const resultMessage: Message = {
+        role: 'assistant',
+        content: `✓ Action completed: ${data.message || JSON.stringify(data, null, 2)}`,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, resultMessage]);
+
+      toast({
+        title: "Action completed",
+        description: data.message || "The action was performed successfully",
+      });
+    } catch (error) {
+      console.error('Assistant action error:', error);
+      toast({
+        title: "Action failed",
+        description: error instanceof Error ? error.message : "Failed to perform action",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const sendTextMessage = async () => {
     if (!input.trim()) return;
 
@@ -245,6 +287,7 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
           role: 'assistant',
           content: data.reply,
           timestamp: new Date(),
+          actions: data.actions || []
         };
 
         setMessages(prev => [...prev, assistantMessage]);
@@ -414,6 +457,25 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    
+                    {/* Action Buttons */}
+                    {msg.actions && msg.actions.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3 pt-2 border-t border-border/50">
+                        {msg.actions.map((action, actionIdx) => (
+                          <Button
+                            key={actionIdx}
+                            size="sm"
+                            variant={action.variant || 'secondary'}
+                            onClick={() => handleAssistantAction(action.action, action.params)}
+                            disabled={isLoading}
+                            className="text-xs"
+                          >
+                            {action.label}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+
                     <p className="text-xs opacity-70 mt-1">
                       {msg.timestamp.toLocaleTimeString()}
                     </p>

@@ -11,6 +11,7 @@ import { VehicleCard } from '@/components/dispatcher/VehicleCard';
 import { DriverWellbeingCard } from '@/components/dispatcher/DriverWellbeingCard';
 import { LiveAlertsPanel } from '@/components/dispatcher/LiveAlertsPanel';
 import { FloatingAssistant } from '@/components/FloatingAssistant';
+import { AssistantWelcome } from '@/components/AssistantWelcome';
 
 export default function DispatcherDashboard() {
   
@@ -55,6 +56,8 @@ export default function DispatcherDashboard() {
         />
 
         {aiSummary && <AISummaryCard summary={aiSummary} />}
+
+        <AssistantWelcome />
 
       <DispatcherFilters
         searchQuery={searchQuery}

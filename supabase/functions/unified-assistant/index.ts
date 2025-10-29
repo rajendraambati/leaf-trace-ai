@@ -25,6 +25,20 @@ serve(async (req) => {
     // Build system prompt with empathetic guidelines
     const systemPrompt = buildSystemPrompt(userRole, context);
 
+    // Build messages with action suggestions
+    const userPrompt = `${message}
+
+Based on my query, if there are specific actions I can take (like viewing order details, checking vehicle status, marking shipment status, etc.), please suggest them at the end of your response in the format:
+ACTIONS: [{"label": "Action Name", "action": "action_type", "params": {...}}]
+
+Available actions:
+- get_order_details: View order details (needs orderId)
+- get_vehicle_status: Check vehicle status (needs vehicleId)
+- mark_shipment_in_transit: Mark shipment in transit (needs shipmentId)
+- confirm_delivery: Confirm delivery (needs shipmentId)
+- get_warehouse_stock: Check warehouse stock (needs warehouseId)
+- list_pending_documents: View pending documents`;
+
     // Call Lovable AI
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -37,7 +51,7 @@ serve(async (req) => {
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
+          { role: 'user', content: userPrompt }
         ],
       }),
     });
@@ -55,10 +69,23 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const reply = data.choices[0]?.message?.content || "I'm having trouble processing that right now.";
+    let reply = data.choices[0]?.message?.content || "I'm having trouble processing that right now.";
+    
+    // Extract actions if present
+    let actions = [];
+    const actionsMatch = reply.match(/ACTIONS:\s*(\[.*?\])/s);
+    if (actionsMatch) {
+      try {
+        actions = JSON.parse(actionsMatch[1]);
+        // Remove the ACTIONS section from the reply
+        reply = reply.replace(/ACTIONS:\s*\[.*?\]/s, '').trim();
+      } catch (e) {
+        console.error('Failed to parse actions:', e);
+      }
+    }
 
     return new Response(
-      JSON.stringify({ reply }),
+      JSON.stringify({ reply, actions }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
