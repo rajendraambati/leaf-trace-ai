@@ -20,7 +20,8 @@ import {
   FileText,
   TrendingUp,
   MessageSquare,
-  GraduationCap
+  GraduationCap,
+  Navigation
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ const navigation = [
   { name: "Procurement", href: "/procurement", icon: ShoppingCart },
   { name: "Logistics", href: "/logistics", icon: Truck },
   { name: "AI Vehicle Tracking", href: "/ai-vehicle-tracking", icon: Sparkles },
+  { name: "Dispatcher Dashboard", href: "/dispatcher", icon: Navigation },
   { name: "Warehouse", href: "/warehouse", icon: Warehouse },
   { name: "Processing", href: "/processing", icon: Factory },
   { name: "Compliance", href: "/compliance", icon: FileCheck },
