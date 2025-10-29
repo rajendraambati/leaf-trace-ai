@@ -14,6 +14,12 @@ interface Message {
   timestamp: Date;
 }
 
+interface SuggestedQuery {
+  label: string;
+  query: string;
+  icon: string;
+}
+
 interface UnifiedAssistantProps {
   userRole: 'dispatcher' | 'compliance_officer' | 'document_manager' | 'warehouse_manager';
   onClose?: () => void;
@@ -28,6 +34,39 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const voiceAssistantRef = useRef<DispatcherVoiceAssistant | null>(null);
+
+  const getSuggestedQueries = (): SuggestedQuery[] => {
+    switch (userRole) {
+      case 'dispatcher':
+        return [
+          { label: 'Vehicle Status', query: 'Which vehicles need maintenance this week?', icon: '🚛' },
+          { label: 'Order Tracking', query: 'Show dispatch history for recent orders', icon: '📦' },
+          { label: 'Driver Info', query: 'Who is driving truck VH-001?', icon: '👤' },
+        ];
+      case 'compliance_officer':
+        return [
+          { label: 'Validate BG', query: 'Validate bank guarantee for pending entities', icon: '🏦' },
+          { label: 'Check Reports', query: 'Show recent regulatory reports', icon: '📋' },
+          { label: 'Entity Status', query: 'What is the compliance status for all entities?', icon: '✓' },
+        ];
+      case 'document_manager':
+        return [
+          { label: 'Recent Docs', query: 'Show recently generated documents', icon: '📄' },
+          { label: 'Templates', query: 'What document templates are available?', icon: '📝' },
+          { label: 'Pending', query: 'Which documents need approval?', icon: '⏳' },
+        ];
+      case 'warehouse_manager':
+        return [
+          { label: 'Inventory', query: 'Show current stock levels across warehouses', icon: '📊' },
+          { label: 'Low Stock', query: 'Which warehouses have low stock?', icon: '⚠️' },
+          { label: 'Shipments', query: 'Track incoming and outgoing shipments', icon: '🚚' },
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const suggestedQueries = getSuggestedQueries();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -156,6 +195,13 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
     }
   };
 
+  const handleSuggestedQuery = (query: string) => {
+    setInput(query);
+    setTimeout(() => {
+      sendTextMessage();
+    }, 100);
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -189,13 +235,25 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
         <ScrollArea className="h-[400px] pr-4" ref={scrollRef}>
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-              <div className="text-muted-foreground">
-                <p className="font-medium mb-2">How can I help you today?</p>
-                <div className="text-sm space-y-1">
-                  <p>Try commands like:</p>
-                  <p className="text-xs italic">"Show dispatch history for Order 1123"</p>
-                  <p className="text-xs italic">"Validate BG for SIT Arabian Contracting"</p>
-                  <p className="text-xs italic">"Which vehicle needs service next week?"</p>
+              <div className="text-muted-foreground space-y-4">
+                <div>
+                  <p className="font-medium mb-2">How can I help you today?</p>
+                  <p className="text-sm">Try these quick actions:</p>
+                </div>
+                <div className="grid gap-2 w-full max-w-md">
+                  {suggestedQueries.map((sq, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSuggestedQuery(sq.query)}
+                      className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors text-left"
+                    >
+                      <span className="text-2xl">{sq.icon}</span>
+                      <div>
+                        <p className="font-medium text-sm">{sq.label}</p>
+                        <p className="text-xs text-muted-foreground">{sq.query}</p>
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -231,33 +289,49 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
           )}
         </ScrollArea>
 
-        <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message or use voice..."
-            disabled={isLoading}
-          />
-          <Button
-            onClick={sendTextMessage}
-            disabled={isLoading || !input.trim()}
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-          <Button
-            onClick={isVoiceActive ? stopVoiceSession : startVoiceSession}
-            disabled={isLoading}
-            size="icon"
-            variant={isVoiceActive ? "destructive" : "secondary"}
-          >
-            {isVoiceActive ? (
-              <MicOff className="h-4 w-4" />
-            ) : (
-              <Mic className="h-4 w-4" />
-            )}
-          </Button>
+        <div className="space-y-2">
+          {messages.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {suggestedQueries.map((sq, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSuggestedQuery(sq.query)}
+                  className="text-xs px-2 py-1 rounded-md border bg-card hover:bg-muted/50 transition-colors"
+                  disabled={isLoading}
+                >
+                  {sq.icon} {sq.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your message or use voice..."
+              disabled={isLoading}
+            />
+            <Button
+              onClick={sendTextMessage}
+              disabled={isLoading || !input.trim()}
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={isVoiceActive ? stopVoiceSession : startVoiceSession}
+              disabled={isLoading}
+              size="icon"
+              variant={isVoiceActive ? "destructive" : "secondary"}
+            >
+              {isVoiceActive ? (
+                <MicOff className="h-4 w-4" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
