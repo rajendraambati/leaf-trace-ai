@@ -502,6 +502,113 @@ export type Database = {
           },
         ]
       }
+      demand_forecasts: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          forecast_date: string
+          historical_avg: number | null
+          id: string
+          metadata: Json | null
+          model_version: string | null
+          predicted_quantity_kg: number
+          product_type: string
+          region: string
+          seasonal_factor: number | null
+          trend_factor: number | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          forecast_date: string
+          historical_avg?: number | null
+          id?: string
+          metadata?: Json | null
+          model_version?: string | null
+          predicted_quantity_kg: number
+          product_type: string
+          region: string
+          seasonal_factor?: number | null
+          trend_factor?: number | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          forecast_date?: string
+          historical_avg?: number | null
+          id?: string
+          metadata?: Json | null
+          model_version?: string | null
+          predicted_quantity_kg?: number
+          product_type?: string
+          region?: string
+          seasonal_factor?: number | null
+          trend_factor?: number | null
+        }
+        Relationships: []
+      }
+      dispatch_predictions: {
+        Row: {
+          applied: boolean | null
+          applied_at: string | null
+          confidence_level: string | null
+          created_at: string | null
+          id: string
+          optimization_score: number | null
+          predicted_cost: number | null
+          predicted_dispatch_time: string | null
+          predicted_duration_minutes: number | null
+          recommended_driver_id: string | null
+          recommended_vehicle_id: string | null
+          route_recommendation: Json | null
+          shipment_id: string | null
+          traffic_predictions: Json | null
+          weather_considerations: Json | null
+        }
+        Insert: {
+          applied?: boolean | null
+          applied_at?: string | null
+          confidence_level?: string | null
+          created_at?: string | null
+          id?: string
+          optimization_score?: number | null
+          predicted_cost?: number | null
+          predicted_dispatch_time?: string | null
+          predicted_duration_minutes?: number | null
+          recommended_driver_id?: string | null
+          recommended_vehicle_id?: string | null
+          route_recommendation?: Json | null
+          shipment_id?: string | null
+          traffic_predictions?: Json | null
+          weather_considerations?: Json | null
+        }
+        Update: {
+          applied?: boolean | null
+          applied_at?: string | null
+          confidence_level?: string | null
+          created_at?: string | null
+          id?: string
+          optimization_score?: number | null
+          predicted_cost?: number | null
+          predicted_dispatch_time?: string | null
+          predicted_duration_minutes?: number | null
+          recommended_driver_id?: string | null
+          recommended_vehicle_id?: string | null
+          route_recommendation?: Json | null
+          shipment_id?: string | null
+          traffic_predictions?: Json | null
+          weather_considerations?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_predictions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_chat_messages: {
         Row: {
           content: string
@@ -529,6 +636,84 @@ export type Database = {
           metadata?: Json | null
           role?: string
           shipment_id?: string | null
+        }
+        Relationships: []
+      }
+      driver_performance_scores: {
+        Row: {
+          areas_for_improvement: string[] | null
+          avg_speed_kmh: number | null
+          created_at: string | null
+          customer_feedback_score: number | null
+          driver_id: string
+          efficiency_score: number | null
+          evaluation_period_end: string
+          evaluation_period_start: string
+          fuel_efficiency_score: number | null
+          harsh_acceleration_events: number | null
+          harsh_braking_events: number | null
+          id: string
+          idle_time_hours: number | null
+          incidents_count: number | null
+          on_time_deliveries: number | null
+          overall_score: number
+          punctuality_score: number | null
+          recommendations: string[] | null
+          safety_score: number | null
+          strengths: string[] | null
+          total_distance_km: number | null
+          total_fuel_liters: number | null
+          total_trips: number | null
+        }
+        Insert: {
+          areas_for_improvement?: string[] | null
+          avg_speed_kmh?: number | null
+          created_at?: string | null
+          customer_feedback_score?: number | null
+          driver_id: string
+          efficiency_score?: number | null
+          evaluation_period_end: string
+          evaluation_period_start: string
+          fuel_efficiency_score?: number | null
+          harsh_acceleration_events?: number | null
+          harsh_braking_events?: number | null
+          id?: string
+          idle_time_hours?: number | null
+          incidents_count?: number | null
+          on_time_deliveries?: number | null
+          overall_score: number
+          punctuality_score?: number | null
+          recommendations?: string[] | null
+          safety_score?: number | null
+          strengths?: string[] | null
+          total_distance_km?: number | null
+          total_fuel_liters?: number | null
+          total_trips?: number | null
+        }
+        Update: {
+          areas_for_improvement?: string[] | null
+          avg_speed_kmh?: number | null
+          created_at?: string | null
+          customer_feedback_score?: number | null
+          driver_id?: string
+          efficiency_score?: number | null
+          evaluation_period_end?: string
+          evaluation_period_start?: string
+          fuel_efficiency_score?: number | null
+          harsh_acceleration_events?: number | null
+          harsh_braking_events?: number | null
+          id?: string
+          idle_time_hours?: number | null
+          incidents_count?: number | null
+          on_time_deliveries?: number | null
+          overall_score?: number
+          punctuality_score?: number | null
+          recommendations?: string[] | null
+          safety_score?: number | null
+          strengths?: string[] | null
+          total_distance_km?: number | null
+          total_fuel_liters?: number | null
+          total_trips?: number | null
         }
         Relationships: []
       }
@@ -885,6 +1070,72 @@ export type Database = {
         }
         Relationships: []
       }
+      fleet_efficiency_scores: {
+        Row: {
+          avg_load_factor: number | null
+          cost_per_km: number | null
+          created_at: string | null
+          downtime_hours: number | null
+          evaluation_period_end: string
+          evaluation_period_start: string
+          fuel_efficiency: number | null
+          id: string
+          idle_percentage: number | null
+          maintenance_alerts: string[] | null
+          maintenance_score: number | null
+          optimization_suggestions: string[] | null
+          overall_efficiency_score: number
+          performance_trend: string | null
+          revenue_per_km: number | null
+          total_distance_km: number | null
+          total_trips: number | null
+          utilization_rate: number | null
+          vehicle_id: string
+        }
+        Insert: {
+          avg_load_factor?: number | null
+          cost_per_km?: number | null
+          created_at?: string | null
+          downtime_hours?: number | null
+          evaluation_period_end: string
+          evaluation_period_start: string
+          fuel_efficiency?: number | null
+          id?: string
+          idle_percentage?: number | null
+          maintenance_alerts?: string[] | null
+          maintenance_score?: number | null
+          optimization_suggestions?: string[] | null
+          overall_efficiency_score: number
+          performance_trend?: string | null
+          revenue_per_km?: number | null
+          total_distance_km?: number | null
+          total_trips?: number | null
+          utilization_rate?: number | null
+          vehicle_id: string
+        }
+        Update: {
+          avg_load_factor?: number | null
+          cost_per_km?: number | null
+          created_at?: string | null
+          downtime_hours?: number | null
+          evaluation_period_end?: string
+          evaluation_period_start?: string
+          fuel_efficiency?: number | null
+          id?: string
+          idle_percentage?: number | null
+          maintenance_alerts?: string[] | null
+          maintenance_score?: number | null
+          optimization_suggestions?: string[] | null
+          overall_efficiency_score?: number
+          performance_trend?: string | null
+          revenue_per_km?: number | null
+          total_distance_km?: number | null
+          total_trips?: number | null
+          utilization_rate?: number | null
+          vehicle_id?: string
+        }
+        Relationships: []
+      }
       iot_devices: {
         Row: {
           battery_level: number | null
@@ -1168,6 +1419,69 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      predictive_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          confidence_score: number | null
+          created_at: string | null
+          data_points: Json | null
+          description: string
+          entity_id: string
+          entity_type: string
+          id: string
+          predicted_impact: string | null
+          recommended_actions: string[] | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          confidence_score?: number | null
+          created_at?: string | null
+          data_points?: Json | null
+          description: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          predicted_impact?: string | null
+          recommended_actions?: string[] | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          data_points?: Json | null
+          description?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          predicted_impact?: string | null
+          recommended_actions?: string[] | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string | null
+          title?: string
         }
         Relationships: []
       }
@@ -1525,6 +1839,69 @@ export type Database = {
           id?: string
           resource?: string
           role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
+      route_performance_analytics: {
+        Row: {
+          analysis_period_end: string
+          analysis_period_start: string
+          avg_cost: number | null
+          avg_delay_minutes: number | null
+          avg_duration_minutes: number | null
+          avg_fuel_consumption: number | null
+          created_at: string | null
+          from_location: string
+          id: string
+          is_underperforming: boolean | null
+          on_time_percentage: number | null
+          optimization_opportunities: string[] | null
+          performance_score: number | null
+          route_id: string
+          to_location: string
+          total_trips: number | null
+          traffic_pattern: Json | null
+          weather_impact: Json | null
+        }
+        Insert: {
+          analysis_period_end: string
+          analysis_period_start: string
+          avg_cost?: number | null
+          avg_delay_minutes?: number | null
+          avg_duration_minutes?: number | null
+          avg_fuel_consumption?: number | null
+          created_at?: string | null
+          from_location: string
+          id?: string
+          is_underperforming?: boolean | null
+          on_time_percentage?: number | null
+          optimization_opportunities?: string[] | null
+          performance_score?: number | null
+          route_id: string
+          to_location: string
+          total_trips?: number | null
+          traffic_pattern?: Json | null
+          weather_impact?: Json | null
+        }
+        Update: {
+          analysis_period_end?: string
+          analysis_period_start?: string
+          avg_cost?: number | null
+          avg_delay_minutes?: number | null
+          avg_duration_minutes?: number | null
+          avg_fuel_consumption?: number | null
+          created_at?: string | null
+          from_location?: string
+          id?: string
+          is_underperforming?: boolean | null
+          on_time_percentage?: number | null
+          optimization_opportunities?: string[] | null
+          performance_score?: number | null
+          route_id?: string
+          to_location?: string
+          total_trips?: number | null
+          traffic_pattern?: Json | null
+          weather_impact?: Json | null
         }
         Relationships: []
       }

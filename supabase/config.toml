@@ -86,3 +86,9 @@ verify_jwt = true
 
 [functions.compliance-sync]
 verify_jwt = true
+
+[functions.demand-forecasting]
+verify_jwt = true
+
+[functions.predictive-analytics]
+verify_jwt = true
