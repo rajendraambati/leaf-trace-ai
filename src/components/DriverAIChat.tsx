@@ -87,21 +87,21 @@ export function DriverAIChat({ shipmentId, onClose }: DriverAIChatProps) {
         }]);
       }
 
-      // Get AI response
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-ai-assistant`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
+      // Get AI response via edge function (Lovable AI Gateway on backend)
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('driver-ai-assistant', {
+        body: {
           message: userMessage,
           shipment_id: shipmentId,
           context: messages.slice(-5),
-        }),
+        },
       });
 
-      const { reply } = await response.json();
+      if (fnError) {
+        toast.error(fnError.message || 'AI assistant error');
+        return;
+      }
+
+      const reply = fnData?.reply ?? 'I\'m here to help!';
 
       // Save assistant response
       const { data: assistantMsg } = await supabase

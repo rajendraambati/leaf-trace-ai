@@ -59,24 +59,41 @@ Be concise, practical, and supportive. Prioritize driver safety and successful d
 
     const userPrompt = `${conversationHistory}\n\nuser: ${message}`;
 
-    // Generate contextual response
-    let reply = "I'm your delivery assistant. I can help with:";
-    reply += "\n• Route guidance and directions";
-    reply += "\n• Delivery procedures";
-    reply += "\n• Safety tips";
-    reply += "\n• Documentation requirements";
-    
-    const lowerMessage = message.toLowerCase();
-    
-    if (lowerMessage.includes("route") || lowerMessage.includes("direction") || lowerMessage.includes("how to get")) {
-      reply = "Follow the route guidance on your map. The blue line shows your optimal path. Stay alert for traffic updates and follow all traffic rules. If you encounter issues, contact dispatch immediately.";
-    } else if (lowerMessage.includes("delivery") || lowerMessage.includes("deliver") || lowerMessage.includes("drop off")) {
-      reply = "Delivery procedure:\n1. Verify the delivery address\n2. Take a clear photo of the package at destination\n3. Get recipient name and signature\n4. Note any delivery issues\n5. Complete the delivery form in the app\n\nAlways ensure safe handling of goods.";
-    } else if (lowerMessage.includes("safety") || lowerMessage.includes("safe")) {
-      reply = "Safety first! Remember to:\n• Take regular breaks every 2 hours\n• Stay hydrated\n• Check weather conditions\n• Secure cargo properly\n• Report any vehicle issues immediately\n• Never drive when fatigued";
-    } else if (lowerMessage.includes("delay") || lowerMessage.includes("late") || lowerMessage.includes("traffic")) {
-      reply = "If you're experiencing delays:\n1. Update your status in the app\n2. Contact dispatch with your ETA\n3. Follow alternative route suggestions\n4. Keep customers informed\n5. Document the reason for delay";
+    // Call Lovable AI Gateway
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+    });
+
+    if (!aiResp.ok) {
+      if (aiResp.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limits exceeded, please try again later." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (aiResp.status === 402) {
+        return new Response(JSON.stringify({ error: "Payment required, please add credits to your workspace." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const txt = await aiResp.text();
+      console.error("AI gateway error:", aiResp.status, txt);
+      return new Response(JSON.stringify({ error: "AI gateway error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const aiJson = await aiResp.json();
+    const reply = aiJson.choices?.[0]?.message?.content ?? "I'm here to help! Could you clarify your question?";
 
     return new Response(
       JSON.stringify({ reply }),
