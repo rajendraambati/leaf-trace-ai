@@ -1,11 +1,17 @@
+import { useState } from 'react';
 import Layout from '@/components/Layout';
-import { FileText } from 'lucide-react';
+import { FileText, BarChart3, FileStack } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRegulatoryReporting } from '@/hooks/useRegulatoryReporting';
 import ReportingStats from '@/components/regulatory/ReportingStats';
 import ReportSubmissionForm from '@/components/regulatory/ReportSubmissionForm';
 import ReportsList from '@/components/regulatory/ReportsList';
+import ReportAnalytics from '@/components/regulatory/ReportAnalytics';
+import BulkReportGenerator from '@/components/regulatory/BulkReportGenerator';
+import ReportExporter from '@/components/regulatory/ReportExporter';
 
 export default function RegulatoryReporting() {
+  const [activeTab, setActiveTab] = useState('reports');
   const {
     authorities,
     reports,
@@ -35,28 +41,59 @@ export default function RegulatoryReporting() {
               Submit compliance reports to regulatory authorities
             </p>
           </div>
+          <ReportExporter reports={reports || []} />
         </div>
 
         <ReportingStats stats={reportStats} />
 
-        <ReportSubmissionForm
-          formData={formData}
-          setFormData={setFormData}
-          authorities={authorities || []}
-          isSubmitting={isSubmitting}
-          onSubmit={submitReport}
-        />
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Reports
+            </TabsTrigger>
+            <TabsTrigger value="bulk" className="flex items-center gap-2">
+              <FileStack className="h-4 w-4" />
+              Bulk Generation
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
 
-        <ReportsList
-          reports={reports || []}
-          authorities={authorities || []}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
-          filterAuthority={filterAuthority}
-          setFilterAuthority={setFilterAuthority}
-          onRetry={retryReport}
-          onDownload={downloadReport}
-        />
+          <TabsContent value="reports" className="space-y-6">
+            <ReportSubmissionForm
+              formData={formData}
+              setFormData={setFormData}
+              authorities={authorities || []}
+              isSubmitting={isSubmitting}
+              onSubmit={submitReport}
+            />
+
+            <ReportsList
+              reports={reports || []}
+              authorities={authorities || []}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+              filterAuthority={filterAuthority}
+              setFilterAuthority={setFilterAuthority}
+              onRetry={retryReport}
+              onDownload={downloadReport}
+            />
+          </TabsContent>
+
+          <TabsContent value="bulk" className="space-y-6">
+            <BulkReportGenerator
+              authorities={authorities || []}
+              onComplete={() => setActiveTab('reports')}
+            />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <ReportAnalytics reports={reports || []} />
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
