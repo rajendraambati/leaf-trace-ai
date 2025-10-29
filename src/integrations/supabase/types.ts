@@ -2913,6 +2913,36 @@ export type Database = {
         }
         Relationships: []
       }
+      translations: {
+        Row: {
+          created_at: string | null
+          id: string
+          key: string
+          language: string
+          module: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key: string
+          language: string
+          module: string
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key?: string
+          language?: string
+          module?: string
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       user_documents: {
         Row: {
           document_name: string | null
