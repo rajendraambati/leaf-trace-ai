@@ -10,9 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { MapView, Location } from '@/components/MapView';
 import { TripStartFlow } from '@/components/TripStartFlow';
+import { DriverAIChat } from '@/components/DriverAIChat';
+import { RouteGuidance } from '@/components/RouteGuidance';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { 
   MapPin, Navigation, CheckCircle, MessageSquare, 
-  Camera as CameraIcon, User, LogOut, Menu, Truck 
+  Camera as CameraIcon, User, LogOut, Menu, Truck, Wifi, WifiOff 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -36,6 +39,7 @@ interface ActiveShipment {
 
 export default function DriverApp() {
   const navigate = useNavigate();
+  const { isOnline, pendingSync, queueOperation, syncNow } = useOfflineSync();
   const [session, setSession] = useState<DriverSession | null>(null);
   const [shipments, setShipments] = useState<ActiveShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<ActiveShipment | null>(null);
@@ -43,6 +47,7 @@ export default function DriverApp() {
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showTripStart, setShowTripStart] = useState(false);
+  const [showRouteGuidance, setShowRouteGuidance] = useState(true);
   // Realtime phone-based tracking
   const [phoneNumber, setPhoneNumber] = useState('');
   const channelRef = useRef<any>(null);
@@ -251,7 +256,7 @@ export default function DriverApp() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase.from('delivery_confirmations').insert({
+    const deliveryData = {
       shipment_id: selectedShipment.id,
       driver_id: user.id,
       recipient_name: recipientName,
@@ -260,23 +265,32 @@ export default function DriverApp() {
       photo_url: photoUrl,
       gps_latitude: currentLocation.lat,
       gps_longitude: currentLocation.lng
-    });
+    };
 
-    if (error) {
-      toast.error('Failed to confirm delivery');
-      return;
+    if (isOnline) {
+      const { error } = await supabase.from('delivery_confirmations').insert(deliveryData);
+
+      if (error) {
+        toast.error('Failed to confirm delivery');
+        return;
+      }
+
+      // Update shipment status
+      await supabase
+        .from('shipments')
+        .update({ 
+          status: 'delivered',
+          actual_arrival: new Date().toISOString()
+        })
+        .eq('id', selectedShipment.id);
+
+      toast.success('Delivery confirmed!');
+    } else {
+      // Queue for offline sync
+      await queueOperation('delivery_confirmations', 'INSERT', deliveryData);
+      toast.success('Delivery saved offline. Will sync when online.');
     }
 
-    // Update shipment status
-    await supabase
-      .from('shipments')
-      .update({ 
-        status: 'delivered',
-        actual_arrival: new Date().toISOString()
-      })
-      .eq('id', selectedShipment.id);
-
-    toast.success('Delivery confirmed!');
     setShowDeliveryForm(false);
     setRecipientName('');
     setRecipientPhone('');
@@ -427,6 +441,18 @@ export default function DriverApp() {
     );
   }
 
+  // Full screen chat view
+  if (showChat && selectedShipment) {
+    return (
+      <div className="h-screen">
+        <DriverAIChat 
+          shipmentId={selectedShipment.id}
+          onClose={() => setShowChat(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -435,9 +461,21 @@ export default function DriverApp() {
           <Navigation className="h-6 w-6" />
           <div>
             <h1 className="font-bold">LeafTrace Driver</h1>
-            <Badge variant="secondary" className="mt-1">
-              {session.status}
-            </Badge>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary">
+                {session.status}
+              </Badge>
+              {isOnline ? (
+                <Wifi className="h-4 w-4" />
+              ) : (
+                <WifiOff className="h-4 w-4 text-yellow-300" />
+              )}
+              {pendingSync > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {pendingSync} pending
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
         <Button 
@@ -455,6 +493,21 @@ export default function DriverApp() {
         <MapView locations={mapLocations} />
       </div>
 
+      {/* Route Guidance */}
+      {selectedShipment && showRouteGuidance && (
+        <div className="m-4">
+          <RouteGuidance
+            destination={selectedShipment.to_location}
+            currentLocation={currentLocation}
+            destinationLocation={
+              selectedShipment.gps_latitude && selectedShipment.gps_longitude
+                ? { lat: selectedShipment.gps_latitude, lng: selectedShipment.gps_longitude }
+                : null
+            }
+          />
+        </div>
+      )}
+
       {/* Active Shipment Info */}
       {selectedShipment && (
         <Card className="m-4 p-4 space-y-3">
@@ -465,13 +518,6 @@ export default function DriverApp() {
             </div>
             <Badge>{selectedShipment.status}</Badge>
           </div>
-
-          {selectedShipment.eta && (
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>ETA: {new Date(selectedShipment.eta).toLocaleTimeString()}</span>
-            </div>
-          )}
 
           <div className="grid grid-cols-2 gap-2 pt-2">
             <Button 
