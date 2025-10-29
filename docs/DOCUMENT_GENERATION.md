@@ -376,11 +376,15 @@ const { data } = await supabase.functions.invoke('generate-document', {
 
 ## Future Enhancements
 
+- [x] Document verification page with QR scanning
+- [x] Bulk document generation capabilities
+- [x] Enhanced QR scanner for documents
 - [ ] Blockchain-based document verification
 - [ ] Multi-language support for international compliance
 - [ ] Automated compliance checking
-- [ ] Batch document generation
 - [ ] Email/SMS document delivery
 - [ ] Digital signatures
 - [ ] Template designer UI
 - [ ] Advanced analytics dashboard
+- [ ] Document workflow automation
+- [ ] Integration with external ERP systems

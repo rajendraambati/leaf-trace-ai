@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { DocumentGenerator } from '@/components/DocumentGenerator';
+import { BulkDocumentGenerator } from '@/components/BulkDocumentGenerator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,8 @@ import {
   Download,
   Eye,
   Calendar,
-  Shield
+  Shield,
+  QrCode
 } from 'lucide-react';
 
 export default function DocumentManagement() {
@@ -101,14 +103,24 @@ export default function DocumentManagement() {
               Generate and manage TPD labels, manifests, invoices, and declarations
             </p>
           </div>
-          <Button 
-            onClick={() => navigate('/compliance-management')}
-            variant="outline"
-            className="gap-2"
-          >
-            <Shield className="h-4 w-4" />
-            Compliance Validation
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => navigate('/document-verification')}
+              variant="outline"
+              className="gap-2"
+            >
+              <QrCode className="h-4 w-4" />
+              Verify Document
+            </Button>
+            <Button 
+              onClick={() => navigate('/compliance-management')}
+              variant="outline"
+              className="gap-2"
+            >
+              <Shield className="h-4 w-4" />
+              Compliance Validation
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -162,11 +174,16 @@ export default function DocumentManagement() {
         <Tabs defaultValue="generate" className="space-y-6">
           <TabsList>
             <TabsTrigger value="generate">Generate Document</TabsTrigger>
+            <TabsTrigger value="bulk">Bulk Generation</TabsTrigger>
             <TabsTrigger value="recent">Recent Documents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="generate">
             <DocumentGenerator />
+          </TabsContent>
+
+          <TabsContent value="bulk">
+            <BulkDocumentGenerator />
           </TabsContent>
 
           <TabsContent value="recent" className="space-y-4">

@@ -1,14 +1,19 @@
 import { useState, useEffect, useRef } from "react";
-import { QrCode, CheckCircle2, Package, Truck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { QrCode, CheckCircle2, Package, Truck, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Html5Qrcode } from "html5-qrcode";
+import { parseBatchQRData, parseDocumentQRData } from "@/utils/qrcode";
 
 export default function QRScanner() {
+  const navigate = useNavigate();
   const [scanning, setScanning] = useState(false);
   const [scannedData, setScannedData] = useState<any>(null);
+  const [qrType, setQrType] = useState<'batch' | 'document' | null>(null);
   const [confirming, setConfirming] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
@@ -34,10 +39,32 @@ export default function QRScanner() {
         async (decodedText) => {
           try {
             const data = JSON.parse(decodedText);
-            setScannedData(data);
+            
+            // Determine QR code type
+            if (data.type === 'tobacco_batch') {
+              setQrType('batch');
+              setScannedData(data);
+              toast.success("Batch QR Code scanned!");
+            } else if (data.type === 'document_verification') {
+              setQrType('document');
+              setScannedData(data);
+              toast.success("Document QR Code scanned!");
+              
+              // Log the scan
+              await supabase.from('document_tracking').insert({
+                document_id: data.documentId,
+                qr_code: data.documentNumber,
+                scan_timestamp: new Date().toISOString(),
+                scan_location: 'Mobile Scanner'
+              });
+            } else {
+              setScannedData(data);
+              setQrType(null);
+              toast.success("QR Code scanned!");
+            }
+            
             scanner.stop();
             setScanning(false);
-            toast.success("QR Code scanned successfully!");
           } catch {
             toast.error("Invalid QR code format");
           }
@@ -81,11 +108,23 @@ export default function QRScanner() {
 
       toast.success("Delivery confirmed successfully!");
       setScannedData(null);
+      setQrType(null);
     } catch (error: any) {
       toast.error(error.message || "Failed to confirm delivery");
     } finally {
       setConfirming(false);
     }
+  };
+
+  const verifyDocument = () => {
+    if (scannedData?.documentNumber) {
+      navigate(`/document-verification?doc=${scannedData.documentNumber}`);
+    }
+  };
+
+  const resetScanner = () => {
+    setScannedData(null);
+    setQrType(null);
   };
 
   return (
@@ -95,7 +134,7 @@ export default function QRScanner() {
           <QrCode className="h-12 w-12 mx-auto text-primary mb-3" />
           <h1 className="text-2xl font-bold">QR Scanner</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Scan batch QR codes for delivery confirmation
+            Scan batch or document QR codes
           </p>
         </div>
 
@@ -131,7 +170,7 @@ export default function QRScanner() {
           </CardContent>
         </Card>
 
-        {scannedData && (
+        {scannedData && qrType === 'batch' && (
           <Card className="border-success/50 bg-success/5">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -173,7 +212,64 @@ export default function QRScanner() {
                 </Button>
 
                 <Button
-                  onClick={() => setScannedData(null)}
+                  onClick={resetScanner}
+                  variant="outline"
+                  className="w-full h-12 text-base"
+                >
+                  Scan Another
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {scannedData && qrType === 'document' && (
+          <Card className="border-success/50 bg-success/5">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-success" />
+                Scanned Document
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-background">
+                  <FileText className="h-8 w-8 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Document Number</p>
+                    <p className="font-semibold text-lg">{scannedData.documentNumber}</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-background">
+                  <p className="text-xs text-muted-foreground mb-1">Document Type</p>
+                  <Badge>{scannedData.documentType}</Badge>
+                </div>
+
+                <div className="p-3 rounded-lg bg-background">
+                  <p className="text-xs text-muted-foreground mb-1">Entity</p>
+                  <p className="text-sm font-medium">{scannedData.entityId}</p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-background">
+                  <p className="text-xs text-muted-foreground mb-1">Scanned At</p>
+                  <p className="text-sm font-medium">
+                    {new Date().toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Button
+                  onClick={verifyDocument}
+                  className="w-full h-12 text-base"
+                >
+                  <FileText className="h-5 w-5 mr-2" />
+                  Verify Document
+                </Button>
+
+                <Button
+                  onClick={resetScanner}
                   variant="outline"
                   className="w-full h-12 text-base"
                 >

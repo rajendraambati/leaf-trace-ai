@@ -44,6 +44,7 @@ import Serialization from "./pages/Serialization";
 import PredictiveAnalytics from "./pages/PredictiveAnalytics";
 import ComplianceManagement from "./pages/ComplianceManagement";
 import DocumentManagement from "./pages/DocumentManagement";
+import DocumentVerification from "./pages/DocumentVerification";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/predictive-analytics" element={<ProtectedRoute><Layout><PredictiveAnalytics /></Layout></ProtectedRoute>} />
             <Route path="/compliance-management" element={<ProtectedRoute><Layout><ComplianceManagement /></Layout></ProtectedRoute>} />
             <Route path="/document-management" element={<ProtectedRoute><Layout><DocumentManagement /></Layout></ProtectedRoute>} />
+            <Route path="/document-verification" element={<ProtectedRoute><Layout><DocumentVerification /></Layout></ProtectedRoute>} />
             <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
             <Route path="/install" element={<InstallApp />} />
             <Route path="/track" element={<TrackByPhone />} />
