@@ -49,6 +49,10 @@ import DocumentTemplates from "./pages/DocumentTemplates";
 import CountryManagement from "./pages/CountryManagement";
 import CustomerManagement from "./pages/CustomerManagement";
 import RegulatoryReporting from "./pages/RegulatoryReporting";
+import RetailerOnboarding from "./pages/RetailerOnboarding";
+import SalesRepTracking from "./pages/SalesRepTracking";
+import PromotionalCampaigns from "./pages/PromotionalCampaigns";
+import WholesalerSync from "./pages/WholesalerSync";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +103,10 @@ const App = () => (
             <Route path="/country-management" element={<ProtectedRoute><Layout><CountryManagement /></Layout></ProtectedRoute>} />
             <Route path="/customer-management" element={<ProtectedRoute><Layout><CustomerManagement /></Layout></ProtectedRoute>} />
             <Route path="/regulatory-reporting" element={<ProtectedRoute><Layout><RegulatoryReporting /></Layout></ProtectedRoute>} />
+            <Route path="/retailer-onboarding" element={<ProtectedRoute><Layout><RetailerOnboarding /></Layout></ProtectedRoute>} />
+            <Route path="/sales-rep-tracking" element={<ProtectedRoute><Layout><SalesRepTracking /></Layout></ProtectedRoute>} />
+            <Route path="/promotional-campaigns" element={<ProtectedRoute><Layout><PromotionalCampaigns /></Layout></ProtectedRoute>} />
+            <Route path="/wholesaler-sync" element={<ProtectedRoute><Layout><WholesalerSync /></Layout></ProtectedRoute>} />
             <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
             <Route path="/install" element={<InstallApp />} />
             <Route path="/track" element={<TrackByPhone />} />
