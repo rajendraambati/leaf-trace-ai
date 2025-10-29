@@ -107,3 +107,19 @@ verify_jwt = true
 
 [functions.unified-assistant]
 verify_jwt = true
+
+[functions.text-to-speech]
+verify_jwt = true
+
+[functions.generate-document-pdf]
+verify_jwt = true
+
+[functions.auto-generate-documents]
+verify_jwt = true
+
+[functions.wholesaler-erp-sync]
+verify_jwt = true
+
+[functions.submit-compliance-report]
+verify_jwt = true
+

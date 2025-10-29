@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Send, X, Loader2, Trash2, Download } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Mic, MicOff, Send, X, Loader2, Trash2, Download, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DispatcherVoiceAssistant } from '@/utils/DispatcherVoiceAssistant';
@@ -31,7 +33,9 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceResponseEnabled, setVoiceResponseEnabled] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const voiceAssistantRef = useRef<DispatcherVoiceAssistant | null>(null);
 
@@ -73,6 +77,16 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Cleanup audio on unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   const handleMessage = (event: any) => {
     console.log('Voice event:', event.type);
@@ -143,6 +157,46 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
     setIsSpeaking(false);
   };
 
+  const playTextToSpeech = async (text: string) => {
+    if (!voiceResponseEnabled) return;
+
+    try {
+      setIsSpeaking(true);
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text, voice: 'alloy' }
+      });
+
+      if (error) throw error;
+
+      // Convert base64 to audio blob
+      const binaryString = atob(data.audioContent);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'audio/mp3' });
+      const url = URL.createObjectURL(blob);
+
+      // Play audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      audioRef.current = new Audio(url);
+      audioRef.current.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(url);
+      };
+      audioRef.current.onerror = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(url);
+      };
+      await audioRef.current.play();
+    } catch (error) {
+      console.error('Text-to-speech error:', error);
+      setIsSpeaking(false);
+    }
+  };
+
   const sendTextMessage = async () => {
     if (!input.trim()) return;
 
@@ -153,17 +207,18 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = input;
     setInput('');
     setIsLoading(true);
 
     try {
       // Try voice assistant first if active
       if (isVoiceActive && voiceAssistantRef.current) {
-        await voiceAssistantRef.current.sendTextMessage(input);
+        await voiceAssistantRef.current.sendTextMessage(messageText);
       } else {
         // Fallback to text API
         const { data, error } = await supabase.functions.invoke('unified-assistant', {
-          body: { message: input, userRole }
+          body: { message: messageText, userRole }
         });
 
         if (error) throw error;
@@ -175,6 +230,11 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
         };
 
         setMessages(prev => [...prev, assistantMessage]);
+
+        // Play voice response if enabled
+        if (voiceResponseEnabled) {
+          await playTextToSpeech(data.reply);
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -241,6 +301,16 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
            'Warehouse'} Assistant
         </CardTitle>
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mr-2">
+            <Switch
+              id="voice-response"
+              checked={voiceResponseEnabled}
+              onCheckedChange={setVoiceResponseEnabled}
+            />
+            <Label htmlFor="voice-response" className="text-xs cursor-pointer">
+              {voiceResponseEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
+            </Label>
+          </div>
           {isVoiceActive && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
