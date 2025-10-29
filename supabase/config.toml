@@ -80,3 +80,9 @@ verify_jwt = true
 
 [functions.dispatcher-assistant-text]
 verify_jwt = true
+
+[functions.serialization-management]
+verify_jwt = true
+
+[functions.compliance-sync]
+verify_jwt = true

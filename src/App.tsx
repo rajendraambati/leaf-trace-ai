@@ -40,6 +40,7 @@ import DriverApp from "./pages/DriverApp";
 import InstallApp from "./pages/InstallApp";
 import TrackByPhone from "./pages/TrackByPhone";
 import DispatcherDashboard from "./pages/DispatcherDashboard";
+import Serialization from "./pages/Serialization";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ const App = () => (
             <Route path="/erp-integration" element={<ProtectedRoute><Layout><ERPIntegration /></Layout></ProtectedRoute>} />
             <Route path="/ai-vehicle-tracking" element={<ProtectedRoute><Layout><AIVehicleTracking /></Layout></ProtectedRoute>} />
             <Route path="/dispatcher" element={<ProtectedRoute><Layout><DispatcherDashboard /></Layout></ProtectedRoute>} />
+            <Route path="/serialization" element={<ProtectedRoute><Layout><Serialization /></Layout></ProtectedRoute>} />
             <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
             <Route path="/install" element={<InstallApp />} />
             <Route path="/track" element={<TrackByPhone />} />
