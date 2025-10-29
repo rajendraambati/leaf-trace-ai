@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Layout from '@/components/Layout';
-import { FileText, BarChart3, FileStack } from 'lucide-react';
+import { FileText, BarChart3, FileStack, MessageSquare } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useRegulatoryReporting } from '@/hooks/useRegulatoryReporting';
 import ReportingStats from '@/components/regulatory/ReportingStats';
 import ReportSubmissionForm from '@/components/regulatory/ReportSubmissionForm';
@@ -9,9 +10,11 @@ import ReportsList from '@/components/regulatory/ReportsList';
 import ReportAnalytics from '@/components/regulatory/ReportAnalytics';
 import BulkReportGenerator from '@/components/regulatory/BulkReportGenerator';
 import ReportExporter from '@/components/regulatory/ReportExporter';
+import { UnifiedAssistant } from '@/components/UnifiedAssistant';
 
 export default function RegulatoryReporting() {
   const [activeTab, setActiveTab] = useState('reports');
+  const [showAssistant, setShowAssistant] = useState(false);
   const {
     authorities,
     reports,
@@ -41,8 +44,27 @@ export default function RegulatoryReporting() {
               Submit compliance reports to regulatory authorities
             </p>
           </div>
-          <ReportExporter reports={reports || []} />
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowAssistant(!showAssistant)}
+              variant="outline"
+              className="gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              {showAssistant ? 'Hide' : 'Show'} Assistant
+            </Button>
+            <ReportExporter reports={reports || []} />
+          </div>
         </div>
+
+        {showAssistant && (
+          <div className="mb-6">
+            <UnifiedAssistant 
+              userRole="compliance_officer" 
+              onClose={() => setShowAssistant(false)}
+            />
+          </div>
+        )}
 
         <ReportingStats stats={reportStats} />
 

@@ -13,7 +13,7 @@ import { TripCard } from '@/components/dispatcher/TripCard';
 import { VehicleCard } from '@/components/dispatcher/VehicleCard';
 import { DriverWellbeingCard } from '@/components/dispatcher/DriverWellbeingCard';
 import { LiveAlertsPanel } from '@/components/dispatcher/LiveAlertsPanel';
-import { DispatcherAssistant } from '@/components/dispatcher/DispatcherAssistant';
+import { UnifiedAssistant } from '@/components/UnifiedAssistant';
 
 export default function DispatcherDashboard() {
   const [showAssistant, setShowAssistant] = useState(false);
@@ -123,7 +123,12 @@ export default function DispatcherDashboard() {
 
       {/* AI Assistant */}
       {showAssistant && (
-        <DispatcherAssistant onClose={() => setShowAssistant(false)} />
+        <div className="fixed bottom-20 right-8 z-50 shadow-2xl">
+          <UnifiedAssistant 
+            userRole="dispatcher" 
+            onClose={() => setShowAssistant(false)} 
+          />
+        </div>
       )}
 
       <LiveAlertsPanel />

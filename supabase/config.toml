@@ -104,3 +104,6 @@ verify_jwt = true
 
 [functions.generate-document]
 verify_jwt = true
+
+[functions.unified-assistant]
+verify_jwt = true
