@@ -88,6 +88,24 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
     };
   }, []);
 
+  useEffect(() => {
+    // Keyboard shortcuts
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + K to toggle assistant (when onClose is provided)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && onClose) {
+        e.preventDefault();
+        onClose();
+      }
+      // Escape to close
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const handleMessage = (event: any) => {
     console.log('Voice event:', event.type);
     
@@ -292,14 +310,19 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-xl font-semibold">
-          {userRole === 'dispatcher' ? 'Dispatcher' : 
-           userRole === 'compliance_officer' ? 'Compliance' :
-           userRole === 'document_manager' ? 'Document' :
-           'Warehouse'} Assistant
-        </CardTitle>
+    <Card className="w-full max-w-2xl mx-auto shadow-2xl border-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+        <div>
+          <CardTitle className="text-xl font-semibold">
+            {userRole === 'dispatcher' ? 'Dispatcher' : 
+             userRole === 'compliance_officer' ? 'Compliance' :
+             userRole === 'document_manager' ? 'Document' :
+             'Warehouse'} Assistant
+          </CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Press <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Esc</kbd> to close
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 mr-2">
             <Switch
@@ -401,7 +424,9 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
                 <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
                   <div className="bg-muted rounded-lg px-4 py-3 flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                    <span className="text-sm text-muted-foreground">
+                      {isVoiceActive ? 'Listening...' : 'Thinking...'}
+                    </span>
                   </div>
                 </div>
               )}

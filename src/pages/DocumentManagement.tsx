@@ -7,6 +7,7 @@ import { DocumentAnalytics } from '@/components/DocumentAnalytics';
 import { AutoGenerationSettings } from '@/components/AutoGenerationSettings';
 import { DocumentScheduler } from '@/components/DocumentScheduler';
 import { FloatingAssistant } from '@/components/FloatingAssistant';
+import { AssistantWelcome } from '@/components/AssistantWelcome';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -135,6 +136,9 @@ export default function DocumentManagement() {
             </Button>
           </div>
         </div>
+
+        {/* Assistant Welcome Card */}
+        <AssistantWelcome />
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
