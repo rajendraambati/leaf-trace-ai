@@ -46,6 +46,9 @@ import ComplianceManagement from "./pages/ComplianceManagement";
 import DocumentManagement from "./pages/DocumentManagement";
 import DocumentVerification from "./pages/DocumentVerification";
 import DocumentTemplates from "./pages/DocumentTemplates";
+import CountryManagement from "./pages/CountryManagement";
+import CustomerManagement from "./pages/CustomerManagement";
+import RegulatoryReporting from "./pages/RegulatoryReporting";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +96,9 @@ const App = () => (
             <Route path="/document-management" element={<ProtectedRoute><Layout><DocumentManagement /></Layout></ProtectedRoute>} />
             <Route path="/document-verification" element={<ProtectedRoute><Layout><DocumentVerification /></Layout></ProtectedRoute>} />
             <Route path="/document-templates" element={<ProtectedRoute><Layout><DocumentTemplates /></Layout></ProtectedRoute>} />
+            <Route path="/country-management" element={<ProtectedRoute><Layout><CountryManagement /></Layout></ProtectedRoute>} />
+            <Route path="/customer-management" element={<ProtectedRoute><Layout><CustomerManagement /></Layout></ProtectedRoute>} />
+            <Route path="/regulatory-reporting" element={<ProtectedRoute><Layout><RegulatoryReporting /></Layout></ProtectedRoute>} />
             <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
             <Route path="/install" element={<InstallApp />} />
             <Route path="/track" element={<TrackByPhone />} />

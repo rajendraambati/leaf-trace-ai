@@ -452,6 +452,125 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_reports: {
+        Row: {
+          acknowledgment_number: string | null
+          authority_id: string | null
+          country_id: string | null
+          created_at: string | null
+          id: string
+          report_data: Json
+          report_number: string
+          report_period_end: string
+          report_period_start: string
+          report_type: string
+          response_data: Json | null
+          submission_status: string | null
+          submitted_at: string | null
+          submitted_by: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          acknowledgment_number?: string | null
+          authority_id?: string | null
+          country_id?: string | null
+          created_at?: string | null
+          id?: string
+          report_data?: Json
+          report_number: string
+          report_period_end: string
+          report_period_start: string
+          report_type: string
+          response_data?: Json | null
+          submission_status?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          acknowledgment_number?: string | null
+          authority_id?: string | null
+          country_id?: string | null
+          created_at?: string | null
+          id?: string
+          report_data?: Json
+          report_number?: string
+          report_period_end?: string
+          report_period_start?: string
+          report_type?: string
+          response_data?: Json | null
+          submission_status?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_reports_authority_id_fkey"
+            columns: ["authority_id"]
+            isOneToOne: false
+            referencedRelation: "reporting_authorities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_reports_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_rules: {
+        Row: {
+          country_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_mandatory: boolean | null
+          rule_config: Json
+          rule_description: string | null
+          rule_name: string
+          rule_type: string
+          severity: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          country_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_mandatory?: boolean | null
+          rule_config?: Json
+          rule_description?: string | null
+          rule_name: string
+          rule_type: string
+          severity?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          country_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_mandatory?: boolean | null
+          rule_config?: Json
+          rule_description?: string | null
+          rule_name?: string
+          rule_type?: string
+          severity?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_rules_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_sync_logs: {
         Row: {
           created_at: string | null
@@ -541,6 +660,247 @@ export type Database = {
           validation_type?: string
         }
         Relationships: []
+      }
+      countries: {
+        Row: {
+          code: string
+          compliance_framework: string | null
+          created_at: string | null
+          currency: string | null
+          hs_code_prefix: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          region: string | null
+          regulatory_authority: string | null
+          reporting_endpoint: string | null
+          tax_rate: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          compliance_framework?: string | null
+          created_at?: string | null
+          currency?: string | null
+          hs_code_prefix?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          region?: string | null
+          regulatory_authority?: string | null
+          reporting_endpoint?: string | null
+          tax_rate?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          compliance_framework?: string | null
+          created_at?: string | null
+          currency?: string | null
+          hs_code_prefix?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          region?: string | null
+          regulatory_authority?: string | null
+          reporting_endpoint?: string | null
+          tax_rate?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      country_document_templates: {
+        Row: {
+          compliance_fields: Json | null
+          country_id: string | null
+          created_at: string | null
+          document_type: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          template_config: Json
+          template_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          compliance_fields?: Json | null
+          country_id?: string | null
+          created_at?: string | null
+          document_type: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          template_config?: Json
+          template_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          compliance_fields?: Json | null
+          country_id?: string | null
+          created_at?: string | null
+          document_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          template_config?: Json
+          template_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "country_document_templates_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_orders: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          customer_id: string | null
+          delivery_date: string | null
+          id: string
+          order_date: string
+          order_items: Json | null
+          order_number: string
+          order_status: string | null
+          payment_status: string | null
+          shipping_address: string | null
+          special_instructions: string | null
+          target_market_id: string | null
+          total_amount: number
+          total_quantity_kg: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          customer_id?: string | null
+          delivery_date?: string | null
+          id?: string
+          order_date: string
+          order_items?: Json | null
+          order_number: string
+          order_status?: string | null
+          payment_status?: string | null
+          shipping_address?: string | null
+          special_instructions?: string | null
+          target_market_id?: string | null
+          total_amount: number
+          total_quantity_kg: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          customer_id?: string | null
+          delivery_date?: string | null
+          id?: string
+          order_date?: string
+          order_items?: Json | null
+          order_number?: string
+          order_status?: string | null
+          payment_status?: string | null
+          shipping_address?: string | null
+          special_instructions?: string | null
+          target_market_id?: string | null
+          total_amount?: number
+          total_quantity_kg?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_orders_target_market_id_fkey"
+            columns: ["target_market_id"]
+            isOneToOne: false
+            referencedRelation: "target_markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          city: string | null
+          company_name: string
+          contact_person: string | null
+          country_id: string | null
+          created_at: string | null
+          credit_limit: number | null
+          customer_code: string
+          customer_type: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          payment_terms: string | null
+          phone: string | null
+          postal_code: string | null
+          state: string | null
+          tax_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          company_name: string
+          contact_person?: string | null
+          country_id?: string | null
+          created_at?: string | null
+          credit_limit?: number | null
+          customer_code: string
+          customer_type?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          payment_terms?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          company_name?: string
+          contact_person?: string | null
+          country_id?: string | null
+          created_at?: string | null
+          credit_limit?: number | null
+          customer_code?: string
+          customer_type?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          payment_terms?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delivery_confirmations: {
         Row: {
@@ -2366,6 +2726,71 @@ export type Database = {
           },
         ]
       }
+      reporting_authorities: {
+        Row: {
+          api_key_name: string | null
+          authentication_method: string | null
+          authority_code: string
+          authority_name: string
+          authority_type: string
+          country_id: string | null
+          created_at: string | null
+          endpoint_url: string | null
+          id: string
+          is_active: boolean | null
+          last_report_date: string | null
+          next_report_date: string | null
+          report_format: string | null
+          reporting_frequency: string | null
+          required_fields: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_key_name?: string | null
+          authentication_method?: string | null
+          authority_code: string
+          authority_name: string
+          authority_type: string
+          country_id?: string | null
+          created_at?: string | null
+          endpoint_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_report_date?: string | null
+          next_report_date?: string | null
+          report_format?: string | null
+          reporting_frequency?: string | null
+          required_fields?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_key_name?: string | null
+          authentication_method?: string | null
+          authority_code?: string
+          authority_name?: string
+          authority_type?: string
+          country_id?: string | null
+          created_at?: string | null
+          endpoint_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_report_date?: string | null
+          next_report_date?: string | null
+          report_format?: string | null
+          reporting_frequency?: string | null
+          required_fields?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reporting_authorities_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rework_actions: {
         Row: {
           after_metadata: Json | null
@@ -2870,6 +3295,65 @@ export type Database = {
             columns: ["to_warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      target_markets: {
+        Row: {
+          compliance_requirements: Json | null
+          country_id: string | null
+          created_at: string | null
+          current_volume_kg: number | null
+          distribution_channels: Json | null
+          id: string
+          is_active: boolean | null
+          market_name: string
+          market_segment: string | null
+          market_share_percentage: number | null
+          pricing_strategy: string | null
+          primary_products: Json | null
+          target_volume_kg: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          compliance_requirements?: Json | null
+          country_id?: string | null
+          created_at?: string | null
+          current_volume_kg?: number | null
+          distribution_channels?: Json | null
+          id?: string
+          is_active?: boolean | null
+          market_name: string
+          market_segment?: string | null
+          market_share_percentage?: number | null
+          pricing_strategy?: string | null
+          primary_products?: Json | null
+          target_volume_kg?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          compliance_requirements?: Json | null
+          country_id?: string | null
+          created_at?: string | null
+          current_volume_kg?: number | null
+          distribution_channels?: Json | null
+          id?: string
+          is_active?: boolean | null
+          market_name?: string
+          market_segment?: string | null
+          market_share_percentage?: number | null
+          pricing_strategy?: string | null
+          primary_products?: Json | null
+          target_volume_kg?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "target_markets_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
             referencedColumns: ["id"]
           },
         ]
