@@ -4,6 +4,8 @@ import Layout from '@/components/Layout';
 import { DocumentGenerator } from '@/components/DocumentGenerator';
 import { BulkDocumentGenerator } from '@/components/BulkDocumentGenerator';
 import { DocumentAnalytics } from '@/components/DocumentAnalytics';
+import { AutoGenerationSettings } from '@/components/AutoGenerationSettings';
+import { DocumentScheduler } from '@/components/DocumentScheduler';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -185,6 +187,7 @@ export default function DocumentManagement() {
           <TabsList>
             <TabsTrigger value="generate">Generate Document</TabsTrigger>
             <TabsTrigger value="bulk">Bulk Generation</TabsTrigger>
+            <TabsTrigger value="automation">Automation</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="recent">Recent Documents</TabsTrigger>
           </TabsList>
@@ -195,6 +198,11 @@ export default function DocumentManagement() {
 
           <TabsContent value="bulk">
             <BulkDocumentGenerator />
+          </TabsContent>
+
+          <TabsContent value="automation" className="space-y-6">
+            <AutoGenerationSettings />
+            <DocumentScheduler />
           </TabsContent>
 
           <TabsContent value="analytics">
