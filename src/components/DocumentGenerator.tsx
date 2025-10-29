@@ -109,6 +109,86 @@ export function DocumentGenerator({ entityId: initialEntityId, entityType: initi
     }
   };
 
+  const handleDownloadPDF = async () => {
+    if (!generatedDocument) return;
+
+    try {
+      const { 
+        generateTPDLabelPDF, 
+        generateDispatchManifestPDF, 
+        generateInvoicePDF,
+        generateCustomsDeclarationPDF 
+      } = await import('@/utils/pdfGenerator');
+      
+      const docData = { ...generatedDocument.document_data, qr_code_data: qrCodeData };
+
+      switch (generatedDocument.document_type) {
+        case 'tpd_label':
+          await generateTPDLabelPDF(docData);
+          break;
+        case 'dispatch_manifest':
+          await generateDispatchManifestPDF(docData);
+          break;
+        case 'invoice':
+          await generateInvoicePDF(docData);
+          break;
+        case 'customs_declaration':
+          await generateCustomsDeclarationPDF(docData);
+          break;
+        default:
+          toast({
+            title: "Unsupported Format",
+            description: "PDF generation not available for this document type",
+            variant: "destructive",
+          });
+      }
+
+      toast({
+        title: "PDF Downloaded",
+        description: "Document PDF has been generated successfully",
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePrintDocument = () => {
+    if (!generatedDocument) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print Document - ${generatedDocument.document_number}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { text-align: center; }
+              .info { margin: 10px 0; }
+              .label { font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h1>${documentTypes.find(d => d.value === generatedDocument.document_type)?.label}</h1>
+            <div class="info"><span class="label">Document Number:</span> ${generatedDocument.document_number}</div>
+            <div class="info"><span class="label">Status:</span> ${generatedDocument.status}</div>
+            <div class="info"><span class="label">Entity:</span> ${generatedDocument.entity_type}: ${generatedDocument.entity_id}</div>
+            <div class="info"><span class="label">Generated:</span> ${new Date(generatedDocument.created_at).toLocaleString()}</div>
+            <hr/>
+            <pre>${JSON.stringify(generatedDocument.document_data, null, 2)}</pre>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   const SelectedIcon = documentTypes.find(d => d.value === documentType)?.icon || FileText;
 
   return (
@@ -252,11 +332,11 @@ export function DocumentGenerator({ entityId: initialEntityId, entityType: initi
             )}
 
             <div className="flex gap-2">
-              <Button className="flex-1" variant="outline">
+              <Button className="flex-1" variant="outline" onClick={handleDownloadPDF}>
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
               </Button>
-              <Button className="flex-1" variant="outline">
+              <Button className="flex-1" variant="outline" onClick={handlePrintDocument}>
                 <FileText className="mr-2 h-4 w-4" />
                 Print Document
               </Button>
