@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { DocumentGenerator } from '@/components/DocumentGenerator';
 import { BulkDocumentGenerator } from '@/components/BulkDocumentGenerator';
+import { DocumentAnalytics } from '@/components/DocumentAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,8 @@ import {
   Eye,
   Calendar,
   Shield,
-  QrCode
+  QrCode,
+  Settings
 } from 'lucide-react';
 
 export default function DocumentManagement() {
@@ -105,6 +107,14 @@ export default function DocumentManagement() {
           </div>
           <div className="flex gap-2">
             <Button 
+              onClick={() => navigate('/document-templates')}
+              variant="outline"
+              className="gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Templates
+            </Button>
+            <Button 
               onClick={() => navigate('/document-verification')}
               variant="outline"
               className="gap-2"
@@ -175,6 +185,7 @@ export default function DocumentManagement() {
           <TabsList>
             <TabsTrigger value="generate">Generate Document</TabsTrigger>
             <TabsTrigger value="bulk">Bulk Generation</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="recent">Recent Documents</TabsTrigger>
           </TabsList>
 
@@ -184,6 +195,10 @@ export default function DocumentManagement() {
 
           <TabsContent value="bulk">
             <BulkDocumentGenerator />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <DocumentAnalytics />
           </TabsContent>
 
           <TabsContent value="recent" className="space-y-4">
