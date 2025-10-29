@@ -109,7 +109,7 @@ export default function DispatcherDashboard() {
       </Tabs>
       </div>
 
-      <FloatingAssistant userRole="dispatcher" />
+      <FloatingAssistant userRole="dispatcher" pageContext="dispatcher-dashboard" />
       <LiveAlertsPanel />
     </>
   );

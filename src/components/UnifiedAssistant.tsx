@@ -30,18 +30,27 @@ interface SuggestedQuery {
   icon: string;
 }
 
+interface ProactiveSuggestion {
+  type: 'info' | 'warning' | 'alert';
+  title: string;
+  message: string;
+  query: string;
+}
+
 interface UnifiedAssistantProps {
   userRole: 'dispatcher' | 'compliance_officer' | 'document_manager' | 'warehouse_manager';
   onClose?: () => void;
+  pageContext?: string;
 }
 
-export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
+export function UnifiedAssistant({ userRole, onClose, pageContext }: UnifiedAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceResponseEnabled, setVoiceResponseEnabled] = useState(false);
+  const [proactiveSuggestions, setProactiveSuggestions] = useState<ProactiveSuggestion[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
@@ -85,6 +94,25 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Load proactive suggestions
+    const loadSuggestions = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('get-proactive-suggestions', {
+          body: { userRole, pageContext }
+        });
+        
+        if (data?.suggestions) {
+          setProactiveSuggestions(data.suggestions);
+        }
+      } catch (error) {
+        console.error('Failed to load proactive suggestions:', error);
+      }
+    };
+
+    loadSuggestions();
+  }, [userRole, pageContext]);
 
   useEffect(() => {
     // Cleanup audio on unmount
@@ -323,11 +351,26 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
     }, 100);
   };
 
-  const clearConversation = () => {
+  const clearConversation = async () => {
+    // Save conversation before clearing
+    if (messages.length > 0) {
+      try {
+        await supabase.functions.invoke('save-conversation', {
+          body: { 
+            messages, 
+            userRole,
+            pageContext: pageContext || 'unknown'
+          }
+        });
+      } catch (error) {
+        console.error('Failed to save conversation:', error);
+      }
+    }
+
     setMessages([]);
     toast({
       title: "Conversation cleared",
-      description: "All messages have been removed",
+      description: "Previous conversation has been saved",
     });
   };
 
@@ -425,6 +468,28 @@ export function UnifiedAssistant({ userRole, onClose }: UnifiedAssistantProps) {
                   <p className="font-medium mb-2">How can I help you today?</p>
                   <p className="text-sm">Try these quick actions:</p>
                 </div>
+
+                {/* Proactive Suggestions */}
+                {proactiveSuggestions.length > 0 && (
+                  <div className="w-full max-w-md space-y-2 mb-4">
+                    <p className="text-xs font-semibold text-left">⚡ Smart Suggestions</p>
+                    {proactiveSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSuggestedQuery(suggestion.query)}
+                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                          suggestion.type === 'alert' ? 'border-red-500/50 bg-red-50 dark:bg-red-950/20' :
+                          suggestion.type === 'warning' ? 'border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20' :
+                          'border-blue-500/50 bg-blue-50 dark:bg-blue-950/20'
+                        } hover:bg-muted`}
+                      >
+                        <p className="font-medium text-sm">{suggestion.title}</p>
+                        <p className="text-xs text-muted-foreground">{suggestion.message}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <div className="grid gap-2 w-full max-w-md">
                   {suggestedQueries.map((sq, idx) => (
                     <button

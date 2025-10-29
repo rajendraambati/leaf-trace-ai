@@ -114,6 +114,12 @@ verify_jwt = true
 [functions.assistant-actions]
 verify_jwt = true
 
+[functions.save-conversation]
+verify_jwt = true
+
+[functions.get-proactive-suggestions]
+verify_jwt = true
+
 [functions.generate-document-pdf]
 verify_jwt = true
 
