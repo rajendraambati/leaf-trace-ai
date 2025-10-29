@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      aggregation_relationships: {
+        Row: {
+          aggregated_by: string | null
+          aggregation_date: string | null
+          child_serial: string
+          created_at: string | null
+          disaggregated_by: string | null
+          disaggregation_date: string | null
+          id: string
+          notes: string | null
+          parent_serial: string
+          status: string | null
+        }
+        Insert: {
+          aggregated_by?: string | null
+          aggregation_date?: string | null
+          child_serial: string
+          created_at?: string | null
+          disaggregated_by?: string | null
+          disaggregation_date?: string | null
+          id?: string
+          notes?: string | null
+          parent_serial: string
+          status?: string | null
+        }
+        Update: {
+          aggregated_by?: string | null
+          aggregation_date?: string | null
+          child_serial?: string
+          created_at?: string | null
+          disaggregated_by?: string | null
+          disaggregation_date?: string | null
+          id?: string
+          notes?: string | null
+          parent_serial?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       ai_gradings: {
         Row: {
           ai_grade: string | null
@@ -362,6 +401,51 @@ export type Database = {
           issuer?: string
           name?: string
           status?: string | null
+        }
+        Relationships: []
+      }
+      compliance_sync_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          initiated_by: string | null
+          request_payload: Json | null
+          response_payload: Json | null
+          serial_numbers: string[]
+          status: string | null
+          sync_completed_at: string | null
+          sync_direction: string
+          sync_started_at: string | null
+          sync_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          initiated_by?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          serial_numbers: string[]
+          status?: string | null
+          sync_completed_at?: string | null
+          sync_direction: string
+          sync_started_at?: string | null
+          sync_type: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          initiated_by?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          serial_numbers?: string[]
+          status?: string | null
+          sync_completed_at?: string | null
+          sync_direction?: string
+          sync_started_at?: string | null
+          sync_type?: string
         }
         Relationships: []
       }
@@ -1215,8 +1299,12 @@ export type Database = {
           procurement_date: string | null
           qr_code: string | null
           quantity_kg: number
+          serialization_completed_at: string | null
+          serialization_enabled: boolean | null
+          serialization_started_at: string | null
           status: string | null
           total_price: number | null
+          total_units_serialized: number | null
           updated_at: string | null
         }
         Insert: {
@@ -1233,8 +1321,12 @@ export type Database = {
           procurement_date?: string | null
           qr_code?: string | null
           quantity_kg: number
+          serialization_completed_at?: string | null
+          serialization_enabled?: boolean | null
+          serialization_started_at?: string | null
           status?: string | null
           total_price?: number | null
+          total_units_serialized?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -1251,8 +1343,12 @@ export type Database = {
           procurement_date?: string | null
           qr_code?: string | null
           quantity_kg?: number
+          serialization_completed_at?: string | null
+          serialization_enabled?: boolean | null
+          serialization_started_at?: string | null
           status?: string | null
           total_price?: number | null
+          total_units_serialized?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1351,6 +1447,60 @@ export type Database = {
           },
         ]
       }
+      rework_actions: {
+        Row: {
+          after_metadata: Json | null
+          approved_by: string | null
+          before_metadata: Json | null
+          created_at: string | null
+          id: string
+          new_parent_serial: string | null
+          new_status: string | null
+          notes: string | null
+          original_parent_serial: string | null
+          original_status: string | null
+          performed_by: string | null
+          reason: string
+          rework_date: string | null
+          rework_type: string
+          serial_number: string
+        }
+        Insert: {
+          after_metadata?: Json | null
+          approved_by?: string | null
+          before_metadata?: Json | null
+          created_at?: string | null
+          id?: string
+          new_parent_serial?: string | null
+          new_status?: string | null
+          notes?: string | null
+          original_parent_serial?: string | null
+          original_status?: string | null
+          performed_by?: string | null
+          reason: string
+          rework_date?: string | null
+          rework_type: string
+          serial_number: string
+        }
+        Update: {
+          after_metadata?: Json | null
+          approved_by?: string | null
+          before_metadata?: Json | null
+          created_at?: string | null
+          id?: string
+          new_parent_serial?: string | null
+          new_status?: string | null
+          notes?: string | null
+          original_parent_serial?: string | null
+          original_status?: string | null
+          performed_by?: string | null
+          reason?: string
+          rework_date?: string | null
+          rework_type?: string
+          serial_number?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           action: string
@@ -1426,6 +1576,163 @@ export type Database = {
         }
         Relationships: []
       }
+      serial_movements: {
+        Row: {
+          created_at: string | null
+          from_location: string | null
+          from_location_type: string | null
+          gps_latitude: number | null
+          gps_longitude: number | null
+          id: string
+          metadata: Json | null
+          movement_type: string
+          notes: string | null
+          serial_number: string
+          shipment_id: string | null
+          timestamp: string | null
+          to_location: string | null
+          to_location_type: string | null
+          user_id: string | null
+          warehouse_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          from_location?: string | null
+          from_location_type?: string | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          metadata?: Json | null
+          movement_type: string
+          notes?: string | null
+          serial_number: string
+          shipment_id?: string | null
+          timestamp?: string | null
+          to_location?: string | null
+          to_location_type?: string | null
+          user_id?: string | null
+          warehouse_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          from_location?: string | null
+          from_location_type?: string | null
+          gps_latitude?: number | null
+          gps_longitude?: number | null
+          id?: string
+          metadata?: Json | null
+          movement_type?: string
+          notes?: string | null
+          serial_number?: string
+          shipment_id?: string | null
+          timestamp?: string | null
+          to_location?: string | null
+          to_location_type?: string | null
+          user_id?: string | null
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "serial_movements_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "serial_movements_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      serialized_units: {
+        Row: {
+          batch_id: string | null
+          created_at: string | null
+          current_location: string | null
+          current_location_type: string | null
+          current_shipment_id: string | null
+          current_warehouse_id: string | null
+          eu_tpd_id: string | null
+          expiry_date: string | null
+          gcc_traceability_id: string | null
+          id: string
+          manufacturing_date: string | null
+          metadata: Json | null
+          parent_serial: string | null
+          product_code: string
+          serial_number: string
+          status: string | null
+          unit_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string | null
+          current_location?: string | null
+          current_location_type?: string | null
+          current_shipment_id?: string | null
+          current_warehouse_id?: string | null
+          eu_tpd_id?: string | null
+          expiry_date?: string | null
+          gcc_traceability_id?: string | null
+          id?: string
+          manufacturing_date?: string | null
+          metadata?: Json | null
+          parent_serial?: string | null
+          product_code: string
+          serial_number: string
+          status?: string | null
+          unit_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string | null
+          current_location?: string | null
+          current_location_type?: string | null
+          current_shipment_id?: string | null
+          current_warehouse_id?: string | null
+          eu_tpd_id?: string | null
+          expiry_date?: string | null
+          gcc_traceability_id?: string | null
+          id?: string
+          manufacturing_date?: string | null
+          metadata?: Json | null
+          parent_serial?: string | null
+          product_code?: string
+          serial_number?: string
+          status?: string | null
+          unit_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "serialized_units_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "serialized_units_current_shipment_id_fkey"
+            columns: ["current_shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "serialized_units_current_warehouse_id_fkey"
+            columns: ["current_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipments: {
         Row: {
           actual_arrival: string | null
@@ -1452,6 +1759,10 @@ export type Database = {
           predictive_maintenance_alert: Json | null
           route: Json | null
           route_optimization_data: Json | null
+          serialization_verified: boolean | null
+          serialization_verified_at: string | null
+          serialization_verified_by: string | null
+          serialized_units: string[] | null
           status: string | null
           temperature_max: number | null
           temperature_min: number | null
@@ -1488,6 +1799,10 @@ export type Database = {
           predictive_maintenance_alert?: Json | null
           route?: Json | null
           route_optimization_data?: Json | null
+          serialization_verified?: boolean | null
+          serialization_verified_at?: string | null
+          serialization_verified_by?: string | null
+          serialized_units?: string[] | null
           status?: string | null
           temperature_max?: number | null
           temperature_min?: number | null
@@ -1524,6 +1839,10 @@ export type Database = {
           predictive_maintenance_alert?: Json | null
           route?: Json | null
           route_optimization_data?: Json | null
+          serialization_verified?: boolean | null
+          serialization_verified_at?: string | null
+          serialization_verified_by?: string | null
+          serialized_units?: string[] | null
           status?: string | null
           temperature_max?: number | null
           temperature_min?: number | null
