@@ -332,6 +332,57 @@ export type Database = {
           },
         ]
       }
+      campaign_participants: {
+        Row: {
+          campaign_id: string
+          created_at: string | null
+          enrollment_date: string | null
+          id: string
+          orders_count: number | null
+          retailer_id: string
+          status: string | null
+          total_discount_applied: number | null
+          total_purchases: number | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string | null
+          enrollment_date?: string | null
+          id?: string
+          orders_count?: number | null
+          retailer_id: string
+          status?: string | null
+          total_discount_applied?: number | null
+          total_purchases?: number | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string | null
+          enrollment_date?: string | null
+          id?: string
+          orders_count?: number | null
+          retailer_id?: string
+          status?: string | null
+          total_discount_applied?: number | null
+          total_purchases?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_participants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "promotional_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_participants_retailer_id_fkey"
+            columns: ["retailer_id"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_audits: {
         Row: {
           audit_date: string
@@ -2622,6 +2673,69 @@ export type Database = {
         }
         Relationships: []
       }
+      promotional_campaigns: {
+        Row: {
+          budget: number | null
+          campaign_code: string
+          campaign_name: string
+          campaign_type: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          discount_amount: number | null
+          discount_percentage: number | null
+          end_date: string
+          id: string
+          performance_data: Json | null
+          spent_amount: number | null
+          start_date: string
+          status: string | null
+          target_audience: string | null
+          terms_conditions: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          budget?: number | null
+          campaign_code: string
+          campaign_name: string
+          campaign_type: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          end_date: string
+          id?: string
+          performance_data?: Json | null
+          spent_amount?: number | null
+          start_date: string
+          status?: string | null
+          target_audience?: string | null
+          terms_conditions?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          budget?: number | null
+          campaign_code?: string
+          campaign_name?: string
+          campaign_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          end_date?: string
+          id?: string
+          performance_data?: Json | null
+          spent_amount?: number | null
+          start_date?: string
+          status?: string | null
+          target_audience?: string | null
+          terms_conditions?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       regulatory_reports: {
         Row: {
           created_at: string | null
@@ -2791,6 +2905,183 @@ export type Database = {
           },
         ]
       }
+      retailer_orders: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          delivery_date: string | null
+          erp_order_id: string | null
+          erp_synced_at: string | null
+          id: string
+          order_date: string
+          order_items: Json
+          order_number: string
+          order_status: string | null
+          payment_status: string | null
+          retailer_id: string
+          sales_rep_id: string | null
+          shipping_address: string | null
+          special_instructions: string | null
+          total_amount: number
+          total_quantity_kg: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          delivery_date?: string | null
+          erp_order_id?: string | null
+          erp_synced_at?: string | null
+          id?: string
+          order_date?: string
+          order_items?: Json
+          order_number: string
+          order_status?: string | null
+          payment_status?: string | null
+          retailer_id: string
+          sales_rep_id?: string | null
+          shipping_address?: string | null
+          special_instructions?: string | null
+          total_amount: number
+          total_quantity_kg: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          delivery_date?: string | null
+          erp_order_id?: string | null
+          erp_synced_at?: string | null
+          id?: string
+          order_date?: string
+          order_items?: Json
+          order_number?: string
+          order_status?: string | null
+          payment_status?: string | null
+          retailer_id?: string
+          sales_rep_id?: string | null
+          shipping_address?: string | null
+          special_instructions?: string | null
+          total_amount?: number
+          total_quantity_kg?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retailer_orders_retailer_id_fkey"
+            columns: ["retailer_id"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retailer_orders_sales_rep_id_fkey"
+            columns: ["sales_rep_id"]
+            isOneToOne: false
+            referencedRelation: "sales_representatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retailers: {
+        Row: {
+          address: string | null
+          approved_at: string | null
+          approved_by: string | null
+          assigned_sales_rep_id: string | null
+          business_name: string
+          business_type: string | null
+          city: string | null
+          contact_person: string
+          country_id: string | null
+          created_at: string | null
+          credit_limit: number | null
+          email: string
+          id: string
+          is_active: boolean | null
+          license_number: string | null
+          metadata: Json | null
+          onboarding_date: string | null
+          onboarding_status: string | null
+          payment_terms: string | null
+          phone: string | null
+          postal_code: string | null
+          retailer_code: string
+          state: string | null
+          tax_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assigned_sales_rep_id?: string | null
+          business_name: string
+          business_type?: string | null
+          city?: string | null
+          contact_person: string
+          country_id?: string | null
+          created_at?: string | null
+          credit_limit?: number | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          license_number?: string | null
+          metadata?: Json | null
+          onboarding_date?: string | null
+          onboarding_status?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          retailer_code: string
+          state?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assigned_sales_rep_id?: string | null
+          business_name?: string
+          business_type?: string | null
+          city?: string | null
+          contact_person?: string
+          country_id?: string | null
+          created_at?: string | null
+          credit_limit?: number | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          license_number?: string | null
+          metadata?: Json | null
+          onboarding_date?: string | null
+          onboarding_status?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          retailer_code?: string
+          state?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retailers_assigned_sales_rep_id_fkey"
+            columns: ["assigned_sales_rep_id"]
+            isOneToOne: false
+            referencedRelation: "sales_representatives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retailers_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rework_actions: {
         Row: {
           after_metadata: Json | null
@@ -2932,6 +3223,54 @@ export type Database = {
           total_trips?: number | null
           traffic_pattern?: Json | null
           weather_impact?: Json | null
+        }
+        Relationships: []
+      }
+      sales_representatives: {
+        Row: {
+          created_at: string | null
+          email: string
+          employee_id: string
+          full_name: string
+          hired_date: string
+          id: string
+          is_active: boolean | null
+          performance_metrics: Json | null
+          phone: string | null
+          region: string | null
+          territory: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          employee_id: string
+          full_name: string
+          hired_date?: string
+          id?: string
+          is_active?: boolean | null
+          performance_metrics?: Json | null
+          phone?: string | null
+          region?: string | null
+          territory?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          employee_id?: string
+          full_name?: string
+          hired_date?: string
+          id?: string
+          is_active?: boolean | null
+          performance_metrics?: Json | null
+          phone?: string | null
+          region?: string | null
+          territory?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -3976,6 +4315,60 @@ export type Database = {
           status?: string | null
           temperature?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      wholesaler_erp_sync_logs: {
+        Row: {
+          created_at: string | null
+          direction: string
+          entity_ids: string[]
+          entity_type: string
+          error_message: string | null
+          id: string
+          initiated_by: string | null
+          records_failed: number | null
+          records_processed: number | null
+          request_payload: Json | null
+          response_payload: Json | null
+          status: string | null
+          sync_completed_at: string | null
+          sync_started_at: string | null
+          sync_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          direction: string
+          entity_ids: string[]
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          initiated_by?: string | null
+          records_failed?: number | null
+          records_processed?: number | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status?: string | null
+          sync_completed_at?: string | null
+          sync_started_at?: string | null
+          sync_type: string
+        }
+        Update: {
+          created_at?: string | null
+          direction?: string
+          entity_ids?: string[]
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          initiated_by?: string | null
+          records_failed?: number | null
+          records_processed?: number | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status?: string | null
+          sync_completed_at?: string | null
+          sync_started_at?: string | null
+          sync_type?: string
         }
         Relationships: []
       }
