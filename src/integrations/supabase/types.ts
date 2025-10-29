@@ -491,6 +491,90 @@ export type Database = {
           },
         ]
       }
+      client_notifications: {
+        Row: {
+          client_id: string
+          client_type: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          notification_type: string
+          priority: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          client_type: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          priority?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          client_type?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          priority?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      client_portal_access: {
+        Row: {
+          access_level: string
+          allowed_modules: string[]
+          client_id: string
+          client_type: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_level?: string
+          allowed_modules?: string[]
+          client_id: string
+          client_type: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_level?: string
+          allowed_modules?: string[]
+          client_id?: string
+          client_type?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       compliance_audits: {
         Row: {
           audit_date: string
@@ -2112,6 +2196,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      invoices: {
+        Row: {
+          batch_id: string | null
+          client_id: string
+          client_type: string
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          discount_amount: number | null
+          due_date: string
+          id: string
+          invoice_date: string
+          invoice_number: string
+          line_items: Json
+          notes: string | null
+          order_id: string | null
+          payment_date: string | null
+          payment_method: string | null
+          payment_status: string | null
+          pdf_url: string | null
+          shipment_id: string | null
+          subtotal: number
+          tax_amount: number | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          client_id: string
+          client_type: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          discount_amount?: number | null
+          due_date: string
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          line_items?: Json
+          notes?: string | null
+          order_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pdf_url?: string | null
+          shipment_id?: string | null
+          subtotal: number
+          tax_amount?: number | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          client_id?: string
+          client_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          discount_amount?: number | null
+          due_date?: string
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          line_items?: Json
+          notes?: string | null
+          order_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pdf_url?: string | null
+          shipment_id?: string | null
+          subtotal?: number
+          tax_amount?: number | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       iot_devices: {
         Row: {

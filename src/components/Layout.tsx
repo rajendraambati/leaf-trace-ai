@@ -21,7 +21,8 @@ import {
   TrendingUp,
   MessageSquare,
   GraduationCap,
-  Navigation
+  Navigation,
+  UserCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface LayoutProps {
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Client Portal", href: "/client-portal", icon: UserCircle },
   { name: "Farmers", href: "/farmers", icon: Users },
   { name: "Procurement", href: "/procurement", icon: ShoppingCart },
   { name: "Logistics", href: "/logistics", icon: Truck },

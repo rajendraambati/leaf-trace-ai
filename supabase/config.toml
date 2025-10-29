@@ -132,3 +132,6 @@ verify_jwt = true
 [functions.detect-anomalies]
 verify_jwt = true
 
+[functions.client-portal-data]
+verify_jwt = true
+
