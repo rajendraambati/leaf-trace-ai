@@ -79,6 +79,7 @@ const navigation = [
   { name: "Track", href: "/track", icon: Network },
   { name: "Qr Scanner", href: "/qr-scanner", icon: Network },
   { name: "Anomaly Monitoring", href: "/anomaly-monitoring", icon: AlertTriangle },
+  { name: "Contract Generation", href: "/contract-generation", icon: FileText },
 ];
 
 export default function Layout({ children }: LayoutProps) {

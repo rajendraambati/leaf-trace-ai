@@ -983,6 +983,172 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_approvals: {
+        Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approver_id: string
+          comments: string | null
+          contract_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approver_id: string
+          comments?: string | null
+          contract_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approver_id?: string
+          comments?: string | null
+          contract_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_approvals_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "generated_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_clauses: {
+        Row: {
+          applicable_contract_types: string[] | null
+          clause_content: string
+          clause_name: string
+          clause_type: string
+          created_at: string | null
+          created_by: string | null
+          customization_fields: Json | null
+          id: string
+          is_mandatory: boolean | null
+          legal_hint: string | null
+          risk_level: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          applicable_contract_types?: string[] | null
+          clause_content: string
+          clause_name: string
+          clause_type: string
+          created_at?: string | null
+          created_by?: string | null
+          customization_fields?: Json | null
+          id?: string
+          is_mandatory?: boolean | null
+          legal_hint?: string | null
+          risk_level?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          applicable_contract_types?: string[] | null
+          clause_content?: string
+          clause_name?: string
+          clause_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          customization_fields?: Json | null
+          id?: string
+          is_mandatory?: boolean | null
+          legal_hint?: string | null
+          risk_level?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      contract_templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          default_clauses: Json | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          jurisdiction: string | null
+          template_name: string
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_clauses?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          jurisdiction?: string | null
+          template_name: string
+          template_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_clauses?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          jurisdiction?: string | null
+          template_name?: string
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      contract_versions: {
+        Row: {
+          changed_clauses: Json | null
+          changes_summary: string | null
+          content: string
+          contract_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          version_number: number
+        }
+        Insert: {
+          changed_clauses?: Json | null
+          changes_summary?: string | null
+          content: string
+          contract_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          version_number: number
+        }
+        Update: {
+          changed_clauses?: Json | null
+          changes_summary?: string | null
+          content?: string
+          contract_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_versions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "generated_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       countries: {
         Row: {
           code: string
@@ -2110,6 +2276,92 @@ export type Database = {
           vehicle_id?: string
         }
         Relationships: []
+      }
+      generated_contracts: {
+        Row: {
+          contract_number: string
+          contract_type: string
+          contract_value: number | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          customizations: Json | null
+          effective_date: string | null
+          expiry_date: string | null
+          generated_content: string | null
+          id: string
+          metadata: Json | null
+          party_a_details: Json | null
+          party_a_name: string
+          party_b_details: Json | null
+          party_b_name: string
+          selected_clauses: Json | null
+          signed_at: string | null
+          signed_by_party_a: string | null
+          signed_by_party_b: string | null
+          status: string | null
+          template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contract_number: string
+          contract_type: string
+          contract_value?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          customizations?: Json | null
+          effective_date?: string | null
+          expiry_date?: string | null
+          generated_content?: string | null
+          id?: string
+          metadata?: Json | null
+          party_a_details?: Json | null
+          party_a_name: string
+          party_b_details?: Json | null
+          party_b_name: string
+          selected_clauses?: Json | null
+          signed_at?: string | null
+          signed_by_party_a?: string | null
+          signed_by_party_b?: string | null
+          status?: string | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contract_number?: string
+          contract_type?: string
+          contract_value?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          customizations?: Json | null
+          effective_date?: string | null
+          expiry_date?: string | null
+          generated_content?: string | null
+          id?: string
+          metadata?: Json | null
+          party_a_details?: Json | null
+          party_a_name?: string
+          party_b_details?: Json | null
+          party_b_name?: string
+          selected_clauses?: Json | null
+          signed_at?: string | null
+          signed_by_party_a?: string | null
+          signed_by_party_b?: string | null
+          status?: string | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_contracts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       generated_documents: {
         Row: {
