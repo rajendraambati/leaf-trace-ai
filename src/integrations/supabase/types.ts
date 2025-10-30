@@ -519,6 +519,45 @@ export type Database = {
           },
         ]
       }
+      bi_report_shares: {
+        Row: {
+          access_count: number | null
+          created_at: string | null
+          created_by: string | null
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          report_config: Json
+          report_name: string
+          share_token: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          report_config?: Json
+          report_name: string
+          share_token: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          report_config?: Json
+          report_name?: string
+          share_token?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       campaign_participants: {
         Row: {
           campaign_id: string

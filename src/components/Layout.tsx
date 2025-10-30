@@ -23,7 +23,8 @@ import {
   GraduationCap,
   Navigation,
   UserCircle,
-  AlertTriangle
+  AlertTriangle,
+  BarChart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,7 @@ const navigation = [
   { name: "Qr Scanner", href: "/qr-scanner", icon: Network },
   { name: "Anomaly Monitoring", href: "/anomaly-monitoring", icon: AlertTriangle },
   { name: "Contract Generation", href: "/contract-generation", icon: FileText },
+  { name: "BI Reports", href: "/bi-reports", icon: BarChart },
 ];
 
 export default function Layout({ children }: LayoutProps) {

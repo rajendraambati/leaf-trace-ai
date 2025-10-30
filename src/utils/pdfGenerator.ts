@@ -439,3 +439,104 @@ export const generateCustomsDeclarationPDF = async (data: CustomsDeclarationData
   
   doc.save(`CustomsDeclaration-${data.declaration_number}.pdf`);
 };
+
+interface BIReportData {
+  metrics: {
+    dispatchSuccessRate: number;
+    complianceScore: number;
+    inventoryTurnover: number;
+    fleetUtilization: number;
+    totalShipments: number;
+    onTimeDeliveries: number;
+    avgDeliveryTime: number;
+  };
+  filters: {
+    startDate: Date;
+    endDate: Date;
+    region?: string;
+    productType?: string;
+  };
+  trendData: any[];
+}
+
+export const generateBIReportPDF = async (data: BIReportData) => {
+  const doc = new jsPDF();
+  
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('BUSINESS INTELLIGENCE REPORT', 105, 20, { align: 'center' });
+  
+  doc.setLineWidth(0.5);
+  doc.line(20, 25, 190, 25);
+  
+  let yPos = 35;
+  
+  // Report Period
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Report Period:', 20, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`${data.filters.startDate.toLocaleDateString()} - ${data.filters.endDate.toLocaleDateString()}`, 70, yPos);
+  yPos += 10;
+  
+  if (data.filters.region) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('Region:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(data.filters.region, 70, yPos);
+    yPos += 10;
+  }
+  
+  // Key Performance Indicators
+  yPos += 5;
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('KEY PERFORMANCE INDICATORS', 20, yPos);
+  yPos += 10;
+  
+  doc.setFontSize(12);
+  const kpis = [
+    { label: 'Dispatch Success Rate', value: `${data.metrics.dispatchSuccessRate.toFixed(1)}%` },
+    { label: 'Compliance Score', value: `${data.metrics.complianceScore.toFixed(1)}%` },
+    { label: 'Inventory Turnover', value: data.metrics.inventoryTurnover.toFixed(2) },
+    { label: 'Fleet Utilization', value: `${data.metrics.fleetUtilization.toFixed(1)}%` },
+  ];
+  
+  kpis.forEach(kpi => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${kpi.label}:`, 25, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(kpi.value, 100, yPos);
+    yPos += 8;
+  });
+  
+  // Operational Metrics
+  yPos += 10;
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('OPERATIONAL METRICS', 20, yPos);
+  yPos += 10;
+  
+  doc.setFontSize(12);
+  const metrics = [
+    { label: 'Total Shipments', value: data.metrics.totalShipments.toString() },
+    { label: 'On-Time Deliveries', value: data.metrics.onTimeDeliveries.toString() },
+    { label: 'Average Delivery Time', value: `${data.metrics.avgDeliveryTime.toFixed(1)} hours` },
+  ];
+  
+  metrics.forEach(metric => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${metric.label}:`, 25, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(metric.value, 100, yPos);
+    yPos += 8;
+  });
+  
+  // Footer
+  doc.setFontSize(10);
+  doc.setTextColor(128, 128, 128);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 280, { align: 'center' });
+  doc.text('Confidential - For Internal Use Only', 105, 285, { align: 'center' });
+  
+  doc.save(`BI-Report-${new Date().toISOString().split('T')[0]}.pdf`);
+};
