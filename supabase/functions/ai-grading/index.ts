@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const GradingSchema = z.object({
   imageUrl: z.string().url('Invalid image URL').max(2048, 'Image URL too long'),
-  batchId: z.string().min(1, 'Batch ID is required').max(50, 'Batch ID too long')
+  batchId: z.string().min(1, 'Batch ID is required').max(50, 'Batch ID too long').optional()
 });
 
 serve(async (req) => {
@@ -19,8 +19,11 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    const { imageUrl, batchId } = GradingSchema.parse(requestBody);
+    const { imageUrl, batchId: providedBatchId } = GradingSchema.parse(requestBody);
 
+    // Generate a batch ID if not provided
+    const batchId = providedBatchId || `AI-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
     console.log('Processing AI grading for batch:', batchId);
 
     // Prioritize Lovable AI with Gemini Flash (no API key needed from user)
