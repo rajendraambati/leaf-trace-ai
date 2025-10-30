@@ -57,6 +57,8 @@ import ClientPortal from "./pages/ClientPortal";
 import AnomalyMonitoring from "./pages/AnomalyMonitoring";
 import ContractGeneration from "./pages/ContractGeneration";
 import BIReports from "./pages/BIReports";
+import APIDocumentation from "./pages/APIDocumentation";
+import APIManagement from "./pages/APIManagement";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +116,8 @@ const App = () => (
             <Route path="/anomaly-monitoring" element={<ProtectedRoute><Layout><AnomalyMonitoring /></Layout></ProtectedRoute>} />
             <Route path="/contract-generation" element={<ProtectedRoute><Layout><ContractGeneration /></Layout></ProtectedRoute>} />
             <Route path="/bi-reports" element={<ProtectedRoute><Layout><BIReports /></Layout></ProtectedRoute>} />
+            <Route path="/api-documentation" element={<ProtectedRoute><APIDocumentation /></ProtectedRoute>} />
+            <Route path="/api-management" element={<ProtectedRoute><APIManagement /></ProtectedRoute>} />
             <Route path="/client-portal" element={<ProtectedRoute><ClientPortal /></ProtectedRoute>} />
             <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
             <Route path="/install" element={<InstallApp />} />

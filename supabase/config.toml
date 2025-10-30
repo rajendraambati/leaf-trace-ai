@@ -135,3 +135,15 @@ verify_jwt = true
 [functions.client-portal-data]
 verify_jwt = true
 
+[functions.api-erp-sync]
+verify_jwt = false
+
+[functions.api-vehicle-tracking]
+verify_jwt = false
+
+[functions.api-serialization]
+verify_jwt = false
+
+[functions.api-compliance]
+verify_jwt = false
+

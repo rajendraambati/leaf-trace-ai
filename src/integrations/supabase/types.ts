@@ -381,6 +381,107 @@ export type Database = {
           },
         ]
       }
+      api_keys: {
+        Row: {
+          allowed_endpoints: string[]
+          api_key: string
+          client_email: string | null
+          client_name: string
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          is_sandbox: boolean | null
+          key_name: string
+          last_used_at: string | null
+          rate_limit: number | null
+          usage_count: number | null
+        }
+        Insert: {
+          allowed_endpoints?: string[]
+          api_key: string
+          client_email?: string | null
+          client_name: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_sandbox?: boolean | null
+          key_name: string
+          last_used_at?: string | null
+          rate_limit?: number | null
+          usage_count?: number | null
+        }
+        Update: {
+          allowed_endpoints?: string[]
+          api_key?: string
+          client_email?: string | null
+          client_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_sandbox?: boolean | null
+          key_name?: string
+          last_used_at?: string | null
+          rate_limit?: number | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      api_request_logs: {
+        Row: {
+          api_key_id: string | null
+          created_at: string | null
+          endpoint: string
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          method: string
+          request_body: Json | null
+          response_status: number | null
+          response_time_ms: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string | null
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          method: string
+          request_body?: Json | null
+          response_status?: number | null
+          response_time_ms?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string | null
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          method?: string
+          request_body?: Json | null
+          response_status?: number | null
+          response_time_ms?: number | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_request_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assistant_conversations: {
         Row: {
           created_at: string

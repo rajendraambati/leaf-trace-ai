@@ -24,7 +24,9 @@ import {
   Navigation,
   UserCircle,
   AlertTriangle,
-  BarChart
+  BarChart,
+  Code,
+  Key
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -82,6 +84,8 @@ const navigation = [
   { name: "Anomaly Monitoring", href: "/anomaly-monitoring", icon: AlertTriangle },
   { name: "Contract Generation", href: "/contract-generation", icon: FileText },
   { name: "BI Reports", href: "/bi-reports", icon: BarChart },
+  { name: "API Documentation", href: "/api-documentation", icon: Code },
+  { name: "API Management", href: "/api-management", icon: Key },
 ];
 
 export default function Layout({ children }: LayoutProps) {
