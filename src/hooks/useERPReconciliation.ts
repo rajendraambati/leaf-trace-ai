@@ -153,7 +153,7 @@ export function useERPReconciliation() {
 
         // GST compliance check
         const gst_compliant = invoice ? 
-          !!(invoice.gst_number && invoice.gst_amount && invoice.invoice_number) :
+          !!(invoice.invoice_number && invoice.tax_amount) :
           false;
 
         if (shipment?.status === 'delivered' && !gst_compliant) {

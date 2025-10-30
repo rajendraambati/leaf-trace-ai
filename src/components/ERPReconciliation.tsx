@@ -410,10 +410,10 @@ export function ERPReconciliation() {
                             <p className="font-medium">₹{record.invoice.amount?.toLocaleString()}</p>
                           </div>
                         )}
-                        {record.invoice?.gst_amount && (
+                        {record.invoice?.tax_amount && (
                           <div>
-                            <p className="text-sm text-muted-foreground">GST Amount</p>
-                            <p className="font-medium">₹{record.invoice.gst_amount.toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">Tax Amount</p>
+                            <p className="font-medium">₹{record.invoice.tax_amount.toLocaleString()}</p>
                           </div>
                         )}
                         {record.delivery_confirmation && (

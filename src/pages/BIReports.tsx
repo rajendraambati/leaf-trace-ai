@@ -25,7 +25,10 @@ import {
   CheckCircle2,
   FileText,
   BarChart3,
-  Clock
+  Clock,
+  GitCompare,
+  Receipt,
+  ShieldCheck
 } from 'lucide-react';
 import {
   LineChart,
@@ -49,6 +52,8 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+const SUCCESS_COLOR = 'hsl(142 76% 36%)';
+const WARNING_COLOR = 'hsl(38 92% 50%)';
 
 export default function BIReports() {
   const [filters, setFilters] = useState<BIFilters>({
@@ -136,6 +141,10 @@ export default function BIReports() {
     complianceReports: 0,
     totalInventory: 0,
     activeVehicles: 0,
+    reconciliationRate: 0,
+    gstCompliance: 0,
+    auditReadiness: 0,
+    dataIntegrity: 0,
   };
 
   const complianceData = [
@@ -297,7 +306,7 @@ export default function BIReports() {
           </CardContent>
         </Card>
 
-        {/* KPI Cards */}
+        {/* KPI Cards - Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <StatCard
             title="Dispatch Success Rate"
@@ -337,13 +346,54 @@ export default function BIReports() {
           />
         </div>
 
+        {/* KPI Cards - Row 2: Reconciliation & Finance */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <StatCard
+            title="Reconciliation Rate"
+            value={`${metrics.reconciliationRate.toFixed(1)}%`}
+            icon={GitCompare}
+            trend={{
+              value: 4.7,
+              isPositive: true,
+            }}
+          />
+          <StatCard
+            title="GST Compliance"
+            value={`${metrics.gstCompliance.toFixed(1)}%`}
+            icon={Receipt}
+            trend={{
+              value: 6.2,
+              isPositive: true,
+            }}
+          />
+          <StatCard
+            title="Audit Readiness"
+            value={`${metrics.auditReadiness.toFixed(1)}%`}
+            icon={ShieldCheck}
+            trend={{
+              value: 3.1,
+              isPositive: true,
+            }}
+          />
+          <StatCard
+            title="Data Integrity"
+            value={`${metrics.dataIntegrity.toFixed(1)}%`}
+            icon={CheckCircle2}
+            trend={{
+              value: 2.8,
+              isPositive: true,
+            }}
+          />
+        </div>
+
         {/* Detailed Metrics */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="dispatch">Dispatch</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
             <TabsTrigger value="fleet">Fleet & Inventory</TabsTrigger>
+            <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -543,6 +593,162 @@ export default function BIReports() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Reconciliation Tab */}
+          <TabsContent value="reconciliation" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <StatCard
+                title="Reconciliation Rate"
+                value={`${metrics.reconciliationRate.toFixed(1)}%`}
+                icon={GitCompare}
+              />
+              <StatCard
+                title="GST Compliance"
+                value={`${metrics.gstCompliance.toFixed(1)}%`}
+                icon={Receipt}
+              />
+              <StatCard
+                title="Audit Readiness"
+                value={`${metrics.auditReadiness.toFixed(1)}%`}
+                icon={ShieldCheck}
+              />
+              <StatCard
+                title="Data Integrity"
+                value={`${metrics.dataIntegrity.toFixed(1)}%`}
+                icon={CheckCircle2}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reconciliation Overview</CardTitle>
+                  <CardDescription>ERP order matching status</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Fully Matched', value: Math.round(metrics.reconciliationRate) },
+                          { name: 'Pending', value: Math.round(100 - metrics.reconciliationRate) }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="hsl(var(--primary))"
+                        dataKey="value"
+                      >
+                        <Cell fill="hsl(var(--success))" />
+                        <Cell fill="hsl(var(--warning))" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Finance Integration Status</CardTitle>
+                  <CardDescription>GST and audit compliance</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <Receipt className="h-4 w-4" />
+                      GST Compliance
+                    </span>
+                    <Badge variant="default">{metrics.gstCompliance.toFixed(1)}%</Badge>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      Audit Ready Orders
+                    </span>
+                    <Badge variant="secondary">{metrics.auditReadiness.toFixed(1)}%</Badge>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <GitCompare className="h-4 w-4" />
+                      Data Integrity Score
+                    </span>
+                    <Badge variant="outline">{metrics.dataIntegrity.toFixed(1)}%</Badge>
+                  </div>
+                  <div className="pt-4">
+                    <Button variant="outline" className="w-full" asChild>
+                      <a href="/erp-integration?tab=reconciliation">
+                        View Detailed Reconciliation
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Reconciliation Insights</CardTitle>
+                <CardDescription>Key findings and recommendations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {metrics.reconciliationRate < 80 && (
+                    <div className="flex items-start gap-3 p-3 bg-destructive/10 rounded-lg">
+                      <TrendingDown className="h-5 w-5 text-destructive mt-0.5" />
+                      <div>
+                        <p className="font-medium text-sm">Low Reconciliation Rate</p>
+                        <p className="text-sm text-muted-foreground">
+                          {(100 - metrics.reconciliationRate).toFixed(0)}% of orders have missing dispatch or delivery data.
+                          Review ERP integration to improve data completeness.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {metrics.gstCompliance < 90 && (
+                    <div className="flex items-start gap-3 p-3 bg-warning/10 rounded-lg">
+                      <Receipt className="h-5 w-5 text-warning mt-0.5" />
+                      <div>
+                        <p className="font-medium text-sm">GST Compliance Action Required</p>
+                        <p className="text-sm text-muted-foreground">
+                          {(100 - metrics.gstCompliance).toFixed(0)}% of orders lack proper GST documentation.
+                          Generate compliant invoices to meet tax requirements.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {metrics.auditReadiness < 75 && (
+                    <div className="flex items-start gap-3 p-3 bg-warning/10 rounded-lg">
+                      <ShieldCheck className="h-5 w-5 text-warning mt-0.5" />
+                      <div>
+                        <p className="font-medium text-sm">Audit Readiness Below Target</p>
+                        <p className="text-sm text-muted-foreground">
+                          {(100 - metrics.auditReadiness).toFixed(0)}% of orders are not audit-ready.
+                          Ensure all orders have complete documentation chain from ERP to delivery.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {metrics.reconciliationRate >= 80 && metrics.gstCompliance >= 90 && metrics.auditReadiness >= 75 && (
+                    <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg">
+                      <CheckCircle2 className="h-5 w-5 text-success mt-0.5" />
+                      <div>
+                        <p className="font-medium text-sm">Excellent Data Integrity</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your reconciliation system is performing well. All key metrics are above target thresholds.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

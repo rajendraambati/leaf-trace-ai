@@ -21,6 +21,10 @@ export interface BIMetrics {
   complianceReports: number;
   totalInventory: number;
   activeVehicles: number;
+  reconciliationRate: number;
+  gstCompliance: number;
+  auditReadiness: number;
+  dataIntegrity: number;
 }
 
 export function useBIReports(filters: BIFilters) {
@@ -67,6 +71,33 @@ export function useBIReports(filters: BIFilters) {
       
       if (vehiclesError) throw vehiclesError;
 
+      // Fetch ERP data for reconciliation
+      const { data: erpOrders, error: erpError } = await supabase
+        .from('erp_procurement_orders')
+        .select('*')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+      
+      if (erpError) throw erpError;
+
+      const { data: dispatchSchedules, error: dispatchError } = await supabase
+        .from('warehouse_dispatch_schedule')
+        .select('*');
+      
+      if (dispatchError) throw dispatchError;
+
+      const { data: invoices, error: invoicesError } = await supabase
+        .from('invoices')
+        .select('*');
+      
+      if (invoicesError) throw invoicesError;
+
+      const { data: deliveryConfirmations, error: deliveryError } = await supabase
+        .from('delivery_confirmations')
+        .select('*');
+      
+      if (deliveryError) throw deliveryError;
+
       // Calculate metrics
       const totalShipments = shipments?.length || 0;
       const deliveredShipments = shipments?.filter(s => s.status === 'delivered') || [];
@@ -100,6 +131,36 @@ export function useBIReports(filters: BIFilters) {
           return sum + (diff / (1000 * 60 * 60)); // hours
         }, 0) / deliveredShipments.length : 0;
 
+      // Calculate reconciliation metrics
+      const totalErpOrders = erpOrders?.length || 0;
+      let fullyReconciled = 0;
+      let gstCompliant = 0;
+      let auditReady = 0;
+
+      erpOrders?.forEach(order => {
+        const dispatch = dispatchSchedules?.find(d => d.erp_order_id === order.id);
+        const shipment = shipments?.find(s => s.batch_id === dispatch?.batch_id);
+        const invoice = invoices?.find(i => i.batch_id === dispatch?.batch_id);
+        const delivery = deliveryConfirmations?.find(d => d.shipment_id === shipment?.id);
+
+        if (dispatch && shipment && invoice && delivery) {
+          fullyReconciled++;
+        }
+
+        if (invoice?.invoice_number && invoice?.tax_amount) {
+          gstCompliant++;
+        }
+
+        if (order.validation_status === 'accepted' && dispatch && shipment?.status === 'delivered' && invoice && delivery) {
+          auditReady++;
+        }
+      });
+
+      const reconciliationRate = totalErpOrders > 0 ? (fullyReconciled / totalErpOrders) * 100 : 0;
+      const gstComplianceRate = totalErpOrders > 0 ? (gstCompliant / totalErpOrders) * 100 : 0;
+      const auditReadinessRate = totalErpOrders > 0 ? (auditReady / totalErpOrders) * 100 : 0;
+      const dataIntegrityScore = (reconciliationRate + gstComplianceRate + auditReadinessRate) / 3;
+
       const metrics: BIMetrics = {
         dispatchSuccessRate,
         complianceScore,
@@ -110,7 +171,11 @@ export function useBIReports(filters: BIFilters) {
         avgDeliveryTime,
         complianceReports: totalReports,
         totalInventory,
-        activeVehicles
+        activeVehicles,
+        reconciliationRate,
+        gstCompliance: gstComplianceRate,
+        auditReadiness: auditReadinessRate,
+        dataIntegrity: dataIntegrityScore
       };
 
       // Get trend data for charts
