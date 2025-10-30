@@ -59,6 +59,8 @@ import ContractGeneration from "./pages/ContractGeneration";
 import BIReports from "./pages/BIReports";
 import APIDocumentation from "./pages/APIDocumentation";
 import APIManagement from "./pages/APIManagement";
+import DemoMode from "./pages/DemoMode";
+import DemoOverlay from "./components/DemoOverlay";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <DemoOverlay />
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/role-selection" element={<RoleSelection />} />
@@ -118,6 +121,7 @@ const App = () => (
             <Route path="/bi-reports" element={<ProtectedRoute><Layout><BIReports /></Layout></ProtectedRoute>} />
             <Route path="/api-documentation" element={<ProtectedRoute><APIDocumentation /></ProtectedRoute>} />
             <Route path="/api-management" element={<ProtectedRoute><APIManagement /></ProtectedRoute>} />
+            <Route path="/demo-mode" element={<ProtectedRoute><DemoMode /></ProtectedRoute>} />
             <Route path="/client-portal" element={<ProtectedRoute><ClientPortal /></ProtectedRoute>} />
             <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
             <Route path="/install" element={<InstallApp />} />

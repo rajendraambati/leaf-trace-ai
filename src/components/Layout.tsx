@@ -26,7 +26,8 @@ import {
   AlertTriangle,
   BarChart,
   Code,
-  Key
+  Key,
+  Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ const navigation = [
   { name: "BI Reports", href: "/bi-reports", icon: BarChart },
   { name: "API Documentation", href: "/api-documentation", icon: Code },
   { name: "API Management", href: "/api-management", icon: Key },
+  { name: "Demo Mode", href: "/demo-mode", icon: Presentation },
 ];
 
 export default function Layout({ children }: LayoutProps) {
