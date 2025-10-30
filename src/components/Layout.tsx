@@ -57,6 +57,29 @@ const navigation = [
   { name: "RBAC Matrix", href: "/rbac-matrix", icon: ShieldCheck },
   { name: "Features", href: "/features", icon: Layers },
   { name: "Architecture", href: "/architecture", icon: Network },
+  { name: "Logistics Journey", href: "/logistics-journey", icon: Network },
+  { name: "Role Selection", href: "/role-selection", icon: Network },
+  { name: "Admin", href: "/admin/approvals", icon: Network },
+  { name: "ERP-Integration", href: "/erp-integration", icon: Network },
+  { name: "AI Vechicle Tracking", href: "/ai-vehicle-tracking", icon: Network },
+  { name: "Serialization", href: "/serialization", icon: Network },
+  { name: "Predictive Analytics", href: "/predictive-analytics", icon: Network },
+  { name: "Document Verification", href: "/document-verification", icon: Network },
+  { name: "Docuemnt Templates", href: "/document-templates", icon: Network },
+  { name: "Country Management", href: "/country-management", icon: Network },
+  { name: "Customer-management", href: "/customer-management", icon: Network },
+  { name: "Regulatory Reporting", href: "/regulatory-reporting", icon: Network },
+  { name: "Retailer Onboarding", href: "/retailer-onboarding", icon: Network },
+  { name: "Sales Rep Tracking", href: "/sales-rep-tracking", icon: Network },
+  { name: "Promotional Campaigns", href: "/promotional-campaigns", icon: Network },
+  { name: "Wholesales Sync", href: "/wholesaler-sync", icon: Network },
+  { name: "Driver App", href: "/driver-app", icon: Network },
+  { name: "Install", href: "/install", icon: Network },
+  { name: "Track", href: "/track", icon: Network },
+  { name: "Qr Scanner", href: "/qr-scanner", icon: Network },
+  
+  
+  
 ];
 
 export default function Layout({ children }: LayoutProps) {
