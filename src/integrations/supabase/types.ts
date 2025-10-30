@@ -227,6 +227,47 @@ export type Database = {
           },
         ]
       }
+      anomaly_auto_resolutions: {
+        Row: {
+          anomaly_id: string
+          attempted_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          resolution_action: string
+          resolution_type: string
+          success: boolean | null
+        }
+        Insert: {
+          anomaly_id: string
+          attempted_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          resolution_action: string
+          resolution_type: string
+          success?: boolean | null
+        }
+        Update: {
+          anomaly_id?: string
+          attempted_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          resolution_action?: string
+          resolution_type?: string
+          success?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anomaly_auto_resolutions_anomaly_id_fkey"
+            columns: ["anomaly_id"]
+            isOneToOne: false
+            referencedRelation: "anomaly_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anomaly_logs: {
         Row: {
           anomaly_type: string
@@ -301,6 +342,44 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      anomaly_resolution_history: {
+        Row: {
+          action: string
+          anomaly_id: string
+          id: string
+          metadata: Json | null
+          notes: string | null
+          performed_at: string | null
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          anomaly_id: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          performed_at?: string | null
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          anomaly_id?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          performed_at?: string | null
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anomaly_resolution_history_anomaly_id_fkey"
+            columns: ["anomaly_id"]
+            isOneToOne: false
+            referencedRelation: "anomaly_logs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       assistant_conversations: {
         Row: {

@@ -54,6 +54,7 @@ import SalesRepTracking from "./pages/SalesRepTracking";
 import PromotionalCampaigns from "./pages/PromotionalCampaigns";
 import WholesalerSync from "./pages/WholesalerSync";
 import ClientPortal from "./pages/ClientPortal";
+import AnomalyMonitoring from "./pages/AnomalyMonitoring";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,7 @@ const App = () => (
             <Route path="/sales-rep-tracking" element={<ProtectedRoute><Layout><SalesRepTracking /></Layout></ProtectedRoute>} />
             <Route path="/promotional-campaigns" element={<ProtectedRoute><Layout><PromotionalCampaigns /></Layout></ProtectedRoute>} />
             <Route path="/wholesaler-sync" element={<ProtectedRoute><Layout><WholesalerSync /></Layout></ProtectedRoute>} />
+            <Route path="/anomaly-monitoring" element={<ProtectedRoute><Layout><AnomalyMonitoring /></Layout></ProtectedRoute>} />
             <Route path="/client-portal" element={<ProtectedRoute><ClientPortal /></ProtectedRoute>} />
             <Route path="/driver-app" element={<ProtectedRoute><DriverApp /></ProtectedRoute>} />
             <Route path="/install" element={<InstallApp />} />

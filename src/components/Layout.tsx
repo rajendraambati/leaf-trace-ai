@@ -22,7 +22,8 @@ import {
   MessageSquare,
   GraduationCap,
   Navigation,
-  UserCircle
+  UserCircle,
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -77,9 +78,7 @@ const navigation = [
   { name: "Install", href: "/install", icon: Network },
   { name: "Track", href: "/track", icon: Network },
   { name: "Qr Scanner", href: "/qr-scanner", icon: Network },
-  
-  
-  
+  { name: "Anomaly Monitoring", href: "/anomaly-monitoring", icon: AlertTriangle },
 ];
 
 export default function Layout({ children }: LayoutProps) {
