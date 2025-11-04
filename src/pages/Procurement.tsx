@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets, Eye, Pencil } from "lucide-react";
+import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets, Eye, Pencil, Check, ChevronsUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,6 +25,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface ProcurementBatch {
   id: string;
@@ -49,6 +63,7 @@ export default function Procurement() {
   const [procurements, setProcurements] = useState<ProcurementBatch[]>([]);
   const [farmers, setFarmers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [farmerSearchOpen, setFarmerSearchOpen] = useState(false);
   const [formData, setFormData] = useState({
     farmer_id: "",
     farmer_id_manual: "",
@@ -358,17 +373,49 @@ export default function Procurement() {
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="farmer">Select Farmer</Label>
-                <Select 
-                  value={formData.farmer_id} 
-                  onValueChange={(v) => setFormData({...formData, farmer_id: v})}
-                >
-                  <SelectTrigger id="farmer">
-                    <SelectValue placeholder="Choose farmer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {farmers.map(f => <SelectItem key={f.id} value={f.id}>{f.id} - {f.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Popover open={farmerSearchOpen} onOpenChange={setFarmerSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={farmerSearchOpen}
+                      className="w-full justify-between"
+                    >
+                      {formData.farmer_id
+                        ? farmers.find((f) => f.id === formData.farmer_id)?.name || "Choose farmer"
+                        : "Choose farmer"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search farmer..." />
+                      <CommandList>
+                        <CommandEmpty>No farmer found.</CommandEmpty>
+                        <CommandGroup>
+                          {farmers.map((f) => (
+                            <CommandItem
+                              key={f.id}
+                              value={`${f.id} ${f.name}`}
+                              onSelect={() => {
+                                setFormData({...formData, farmer_id: f.id});
+                                setFarmerSearchOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.farmer_id === f.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {f.id} - {f.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
