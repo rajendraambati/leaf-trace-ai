@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets, Eye, Pencil, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Calendar, Weight, DollarSign, Camera, Download, MapPin, Droplets, Eye, Pencil, Check, ChevronsUpDown, Search } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -64,6 +64,7 @@ export default function Procurement() {
   const [farmers, setFarmers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [farmerSearchOpen, setFarmerSearchOpen] = useState(false);
+  const [farmerSearchQuery, setFarmerSearchQuery] = useState("");
   const [formData, setFormData] = useState({
     farmer_id: "",
     farmer_id_manual: "",
@@ -372,50 +373,64 @@ export default function Procurement() {
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="farmer">Select Farmer</Label>
-                <Popover open={farmerSearchOpen} onOpenChange={setFarmerSearchOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={farmerSearchOpen}
-                      className="w-full justify-between"
-                    >
-                      {formData.farmer_id
-                        ? farmers.find((f) => f.id === formData.farmer_id)?.name || "Choose farmer"
-                        : "Choose farmer"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Search farmer..." />
-                      <CommandList>
-                        <CommandEmpty>No farmer found.</CommandEmpty>
-                        <CommandGroup>
-                          {farmers.map((f) => (
-                            <CommandItem
-                              key={f.id}
-                              value={`${f.id} ${f.name}`}
-                              onSelect={() => {
-                                setFormData({...formData, farmer_id: f.id});
-                                setFarmerSearchOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  formData.farmer_id === f.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {f.id} - {f.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <Label htmlFor="farmer-search">Select Farmer</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="farmer-search"
+                    type="text"
+                    placeholder="Search by Farmer ID or Name..."
+                    value={farmerSearchQuery}
+                    onChange={(e) => {
+                      setFarmerSearchQuery(e.target.value);
+                      setFarmerSearchOpen(e.target.value.length > 0);
+                    }}
+                    onFocus={() => farmerSearchQuery.length > 0 && setFarmerSearchOpen(true)}
+                    className="pl-9"
+                  />
+                  {farmerSearchOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md max-h-60 overflow-auto">
+                      {farmers
+                        .filter((f) => 
+                          f.id.toLowerCase().includes(farmerSearchQuery.toLowerCase()) ||
+                          f.name.toLowerCase().includes(farmerSearchQuery.toLowerCase())
+                        )
+                        .length > 0 ? (
+                        <div className="py-1">
+                          {farmers
+                            .filter((f) => 
+                              f.id.toLowerCase().includes(farmerSearchQuery.toLowerCase()) ||
+                              f.name.toLowerCase().includes(farmerSearchQuery.toLowerCase())
+                            )
+                            .map((f) => (
+                              <button
+                                key={f.id}
+                                type="button"
+                                className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                                onClick={() => {
+                                  setFormData({...formData, farmer_id: f.id});
+                                  setFarmerSearchQuery(`${f.id} - ${f.name}`);
+                                  setFarmerSearchOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4",
+                                    formData.farmer_id === f.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <span className="text-sm">{f.id} - {f.name}</span>
+                              </button>
+                            ))}
+                        </div>
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">
+                          No farmer found.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
