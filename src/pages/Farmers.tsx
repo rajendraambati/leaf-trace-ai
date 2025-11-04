@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, MapPin, Phone, Mail, Map as MapIcon, Upload, FileText, X } from "lucide-react";
+import { BiometricCapture } from "@/components/BiometricCapture";
 import { MapView, Location } from "@/components/MapView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,8 @@ export default function Farmers() {
     geo_longitude: ''
   });
   const [documents, setDocuments] = useState<File[]>([]);
+  const [biometricData, setBiometricData] = useState<any>(null);
+  const [biometricCaptured, setBiometricCaptured] = useState(false);
 
   useEffect(() => {
     fetchFarmers();
@@ -186,13 +189,38 @@ export default function Farmers() {
         await Promise.all(documentUploads);
       }
 
+      // Save biometric data if captured
+      if (biometricData) {
+        const { error: biometricError } = await supabase
+          .from('farmer_biometrics')
+          .insert({
+            farmer_id: farmerData.id,
+            fingerprint_data: biometricData,
+            fingerprint_template: biometricData.fingerprint_template,
+            capture_device: biometricData.device,
+            capture_quality: biometricData.quality,
+            captured_at: biometricData.captured_at
+          });
+
+        if (biometricError) {
+          console.error('Biometric save error:', biometricError);
+          toast({
+            title: "Warning",
+            description: "Farmer registered but biometric data failed to save",
+            variant: "destructive",
+          });
+        }
+      }
+
       toast({
         title: "Success",
-        description: "Farmer registered successfully with documents!",
+        description: "Farmer registered successfully with biometric data!",
       });
       setOpen(false);
       setFormData({ name: '', location: '', phone: '', email: '', farm_size_acres: '', geo_latitude: '', geo_longitude: '' });
       setDocuments([]);
+      setBiometricData(null);
+      setBiometricCaptured(false);
       fetchFarmers();
     } catch (error: any) {
       toast({
@@ -365,6 +393,16 @@ export default function Farmers() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <BiometricCapture
+                  onCapture={(data) => {
+                    setBiometricData(data);
+                    setBiometricCaptured(true);
+                  }}
+                  captured={biometricCaptured}
+                />
               </div>
 
               <Button type="submit" className="w-full" disabled={submitting}>

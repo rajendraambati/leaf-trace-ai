@@ -2230,6 +2230,50 @@ export type Database = {
         }
         Relationships: []
       }
+      farmer_biometrics: {
+        Row: {
+          capture_device: string | null
+          capture_quality: number | null
+          captured_at: string | null
+          created_at: string | null
+          farmer_id: string
+          fingerprint_data: Json
+          fingerprint_template: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          capture_device?: string | null
+          capture_quality?: number | null
+          captured_at?: string | null
+          created_at?: string | null
+          farmer_id: string
+          fingerprint_data: Json
+          fingerprint_template?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          capture_device?: string | null
+          capture_quality?: number | null
+          captured_at?: string | null
+          created_at?: string | null
+          farmer_id?: string
+          fingerprint_data?: Json
+          fingerprint_template?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farmer_biometrics_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       farmer_certifications: {
         Row: {
           certification_name: string
