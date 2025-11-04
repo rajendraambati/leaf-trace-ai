@@ -195,11 +195,10 @@ export default function Farmers() {
           .from('farmer_biometrics')
           .insert({
             farmer_id: farmerData.id,
-            fingerprint_data: biometricData,
+            fingerprint_data: biometricData.fingerprint_data,
             fingerprint_template: biometricData.fingerprint_template,
-            capture_device: biometricData.device,
-            capture_quality: biometricData.quality,
-            captured_at: biometricData.captured_at
+            capture_device: biometricData.capture_device,
+            capture_quality: biometricData.capture_quality
           });
 
         if (biometricError) {
