@@ -67,7 +67,6 @@ export default function Procurement() {
   const [farmerSearchQuery, setFarmerSearchQuery] = useState("");
   const [formData, setFormData] = useState({
     farmer_id: "",
-    farmer_id_manual: "",
     quantity_kg: "",
     grade: "",
     price_per_kg: "",
@@ -153,30 +152,9 @@ export default function Procurement() {
   };
 
   const handleSubmit = async () => {
-    // Determine which farmer ID to use
-    const farmerId = formData.farmer_id_manual.trim() || formData.farmer_id;
-    
     // Validate form data
-    if (!farmerId || !formData.quantity_kg || !formData.price_per_kg || !formData.moisture_percentage) {
-      toast.error("Please fill in all required fields (Farmer ID, Quantity, Price, Moisture %)");
-      return;
-    }
-
-    // Validate farmer ID is exactly 8 characters
-    if (farmerId.length !== 8) {
-      toast.error("Farmer ID must be exactly 8 characters");
-      return;
-    }
-
-    // Verify farmer exists
-    const { data: farmerExists } = await supabase
-      .from('farmers')
-      .select('id')
-      .eq('id', farmerId)
-      .single();
-    
-    if (!farmerExists) {
-      toast.error("Farmer ID not found. Please check the ID and try again.");
+    if (!formData.farmer_id || !formData.quantity_kg || !formData.price_per_kg || !formData.moisture_percentage) {
+      toast.error("Please fill in all required fields (Farmer, Quantity, Price, Moisture %)");
       return;
     }
 
@@ -261,7 +239,7 @@ export default function Procurement() {
     
     const { error } = await supabase.from('procurement_batches').insert({
       id: batchId,
-      farmer_id: farmerId,
+      farmer_id: formData.farmer_id,
       quantity_kg: quantity,
       grade: finalGrade,
       price_per_kg: pricePerKg,
@@ -288,7 +266,6 @@ export default function Procurement() {
       setOpen(false);
       setFormData({ 
         farmer_id: "", 
-        farmer_id_manual: "",
         quantity_kg: "", 
         grade: "", 
         price_per_kg: "",
@@ -296,6 +273,7 @@ export default function Procurement() {
         gps_latitude: null,
         gps_longitude: null,
       });
+      setFarmerSearchQuery("");
       setCapturedImage(null);
       setImagePreview(null);
     }
@@ -431,19 +409,6 @@ export default function Procurement() {
                     </div>
                   )}
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="farmer-id-manual">Farmer ID</Label>
-                <Input 
-                  id="farmer-id-manual" 
-                  type="text" 
-                  placeholder="Enter Farmer ID" 
-                  value={formData.farmer_id_manual} 
-                  onChange={(e) => setFormData({...formData, farmer_id_manual: e.target.value})} 
-                  maxLength={8}
-                />
-                <p className="text-xs text-muted-foreground">Must be exactly 8 characters</p>
               </div>
 
               <div className="space-y-2">
