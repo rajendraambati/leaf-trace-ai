@@ -150,3 +150,6 @@ verify_jwt = false
 [functions.demo-assistant]
 verify_jwt = false
 
+[functions.verify-aadhaar]
+verify_jwt = true
+
