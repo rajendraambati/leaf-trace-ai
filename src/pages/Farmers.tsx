@@ -33,11 +33,14 @@ export default function Farmers() {
     email: '',
     farm_size_acres: '',
     geo_latitude: '',
-    geo_longitude: ''
+    geo_longitude: '',
+    aadhaar_number: ''
   });
   const [documents, setDocuments] = useState<File[]>([]);
   const [biometricData, setBiometricData] = useState<any>(null);
   const [biometricCaptured, setBiometricCaptured] = useState(false);
+  const [aadhaarVerifying, setAadhaarVerifying] = useState(false);
+  const [aadhaarVerified, setAadhaarVerified] = useState(false);
 
   useEffect(() => {
     fetchFarmers();
@@ -119,6 +122,53 @@ export default function Farmers() {
     setDocuments(prev => prev.filter((_, i) => i !== index));
   };
 
+  const verifyAadhaar = async () => {
+    if (!formData.aadhaar_number || !formData.name) {
+      toast({
+        title: "Error",
+        description: "Aadhaar number and name are required for verification",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAadhaarVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-aadhaar', {
+        body: {
+          aadhaar_number: formData.aadhaar_number,
+          name: formData.name,
+          phone: formData.phone
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.valid && data.verified) {
+        setAadhaarVerified(true);
+        toast({
+          title: "Success",
+          description: data.message,
+        });
+      } else {
+        setAadhaarVerified(false);
+        toast({
+          title: "Verification Failed",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Aadhaar verification failed",
+        variant: "destructive",
+      });
+    } finally {
+      setAadhaarVerifying(false);
+    }
+  };
+
   const uploadDocument = async (file: File, farmerId: string, index: number) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${farmerId}/document_${index}_${Date.now()}.${fileExt}`;
@@ -166,6 +216,9 @@ export default function Farmers() {
           farm_size_acres: formData.farm_size_acres ? parseFloat(formData.farm_size_acres) : null,
           geo_latitude: formData.geo_latitude ? parseFloat(formData.geo_latitude) : null,
           geo_longitude: formData.geo_longitude ? parseFloat(formData.geo_longitude) : null,
+          aadhaar_number: formData.aadhaar_number || null,
+          aadhaar_verified: aadhaarVerified,
+          aadhaar_verified_at: aadhaarVerified ? new Date().toISOString() : null,
           status: 'active'
         }])
         .select()
@@ -216,10 +269,11 @@ export default function Farmers() {
         description: "Farmer registered successfully with biometric data!",
       });
       setOpen(false);
-      setFormData({ name: '', location: '', phone: '', email: '', farm_size_acres: '', geo_latitude: '', geo_longitude: '' });
+      setFormData({ name: '', location: '', phone: '', email: '', farm_size_acres: '', geo_latitude: '', geo_longitude: '', aadhaar_number: '' });
       setDocuments([]);
       setBiometricData(null);
       setBiometricCaptured(false);
+      setAadhaarVerified(false);
       fetchFarmers();
     } catch (error: any) {
       toast({
@@ -325,6 +379,40 @@ export default function Farmers() {
                   value={formData.farm_size_acres}
                   onChange={(e) => setFormData({...formData, farm_size_acres: e.target.value})}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="aadhaar">Aadhaar Card Number</Label>
+                <Input 
+                  id="aadhaar" 
+                  type="text" 
+                  placeholder="XXXX XXXX XXXX"
+                  maxLength={12}
+                  value={formData.aadhaar_number}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setFormData({...formData, aadhaar_number: value});
+                    setAadhaarVerified(false);
+                  }}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={verifyAadhaar}
+                  disabled={!formData.aadhaar_number || !formData.name || aadhaarVerifying}
+                >
+                  {aadhaarVerifying ? "Verifying..." : "Verify Aadhaar"}
+                </Button>
+                {aadhaarVerified && (
+                  <div className="p-2 bg-success/10 rounded-md text-xs">
+                    <p className="font-medium text-success">✓ Aadhaar Verified</p>
+                    <p className="text-muted-foreground">
+                      Details matched successfully
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

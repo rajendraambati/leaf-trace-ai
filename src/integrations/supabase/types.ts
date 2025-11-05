@@ -2352,6 +2352,9 @@ export type Database = {
       }
       farmers: {
         Row: {
+          aadhaar_number: string | null
+          aadhaar_verified: boolean | null
+          aadhaar_verified_at: string | null
           created_at: string | null
           email: string | null
           farm_size_acres: number | null
@@ -2366,6 +2369,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          aadhaar_number?: string | null
+          aadhaar_verified?: boolean | null
+          aadhaar_verified_at?: string | null
           created_at?: string | null
           email?: string | null
           farm_size_acres?: number | null
@@ -2380,6 +2386,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          aadhaar_number?: string | null
+          aadhaar_verified?: boolean | null
+          aadhaar_verified_at?: string | null
           created_at?: string | null
           email?: string | null
           farm_size_acres?: number | null
