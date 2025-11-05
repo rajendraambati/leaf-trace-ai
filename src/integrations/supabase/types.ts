@@ -14,6 +14,151 @@ export type Database = {
   }
   public: {
     Tables: {
+      aadhaar_verification_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+          verification_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          verification_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          verification_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aadhaar_verification_logs_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "aadhaar_verifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aadhaar_verifications: {
+        Row: {
+          aadhaar_document_path: string
+          aadhaar_number_confidence: number | null
+          aadhaar_number_extracted: string | null
+          aadhaar_number_status: string | null
+          address_extracted: string | null
+          created_at: string | null
+          dob_extracted: string | null
+          farmer_id: string | null
+          flagged_for_review: boolean | null
+          gender_extracted: string | null
+          id: string
+          location_confidence: number | null
+          location_extracted: string | null
+          location_status: string | null
+          name_confidence: number | null
+          name_extracted: string | null
+          name_status: string | null
+          overall_confidence: number | null
+          phone_confidence: number | null
+          phone_status: string | null
+          raw_ocr_text: string | null
+          remarks: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          updated_at: string | null
+          user_id: string | null
+          verification_id: string | null
+          verification_status: string
+        }
+        Insert: {
+          aadhaar_document_path: string
+          aadhaar_number_confidence?: number | null
+          aadhaar_number_extracted?: string | null
+          aadhaar_number_status?: string | null
+          address_extracted?: string | null
+          created_at?: string | null
+          dob_extracted?: string | null
+          farmer_id?: string | null
+          flagged_for_review?: boolean | null
+          gender_extracted?: string | null
+          id?: string
+          location_confidence?: number | null
+          location_extracted?: string | null
+          location_status?: string | null
+          name_confidence?: number | null
+          name_extracted?: string | null
+          name_status?: string | null
+          overall_confidence?: number | null
+          phone_confidence?: number | null
+          phone_status?: string | null
+          raw_ocr_text?: string | null
+          remarks?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_id?: string | null
+          verification_status: string
+        }
+        Update: {
+          aadhaar_document_path?: string
+          aadhaar_number_confidence?: number | null
+          aadhaar_number_extracted?: string | null
+          aadhaar_number_status?: string | null
+          address_extracted?: string | null
+          created_at?: string | null
+          dob_extracted?: string | null
+          farmer_id?: string | null
+          flagged_for_review?: boolean | null
+          gender_extracted?: string | null
+          id?: string
+          location_confidence?: number | null
+          location_extracted?: string | null
+          location_status?: string | null
+          name_confidence?: number | null
+          name_extracted?: string | null
+          name_status?: string | null
+          overall_confidence?: number | null
+          phone_confidence?: number | null
+          phone_status?: string | null
+          raw_ocr_text?: string | null
+          remarks?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_id?: string | null
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aadhaar_verifications_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       aggregation_relationships: {
         Row: {
           aggregated_by: string | null
@@ -2352,6 +2497,8 @@ export type Database = {
       }
       farmers: {
         Row: {
+          aadhaar_document_path: string | null
+          aadhaar_hash: string | null
           aadhaar_number: string | null
           aadhaar_verified: boolean | null
           aadhaar_verified_at: string | null
@@ -2367,8 +2514,11 @@ export type Database = {
           status: string | null
           updated_at: string | null
           user_id: string | null
+          verification_id: string | null
         }
         Insert: {
+          aadhaar_document_path?: string | null
+          aadhaar_hash?: string | null
           aadhaar_number?: string | null
           aadhaar_verified?: boolean | null
           aadhaar_verified_at?: string | null
@@ -2384,8 +2534,11 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          verification_id?: string | null
         }
         Update: {
+          aadhaar_document_path?: string | null
+          aadhaar_hash?: string | null
           aadhaar_number?: string | null
           aadhaar_verified?: boolean | null
           aadhaar_verified_at?: string | null
@@ -2401,6 +2554,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          verification_id?: string | null
         }
         Relationships: []
       }
@@ -5202,6 +5356,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_aadhaar: { Args: { aadhaar_number: string }; Returns: string }
       refresh_vehicle_statistics: { Args: never; Returns: undefined }
     }
     Enums: {
