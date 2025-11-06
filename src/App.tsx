@@ -60,6 +60,7 @@ import BIReports from "./pages/BIReports";
 import APIDocumentation from "./pages/APIDocumentation";
 import APIManagement from "./pages/APIManagement";
 import DemoMode from "./pages/DemoMode";
+import AadhaarVerificationPage from "./pages/AadhaarVerification";
 import DemoOverlay from "./components/DemoOverlay";
 
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ const App = () => (
             <Route path="/admin/approvals" element={<ProtectedRoute><Layout><AdminApprovals /></Layout></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
             <Route path="/farmers" element={<ProtectedRoute><Layout><Farmers /></Layout></ProtectedRoute>} />
+            <Route path="/aadhaar-verification" element={<ProtectedRoute><Layout><AadhaarVerificationPage /></Layout></ProtectedRoute>} />
             <Route path="/procurement" element={<ProtectedRoute><Layout><Procurement /></Layout></ProtectedRoute>} />
             <Route path="/logistics" element={<ProtectedRoute><Layout><Logistics /></Layout></ProtectedRoute>} />
             <Route path="/logistics-journey" element={<ProtectedRoute><Layout><LogisticsJourney /></Layout></ProtectedRoute>} />
