@@ -18,37 +18,54 @@ const extractTextFromDocument = async (imageBase64: string): Promise<string> => 
   const HF_TOKEN = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
   
   if (!HF_TOKEN) {
+    console.error('HUGGING_FACE_ACCESS_TOKEN not configured');
     throw new Error('Hugging Face token not configured');
   }
 
-  // Convert base64 to blob
-  const imageData = imageBase64.includes('base64,') 
-    ? imageBase64.split('base64,')[1] 
-    : imageBase64;
-  
-  const imageBytes = Uint8Array.from(atob(imageData), c => c.charCodeAt(0));
+  console.log('Starting OCR processing...');
 
-  // Use Hugging Face's TrOCR model for document OCR
-  const response = await fetch(
-    'https://api-inference.huggingface.co/models/microsoft/trocr-large-printed',
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${HF_TOKEN}`,
-        'Content-Type': 'application/octet-stream',
-      },
-      body: imageBytes,
+  try {
+    // Convert base64 to blob
+    const imageData = imageBase64.includes('base64,') 
+      ? imageBase64.split('base64,')[1] 
+      : imageBase64;
+    
+    console.log('Image data length:', imageData.length);
+    const imageBytes = Uint8Array.from(atob(imageData), c => c.charCodeAt(0));
+    console.log('Image bytes length:', imageBytes.length);
+
+    // Use Hugging Face's document image understanding model
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/microsoft/trocr-base-printed',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${HF_TOKEN}`,
+          'Content-Type': 'application/octet-stream',
+        },
+        body: imageBytes,
+      }
+    );
+
+    console.log('OCR API response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Hugging Face OCR error:', response.status, errorText);
+      throw new Error(`OCR API error: ${response.status} - ${errorText}`);
     }
-  );
 
-  if (!response.ok) {
-    const error = await response.text();
-    console.error('Hugging Face OCR error:', error);
-    throw new Error('Failed to process document with OCR');
+    const result = await response.json();
+    console.log('OCR result:', JSON.stringify(result));
+    
+    const extractedText = result[0]?.generated_text || result.generated_text || '';
+    console.log('Extracted text:', extractedText);
+    
+    return extractedText;
+  } catch (error) {
+    console.error('OCR processing failed:', error);
+    throw error;
   }
-
-  const result = await response.json();
-  return result[0]?.generated_text || '';
 };
 
 // Verify Aadhaar number format and extract details from OCR text
@@ -90,10 +107,18 @@ const verifyAadhaar = async (
 
     } catch (error) {
       console.error('OCR processing error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown OCR error';
+      
+      // If OCR fails, still validate format but note the OCR failure
       return {
-        valid: false,
+        valid: true,
         verified: false,
-        message: "Failed to process Aadhaar document image"
+        name_match: false,
+        aadhaar_match: false,
+        phone_match: phone ? null : null,
+        ocr_text: '',
+        message: `Aadhaar format is valid, but OCR verification failed: ${errorMessage}. You can still proceed with manual verification.`,
+        error_details: errorMessage
       };
     }
 

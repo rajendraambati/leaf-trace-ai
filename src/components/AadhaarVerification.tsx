@@ -17,6 +17,7 @@ interface VerificationResult {
   phone_match?: boolean | null;
   ocr_text?: string;
   message: string;
+  error_details?: string;
 }
 
 export const AadhaarVerification = () => {
@@ -104,15 +105,16 @@ export const AadhaarVerification = () => {
       } else {
         toast({
           title: "Verification Failed",
-          description: data.message,
+          description: data.message || "Unable to verify Aadhaar details",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Verification error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       toast({
         title: "Verification Error",
-        description: "Failed to verify Aadhaar details",
+        description: `Failed to verify: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -232,8 +234,15 @@ export const AadhaarVerification = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Alert>
-              <AlertDescription>{verificationResult.message}</AlertDescription>
+            <Alert variant={verificationResult.verified ? "default" : "destructive"}>
+              <AlertDescription>
+                {verificationResult.message}
+                {verificationResult.error_details && (
+                  <div className="mt-2 text-xs opacity-80">
+                    Details: {verificationResult.error_details}
+                  </div>
+                )}
+              </AlertDescription>
             </Alert>
 
             <div className="grid grid-cols-2 gap-4">
