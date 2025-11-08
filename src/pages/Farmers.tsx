@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus, Search, MapPin, Phone, Mail, Map as MapIcon, Upload, FileText, X } from "lucide-react";
 import { BiometricCapture } from "@/components/BiometricCapture";
 import { MapView, Location } from "@/components/MapView";
+import { PhoneOTPVerification } from "@/components/PhoneOTPVerification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +43,8 @@ export default function Farmers() {
   const [biometricCaptured, setBiometricCaptured] = useState(false);
   const [aadhaarVerifying, setAadhaarVerifying] = useState(false);
   const [aadhaarVerified, setAadhaarVerified] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [verifiedPhone, setVerifiedPhone] = useState('');
 
   useEffect(() => {
     fetchFarmers();
@@ -199,6 +203,15 @@ export default function Farmers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!phoneVerified) {
+      toast({
+        title: "Phone Verification Required",
+        description: "Please verify your phone number before registering",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (submitting) return; // Prevent double submission
     setSubmitting(true);
     
@@ -211,7 +224,7 @@ export default function Farmers() {
           id: farmerId,
           name: formData.name,
           location: formData.location,
-          phone: formData.phone || null,
+          phone: verifiedPhone,
           email: formData.email || null,
           farm_size_acres: formData.farm_size_acres ? parseFloat(formData.farm_size_acres) : null,
           geo_latitude: formData.geo_latitude ? parseFloat(formData.geo_latitude) : null,
@@ -274,6 +287,8 @@ export default function Farmers() {
       setBiometricData(null);
       setBiometricCaptured(false);
       setAadhaarVerified(false);
+      setPhoneVerified(false);
+      setVerifiedPhone('');
       fetchFarmers();
     } catch (error: any) {
       toast({
@@ -326,11 +341,27 @@ export default function Farmers() {
                 Register Farmer
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Register New Farmer</DialogTitle>
+              <DialogDescription>
+                Complete phone verification and fill in farmer details
+              </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+            <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+              
+              {/* Step 1: Phone Number Verification */}
+              <PhoneOTPVerification
+                onVerificationSuccess={(phone) => {
+                  setPhoneVerified(true);
+                  setVerifiedPhone(phone);
+                }}
+                initialPhone={formData.phone}
+              />
+
+              {/* Only show rest of form after phone verification */}
+              {phoneVerified && (
+                <div className="space-y-4 border-t pt-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input 
@@ -352,12 +383,12 @@ export default function Farmers() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">Phone Number (Verified)</Label>
                 <Input 
                   id="phone" 
-                  placeholder="+1 (555) 000-0000"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  value={verifiedPhone}
+                  disabled
+                  className="bg-muted"
                 />
               </div>
               <div className="space-y-2">
@@ -492,9 +523,11 @@ export default function Farmers() {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button type="submit" className="w-full" disabled={submitting || !phoneVerified}>
                 {submitting ? "Registering..." : "Register Farmer"}
               </Button>
+                </div>
+              )}
             </form>
           </DialogContent>
         </Dialog>

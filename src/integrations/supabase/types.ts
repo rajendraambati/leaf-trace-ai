@@ -3344,6 +3344,39 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_otp_verifications: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          last_attempt_at: string | null
+          otp_hash: string
+          phone_number: string
+          verified: boolean | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          last_attempt_at?: string | null
+          otp_hash: string
+          phone_number: string
+          verified?: boolean | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          otp_hash?: string
+          phone_number?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       predictive_alerts: {
         Row: {
           acknowledged_at: string | null
@@ -5341,6 +5374,7 @@ export type Database = {
         Args: { _admin_id: string; _notes?: string; _registration_id: string }
         Returns: Json
       }
+      cleanup_expired_otps: { Args: never; Returns: undefined }
       decline_registration: {
         Args: { _admin_id: string; _notes: string; _registration_id: string }
         Returns: Json
